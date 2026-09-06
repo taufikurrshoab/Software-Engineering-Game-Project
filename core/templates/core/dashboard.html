@@ -1,39 +1,216 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard | GameForge{% endblock %}
 
 {% block content %}
+
 <section class="page-shell">
+
     <div class="section-heading">
-        <p class="eyebrow">Player dashboard</p>
-        <h1>Welcome, {{ user.username }}</h1>
-        <p class="muted">This area is protected by login and ready for your future game apps.</p>
+
+        <p class="eyebrow">
+            Player dashboard
+        </p>
+
+        <h1>
+            Welcome, {{ user.username }}
+        </h1>
+
+        <p class="muted">
+            Explore your games and challenge your mind.
+        </p>
+
     </div>
+
 
     <div class="dashboard-grid">
-        <section class="panel">
-            <h2>Your game library</h2>
-            <div class="game-list">
-                {% for game in games %}
-                    <div class="list-row">
-                        <span>{{ game.title }}</span>
-                        <small>{{ game.status }}</small>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
+
+        <!-- =========================
+             Game Library
+             ========================= -->
 
         <section class="panel">
-            <h2>Account</h2>
-            <div class="stat-row">
-                <span>Username</span>
-                <strong>{{ user.username }}</strong>
+
+            <h2>
+                Your game library
+            </h2>
+
+
+            <div class="game-list">
+
+                <!-- =========================
+                     Tic Tac Toe
+                     ========================= -->
+
+                <div class="gameforge-card">
+
+                    <!-- Game Image -->
+                    <div class="gameforge-icon">
+
+                        <img
+                            src="{% static 'tic_tac_toe/ttt.png' %}"
+                            alt="Tic Tac Toe"
+                        >
+
+                    </div>
+
+
+                    <!-- Game Information -->
+                    <div class="gameforge-info">
+
+                        <div class="gameforge-title-row">
+
+                            <h3>
+                                Tic Tac Toe
+                            </h3>
+
+                            <span class="game-status">
+                                Available
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            Challenge the computer and test your strategy
+                            across three difficulty levels.
+                        </p>
+
+
+                        <div class="game-meta">
+
+                            <span>Easy</span>
+                            <span>Medium</span>
+                            <span>Hard</span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Play Button -->
+                    <div class="gameforge-action">
+
+                        <a
+                            href="{% url 'tic_tac_toe' %}"
+                            class="button"
+                        >
+                            Play Now →
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================
+                     8 Puzzle
+                     ========================= -->
+
+                <div class="list-row">
+
+                    <div>
+
+                        <strong>
+                            8 Puzzle
+                        </strong>
+
+                        <small class="game-description">
+                            A classic puzzle game for your mind.
+                        </small>
+
+                    </div>
+
+                    <small>
+                        Coming soon
+                    </small>
+
+                </div>
+
+
+                <!-- =========================
+                     Maze Solver
+                     ========================= -->
+
+                <div class="list-row">
+
+                    <div>
+
+                        <strong>
+                            Maze Solver
+                        </strong>
+
+                        <small class="game-description">
+                            Find your way through challenging mazes.
+                        </small>
+
+                    </div>
+
+                    <small>
+                        Coming soon
+                    </small>
+
+                </div>
+
             </div>
-            <div class="stat-row">
-                <span>Status</span>
-                <strong>Active</strong>
-            </div>
+
         </section>
+
+
+        <!-- =========================
+             Account
+             ========================= -->
+
+        <section class="panel">
+
+            <h2>
+                Account
+            </h2>
+
+
+            <div class="stat-row">
+
+                <span>
+                    Username
+                </span>
+
+                <strong>
+                    {{ user.username }}
+                </strong>
+
+            </div>
+
+
+            <div class="stat-row">
+
+                <span>
+                    Status
+                </span>
+
+                <strong>
+                    Active
+                </strong>
+
+            </div>
+
+
+            <div class="stat-row">
+
+                <span>
+                    Games available
+                </span>
+
+                <strong>
+                    1
+                </strong>
+
+            </div>
+
+        </section>
+
     </div>
+
 </section>
+
 {% endblock %}

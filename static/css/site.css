@@ -2,15 +2,19 @@
     --bg: #0d1117;
     --surface: #151b23;
     --surface-2: #1d2632;
-    --text: #f4f7fb;
-    --muted: #9ba8ba;
-    --line: #2c3949;
-    --accent: #27d6a3;
-    --accent-2: #ffcf5a;
-    --danger: #ff6b6b;
+
+    --text: #F7F8FA;
+    --muted: #B8C0CC;
+    --line: #303B49;
+
+    /* Main Theme */
+    --accent: #4F7CAC;
+    --accent-2: #F4F1EA;
+
+    --danger: #FF6B6B;
+
     --shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
 }
-
 * {
     box-sizing: border-box;
 }
@@ -420,5 +424,637 @@ p {
 
     .auth-card {
         padding: 24px;
+    }
+}
+/* =========================
+   Dashboard Game Card
+   ========================= */
+
+.gameforge-card {
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    align-items: center;
+    gap: 22px;
+
+    padding: 18px;
+
+    border: 1px solid var(--line);
+    border-radius: 14px;
+
+    background: var(--surface);
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.gameforge-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    background: var(--surface-2);
+}
+
+
+/* Game Image */
+
+.gameforge-icon {
+    width: 110px;
+    height: 110px;
+
+    border-radius: 12px;
+    overflow: hidden;
+
+    background: #000;
+
+    border: 1px solid var(--line);
+
+    flex-shrink: 0;
+}
+
+.gameforge-icon img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+}
+
+
+/* Game Information */
+
+.gameforge-info {
+    min-width: 0;
+}
+
+.gameforge-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 7px;
+}
+
+.gameforge-title-row h3 {
+    margin: 0;
+
+    color: var(--text);
+
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.gameforge-info > p {
+    margin: 0;
+
+    max-width: 560px;
+
+    color: var(--muted);
+
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+
+/* Available */
+
+.game-status {
+    padding: 4px 8px;
+
+    border: 1px solid var(--line);
+    border-radius: 999px;
+
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+
+/* Difficulty */
+
+.game-meta {
+    display: flex;
+    gap: 7px;
+
+    margin-top: 13px;
+}
+
+.game-meta span {
+    padding: 5px 9px;
+
+    border: 1px solid var(--line);
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.025);
+
+    color: var(--muted);
+
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+
+/* Play Button */
+
+.gameforge-action {
+    flex-shrink: 0;
+}
+
+.gameforge-action .button {
+    white-space: nowrap;
+}
+
+
+/* Dashboard Responsive */
+
+@media (max-width: 780px) {
+
+    .gameforge-card {
+        grid-template-columns: 90px 1fr;
+        gap: 16px;
+    }
+
+    .gameforge-icon {
+        width: 90px;
+        height: 90px;
+    }
+
+    .gameforge-action {
+        grid-column: 1 / -1;
+    }
+
+    .gameforge-action .button {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .gameforge-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .gameforge-icon {
+        margin: 0 auto;
+    }
+
+    .gameforge-title-row {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .game-meta {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+/* =========================
+   Tic Tac Toe
+   ========================= */
+
+.ttt-page {
+    width: min(1000px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 48px 0 80px;
+}
+
+.ttt-heading {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.ttt-heading h1 {
+    margin-bottom: 10px;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+}
+
+.ttt-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.ttt-game-card {
+    padding: 28px;
+}
+
+.ttt-status {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.ttt-status p {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text);
+}
+
+
+/* Difficulty */
+
+.ttt-difficulty {
+    margin-bottom: 24px;
+}
+
+.ttt-difficulty label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.ttt-difficulty select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    outline: none;
+}
+
+.ttt-difficulty select:focus {
+    border-color: var(--accent);
+}
+
+
+/* Board */
+
+.ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.ttt-board .cell {
+    aspect-ratio: 1;
+    min-height: 90px;
+
+    border: 1px solid var(--line);
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--text);
+
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.ttt-board .cell:hover {
+    transform: translateY(-2px);
+
+    background: rgba(255, 255, 255, 0.09);
+
+    border-color: var(--accent);
+}
+
+.ttt-board .cell:disabled {
+    cursor: default;
+}
+
+
+/* Scoreboard */
+
+.ttt-score-card {
+    padding: 26px;
+}
+
+.ttt-score-card h2 {
+    margin-bottom: 22px;
+}
+
+.ttt-score-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.ttt-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px;
+
+    border: 1px solid var(--line);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.ttt-stat span {
+    color: var(--muted);
+
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.ttt-stat strong {
+    color: var(--text);
+
+    font-size: 1.5rem;
+}
+
+.ttt-info {
+    margin-top: 24px;
+    padding-top: 18px;
+
+    border-top: 1px solid var(--line);
+}
+
+.ttt-info p {
+    margin-bottom: 8px;
+    color: var(--muted);
+}
+
+.ttt-info strong {
+    color: var(--text);
+}
+
+
+/* Mobile */
+
+@media (max-width: 780px) {
+
+    .ttt-page {
+        padding-top: 32px;
+    }
+
+    .ttt-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ttt-game-card {
+        padding: 22px;
+    }
+
+    .ttt-board {
+        gap: 9px;
+    }
+
+    .ttt-board .cell {
+        min-height: 75px;
+    }
+}
+/* =========================
+   Homepage Game Grid
+   ========================= */
+
+.home-game-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 20px;
+
+    margin-top: 28px;
+}
+
+
+/* =========================
+   Game Card
+   ========================= */
+
+.home-game-card {
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    min-height: 430px;
+
+    border: 1px solid var(--line);
+    border-radius: 12px;
+
+    background: rgba(21, 27, 35, 0.92);
+
+    box-shadow: var(--shadow);
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.home-game-card:hover {
+    transform: translateY(-3px);
+
+    border-color: var(--accent);
+
+    background: var(--surface-2);
+}
+
+
+/* =========================
+   Game Image
+   ========================= */
+
+.home-game-image {
+    width: 100%;
+    height: 220px;
+
+    overflow: hidden;
+
+    background: #000;
+
+    border-bottom: 1px solid var(--line);
+}
+
+.home-game-image img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+
+    transition: transform 0.3s ease;
+}
+
+.home-game-card:hover .home-game-image img {
+    transform: scale(1.03);
+}
+
+
+/* =========================
+   Future Game Image
+   ========================= */
+
+.future-image {
+    display: grid;
+    place-items: center;
+
+    background:
+        linear-gradient(
+            145deg,
+            var(--surface-2),
+            var(--bg)
+        );
+}
+
+.future-game-symbol {
+    display: grid;
+    place-items: center;
+
+    width: 82px;
+    height: 82px;
+
+    border: 1px solid var(--line);
+    border-radius: 16px;
+
+    color: var(--muted);
+
+    font-size: 2.4rem;
+    font-weight: 900;
+
+    background: rgba(255, 255, 255, 0.035);
+}
+
+
+/* =========================
+   Game Content
+   ========================= */
+
+.home-game-content {
+    flex: 1;
+
+    padding: 22px;
+}
+
+.home-game-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 10px;
+}
+
+.home-game-title h3 {
+    margin: 0;
+
+    color: var(--text);
+
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.home-game-content p {
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: 0.9rem;
+
+    line-height: 1.55;
+}
+
+
+/* =========================
+   Status
+   ========================= */
+
+.home-game-status {
+    flex-shrink: 0;
+
+    padding: 5px 9px;
+
+    border: 1px solid var(--line);
+    border-radius: 999px;
+
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+
+/* =========================
+   Difficulty
+   ========================= */
+
+.home-game-meta {
+    display: flex;
+
+    gap: 7px;
+
+    margin-top: 16px;
+}
+
+.home-game-meta span {
+    padding: 5px 9px;
+
+    border: 1px solid var(--line);
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.025);
+
+    color: var(--muted);
+
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+
+/* =========================
+   Action
+   ========================= */
+
+.home-game-action {
+    padding: 0 22px 22px;
+}
+
+.home-game-action .button {
+    width: 100%;
+}
+
+.home-game-action .button:disabled {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 900px) {
+
+    .home-game-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .home-game-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-game-image {
+        height: 210px;
     }
 }
