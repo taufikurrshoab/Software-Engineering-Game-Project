@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign up | GameForge{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <form class="auth-card" method="post">
+        {% csrf_token %}
+        <p class="eyebrow">Join the platform</p>
+        <h1>Create account</h1>
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for field in form %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+                <small class="help-text">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+                <div class="field-errors">{{ field.errors }}</div>
+            {% endif %}
+        {% endfor %}
+
+        <button class="button full" type="submit">Create account</button>
+        <p class="auth-note">Already registered? <a href="{% url 'login' %}">Log in</a>.</p>
+    </form>
+</section>
+{% endblock %}

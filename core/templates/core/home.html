@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}GameForge | Django Game Platform{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Django game platform</p>
+        <h1>GameForge</h1>
+        <p class="lead">
+            A clean foundation for one platform that can hold many Django-powered games,
+            player accounts, dashboards, and future score systems.
+        </p>
+        <div class="hero-actions">
+            {% if user.is_authenticated %}
+                <a class="button" href="{% url 'dashboard' %}">Open dashboard</a>
+            {% else %}
+                <a class="button" href="{% url 'signup' %}">Create account</a>
+                <a class="button secondary" href="{% url 'login' %}">Log in</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="game-preview" aria-hidden="true">
+        <div class="preview-screen">
+            <span></span>
+            <span></span>
+            <span></span>
+            <strong>GG</strong>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-heading">
+        <p class="eyebrow">Future library</p>
+        <h2>Game slots are ready</h2>
+    </div>
+    <div class="game-grid">
+        {% for game in games %}
+            <article class="game-card">
+                <p class="tag">{{ game.status }}</p>
+                <h3>{{ game.title }}</h3>
+                <p>{{ game.description }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

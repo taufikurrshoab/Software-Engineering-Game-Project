@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | GameForge{% endblock %}
+
+{% block content %}
+<section class="page-shell">
+    <div class="section-heading">
+        <p class="eyebrow">Player dashboard</p>
+        <h1>Welcome, {{ user.username }}</h1>
+        <p class="muted">This area is protected by login and ready for your future game apps.</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <section class="panel">
+            <h2>Your game library</h2>
+            <div class="game-list">
+                {% for game in games %}
+                    <div class="list-row">
+                        <span>{{ game.title }}</span>
+                        <small>{{ game.status }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Account</h2>
+            <div class="stat-row">
+                <span>Username</span>
+                <strong>{{ user.username }}</strong>
+            </div>
+            <div class="stat-row">
+                <span>Status</span>
+                <strong>Active</strong>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}
