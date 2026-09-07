@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tic Tac Toe | GameForge{% endblock %}
+
+{% block content %}
+
+<section class="ttt-page">
+
+    <div class="section-heading ttt-heading">
+
+        <p class="eyebrow">
+            GameForge • Mind Games
+        </p>
+
+        <h1>
+            Tic Tac Toe
+        </h1>
+
+        <p class="muted">
+            Challenge the computer and test your strategy.
+        </p>
+
+    </div>
+
+
+    <div class="ttt-layout">
+
+        <!-- Game -->
+        <div class="panel ttt-game-card">
+
+            <div class="ttt-status">
+                <p id="status">
+                    Your Turn (X)
+                </p>
+            </div>
+
+
+            <!-- Difficulty -->
+            <div class="ttt-difficulty">
+
+                <label for="diff">
+                    Difficulty
+                </label>
+
+                <select id="diff">
+
+                    <option value="easy">
+                        Easy
+                    </option>
+
+                    <option value="medium" selected>
+                        Medium
+                    </option>
+
+                    <option value="hard">
+                        Hard
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Board -->
+            <div class="ttt-board">
+
+                <button data-index="0" class="cell"></button>
+                <button data-index="1" class="cell"></button>
+                <button data-index="2" class="cell"></button>
+
+                <button data-index="3" class="cell"></button>
+                <button data-index="4" class="cell"></button>
+                <button data-index="5" class="cell"></button>
+
+                <button data-index="6" class="cell"></button>
+                <button data-index="7" class="cell"></button>
+                <button data-index="8" class="cell"></button>
+
+            </div>
+
+
+            <!-- Restart -->
+            <button
+                id="restart-btn"
+                class="button full"
+            >
+                Restart Game
+            </button>
+
+        </div>
+
+
+        <!-- Scoreboard -->
+        <div class="panel ttt-score-card">
+
+            <p class="eyebrow">
+                Match Stats
+            </p>
+
+            <h2>
+                Scoreboard
+            </h2>
+
+
+            <div class="ttt-score-grid">
+
+                <div class="ttt-stat">
+                    <span>Player</span>
+                    <strong id="player-score">0</strong>
+                </div>
+
+                <div class="ttt-stat">
+                    <span>AI</span>
+                    <strong id="ai-score">0</strong>
+                </div>
+
+                <div class="ttt-stat">
+                    <span>Draw</span>
+                    <strong id="draw-score">0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="ttt-info">
+
+                <p>
+                    <strong>You</strong> → X
+                </p>
+
+                <p>
+                    <strong>Computer</strong> → O
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<script src="{% static 'tic_tac_toe/app.js' %}"></script>
+
+{% endblock %}
