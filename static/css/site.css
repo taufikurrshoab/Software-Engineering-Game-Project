@@ -182,16 +182,37 @@ p {
 
 .preview-screen {
     position: relative;
+
     width: min(100%, 470px);
     aspect-ratio: 1 / 0.86;
+
     overflow: hidden;
+
     border: 1px solid var(--line);
     border-radius: 8px;
+
     background:
-        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(145deg, #13231f, #251c12);
-    background-size: 42px 42px, 42px 42px, auto;
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            rgba(255, 255, 255, 0.08) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            135deg,
+            #555b63,
+            #292e35 45%,
+            #101318 100%
+        );
+
+    background-size:
+        42px 42px,
+        42px 42px,
+        auto;
+
     box-shadow: var(--shadow);
 }
 
