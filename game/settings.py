@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tic_tac_toe',
+    'dots_and_boxes',
      'puzzle8',
 ]
 
