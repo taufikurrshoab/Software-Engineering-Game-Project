@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Mind Arena | Game Platform{% endblock %}
+{% block title %}
+    Mind Arena | Game Platform
+{% endblock %}
 
 {% block content %}
 
@@ -18,7 +20,8 @@
         </h1>
 
         <p class="lead">
-           Challenge your mind, test your strategy, and play your way through every game.
+            Challenge your mind, test your strategy,
+            and play your way through every game.
         </p>
 
         <div class="hero-actions">
@@ -74,8 +77,6 @@
 </section>
 
 
-
-
 <section class="section">
 
     <div class="section-heading">
@@ -98,7 +99,9 @@
     <div class="home-game-grid">
 
 
-        
+        <!-- =====================================================
+             TIC TAC TOE
+        ====================================================== -->
 
         <article class="home-game-card">
 
@@ -159,35 +162,71 @@
 
 
 
-
-        <article class="home-game-card">
-
-            <div class="home-game-image future-image">
-                <div class="future-game-symbol">⬛</div>
-            </div>
-
-            <div class="home-game-content">
-                <div class="home-game-title">
-                    <h3>Dots and Boxes</h3>
-                    <span class="home-game-status">Available</span>
-                </div>
-                <p>Draw lines, claim boxes, and outmaneuver a heuristic AI.</p>
-            </div>
-
-            <div class="home-game-action">
-                <a href="{% url 'dots_and_boxes' %}" class="button full">Play Now →</a>
-            </div>
-
-        </article>
-        
+        <!-- =====================================================
+             DOTS AND BOXES
+        ====================================================== -->
 
         <article class="home-game-card">
 
             <div class="home-game-image future-image">
 
                 <div class="future-game-symbol">
-                    8
+                    ⬛
                 </div>
+
+            </div>
+
+
+            <div class="home-game-content">
+
+                <div class="home-game-title">
+
+                    <h3>
+                        Dots and Boxes
+                    </h3>
+
+                    <span class="home-game-status">
+                        Available
+                    </span>
+
+                </div>
+
+
+                <p>
+                    Draw lines, claim boxes, and outmaneuver
+                    a heuristic AI.
+                </p>
+
+            </div>
+
+
+            <div class="home-game-action">
+
+                <a
+                    href="{% url 'dots_and_boxes' %}"
+                    class="button full"
+                >
+                    Play Now →
+                </a>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================================
+             8 PUZZLE
+        ====================================================== -->
+
+        <article class="home-game-card">
+
+            <div class="home-game-image">
+
+                <img
+                    src="{% static 'img/8puzzle.png' %}"
+                    alt="8 Puzzle"
+                >
 
             </div>
 
@@ -201,28 +240,37 @@
                     </h3>
 
                     <span class="home-game-status">
-                        Coming soon
+                        Available
                     </span>
 
                 </div>
 
 
                 <p>
-                    A classic sliding puzzle game designed
-                    to challenge your mind.
+                    Slide the tiles, solve the puzzle,
+                    and understand A* Search step by step.
                 </p>
+
+
+                <div class="home-game-meta">
+
+                    <span>A* Search</span>
+                    <span>Logic</span>
+                    <span>Problem Solving</span>
+
+                </div>
 
             </div>
 
 
             <div class="home-game-action">
 
-                <button
+                <a
+                    href="{% url 'puzzle8' %}"
                     class="button full"
-                    disabled
                 >
-                    Coming Soon
-                </button>
+                    Play Now →
+                </a>
 
             </div>
 
@@ -230,7 +278,9 @@
 
 
 
-      
+        <!-- =====================================================
+             MAZE SOLVER
+        ====================================================== -->
 
         <article class="home-game-card">
 
@@ -278,6 +328,7 @@
             </div>
 
         </article>
+
 
     </div>
 

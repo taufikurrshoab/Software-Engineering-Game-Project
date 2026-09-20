@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard | Mind Arena{% endblock %}
+{% block title %}
+    Dashboard | Mind Arena
+{% endblock %}
 
 {% block content %}
 
@@ -26,7 +28,10 @@
 
     <div class="dashboard-grid">
 
-        
+
+        <!-- =====================================================
+             GAME LIBRARY
+        ====================================================== -->
 
         <section class="panel">
 
@@ -37,11 +42,16 @@
 
             <div class="game-list">
 
-                
+
+                <!-- =================================================
+                     TIC TAC TOE
+                ================================================== -->
 
                 <div class="gameforge-card">
 
+
                     <!-- Game Image -->
+
                     <div class="gameforge-icon">
 
                         <img
@@ -53,6 +63,7 @@
 
 
                     <!-- Game Information -->
+
                     <div class="gameforge-info">
 
                         <div class="gameforge-title-row">
@@ -86,6 +97,7 @@
 
 
                     <!-- Play Button -->
+
                     <div class="gameforge-action">
 
                         <a
@@ -101,15 +113,24 @@
 
 
 
+                <!-- =================================================
+                     DOTS AND BOXES
+                ================================================== -->
+
                 <div class="gameforge-card">
 
+
                     <!-- Game Image -->
+
                     <div class="gameforge-icon symbol-icon">
+
                         ⬛
+
                     </div>
 
 
                     <!-- Game Information -->
+
                     <div class="gameforge-info">
 
                         <div class="gameforge-title-row">
@@ -134,6 +155,7 @@
 
 
                     <!-- Play Button -->
+
                     <div class="gameforge-action">
 
                         <a
@@ -146,30 +168,82 @@
                     </div>
 
                 </div>
-                
 
-                <div class="list-row">
 
-                    <div>
 
-                        <strong>
-                            8 Puzzle
-                        </strong>
+                <!-- =================================================
+                     8 PUZZLE
+                ================================================== -->
 
-                        <small class="game-description">
-                            A classic puzzle game for your mind.
-                        </small>
+                <div class="gameforge-card">
+
+
+                    <!-- Game Image -->
+
+                    <div class="gameforge-icon">
+
+                        <img
+                            src="{% static 'img/8puzzle.png' %}"
+                            alt="8 Puzzle"
+                        >
 
                     </div>
 
-                    <small>
-                        Coming soon
-                    </small>
+
+                    <!-- Game Information -->
+
+                    <div class="gameforge-info">
+
+                        <div class="gameforge-title-row">
+
+                            <h3>
+                                8 Puzzle
+                            </h3>
+
+                            <span class="game-status">
+                                Available
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            Slide the tiles, solve the puzzle,
+                            and understand A* Search step by step.
+                        </p>
+
+
+                        <div class="game-meta">
+
+                            <span>A* Search</span>
+                            <span>Logic</span>
+                            <span>Problem Solving</span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Play Button -->
+
+                    <div class="gameforge-action">
+
+                        <a
+                            href="{% url 'puzzle8' %}"
+                            class="button"
+                        >
+                            Play Now →
+                        </a>
+
+                    </div>
 
                 </div>
 
 
-             
+
+                <!-- =================================================
+                     MAZE SOLVER
+                ================================================== -->
 
                 <div class="list-row">
 
@@ -191,12 +265,16 @@
 
                 </div>
 
+
             </div>
 
         </section>
 
 
-        
+
+        <!-- =====================================================
+             ACCOUNT
+        ====================================================== -->
 
         <section class="panel">
 
@@ -238,12 +316,13 @@
                 </span>
 
                 <strong>
-                    2
+                    3
                 </strong>
 
             </div>
 
         </section>
+
 
     </div>
 
