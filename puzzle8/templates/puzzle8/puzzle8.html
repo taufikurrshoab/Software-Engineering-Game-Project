@@ -1,0 +1,550 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}
+    8 Puzzle | Mind Arena
+{% endblock %}
+
+
+{% block content %}
+
+<section class="puzzle-page">
+
+    <!-- ================================================== -->
+    <!-- HEADER                                             -->
+    <!-- ================================================== -->
+
+    <div class="puzzle-header">
+
+        <div>
+
+            <p class="puzzle-eyebrow">
+                MIND ARENA • ALGORITHM GAME
+            </p>
+
+            <h1>
+                8 Puzzle
+            </h1>
+
+            <p class="puzzle-subtitle">
+                Solve the puzzle with A* Search and understand every move.
+            </p>
+
+        </div>
+
+
+        <div class="algorithm-badge">
+
+            <span class="badge-dot"></span>
+
+            A* SEARCH
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- MAIN GAME AREA                                     -->
+    <!-- ================================================== -->
+
+    <div class="puzzle-layout">
+
+
+        <!-- ============================================== -->
+        <!-- LEFT: PUZZLE BOARD                            -->
+        <!-- ============================================== -->
+
+        <div class="puzzle-card board-card">
+
+
+            <!-- ------------------------------------------ -->
+            <!-- CARD HEADER                                -->
+            <!-- ------------------------------------------ -->
+
+            <div class="card-top">
+
+                <div>
+
+                    <span class="card-label">
+                        PUZZLE BOARD
+                    </span>
+
+
+                    {% if mode == "input" %}
+
+                        <h2>
+                            Enter your puzzle
+                        </h2>
+
+                    {% elif mode == "play" %}
+
+                        <h2>
+                            Solution in progress
+                        </h2>
+
+                    {% elif mode == "solved" %}
+
+                        <h2>
+                            Puzzle solved
+                        </h2>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Show current move only during play -->
+
+                {% if mode == "play" %}
+
+                    <div class="step-indicator">
+
+                        NEXT:
+                        <strong>
+                            {{ current_move }}
+                        </strong>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- FORM                                       -->
+            <!-- ========================================== -->
+
+            <form
+                method="post"
+                id="puzzle-form"
+            >
+
+                {% csrf_token %}
+
+
+                <!-- ====================================== -->
+                <!-- PUZZLE BOARD                            -->
+                <!-- ====================================== -->
+
+                <div class="puzzle-board">
+
+
+                    {% if mode == "input" %}
+
+                        <!-- ================================== -->
+                        <!-- INPUT MODE                          -->
+                        <!-- ================================== -->
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell0"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 1"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell1"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 2"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell2"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 3"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell3"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 4"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell4"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 5"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell5"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 6"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell6"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 7"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell7"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 8"
+                        >
+
+                        <input
+                            class="puzzle-cell input-cell"
+                            type="number"
+                            name="cell8"
+                            min="0"
+                            max="8"
+                            inputmode="numeric"
+                            aria-label="Puzzle cell 9"
+                        >
+
+
+                    {% else %}
+
+                        <!-- ================================== -->
+                        <!-- PLAY / SOLVED MODE                 -->
+                        <!-- ================================== -->
+
+                        {% for row in board %}
+
+                            {% for value in row %}
+
+                                <div
+                                    class="puzzle-cell
+                                    {% if value == 0 %}
+                                        empty-cell
+                                    {% endif %}"
+                                >
+
+                                    {% if value != 0 %}
+                                        {{ value }}
+                                    {% endif %}
+
+                                </div>
+
+                            {% endfor %}
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- ========================================== -->
+                <!-- CURRENT MOVE                               -->
+                <!-- ========================================== -->
+
+                {% if mode == "play" %}
+
+                    <div class="move-panel">
+
+                        <span class="move-label">
+                            NEXT MOVE
+                        </span>
+
+                        <span class="move-value">
+                            {{ current_move }}
+                        </span>
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- ========================================== -->
+                <!-- MESSAGE                                    -->
+                <!-- ========================================== -->
+
+                {% if msg %}
+
+                    <div class="puzzle-message">
+
+                        {{ msg }}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- ========================================== -->
+                <!-- CONTROLS                                   -->
+                <!-- ========================================== -->
+
+                <div class="puzzle-controls">
+
+
+                    <!-- ====================================== -->
+                    <!-- INPUT MODE                              -->
+                    <!-- ====================================== -->
+
+                    {% if mode == "input" %}
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="solve"
+                            class="puzzle-button primary-button"
+                        >
+
+                            <span>✦</span>
+
+                            Solve with A*
+
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="reset"
+                            class="puzzle-button secondary-button"
+                        >
+
+                            Reset
+
+                        </button>
+
+
+                    <!-- ====================================== -->
+                    <!-- PLAY MODE                               -->
+                    <!-- ====================================== -->
+
+                    {% elif mode == "play" %}
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="next"
+                            class="puzzle-button primary-button"
+                        >
+
+                            Next Move
+
+                            <span>→</span>
+
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="reset"
+                            class="puzzle-button secondary-button"
+                        >
+
+                            Reset
+
+                        </button>
+
+
+                    <!-- ====================================== -->
+                    <!-- SOLVED MODE                             -->
+                    <!-- ====================================== -->
+
+                    {% elif mode == "solved" %}
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="reset"
+                            class="puzzle-button primary-button"
+                        >
+
+                            Try Another Puzzle
+
+                        </button>
+
+                    {% endif %}
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <!-- ============================================== -->
+        <!-- RIGHT: INFORMATION                            -->
+        <!-- ============================================== -->
+
+        <aside class="puzzle-card info-card">
+
+
+            <!-- ========================================== -->
+            <!-- HOW IT WORKS                              -->
+            <!-- ========================================== -->
+
+            <div class="info-section">
+
+                <span class="card-label">
+                    HOW IT WORKS
+                </span>
+
+
+                <div class="info-step">
+
+                    <span class="info-number">
+                        01
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Enter a board
+                        </h3>
+
+                        <p>
+                            Enter numbers from 0 to 8.
+                            Use 0 for the empty space.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-step">
+
+                    <span class="info-number">
+                        02
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Run A*
+                        </h3>
+
+                        <p>
+                            A* searches for a path from
+                            your board to the goal state.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-step">
+
+                    <span class="info-number">
+                        03
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Watch the solution
+                        </h3>
+
+                        <p>
+                            Follow the generated moves
+                            one step at a time.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- GOAL STATE                                 -->
+            <!-- ========================================== -->
+
+            <div class="goal-section">
+
+                <span class="card-label">
+                    GOAL STATE
+                </span>
+
+
+                <div class="mini-board">
+
+                    <div>1</div>
+                    <div>2</div>
+                    <div>3</div>
+
+                    <div>4</div>
+                    <div>5</div>
+                    <div>6</div>
+
+                    <div>7</div>
+                    <div>8</div>
+                    <div class="mini-empty"></div>
+
+                </div>
+
+
+                <p>
+                    Arrange the tiles to reach the goal state.
+                </p>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+<!-- ====================================================== -->
+<!-- PAGE-SPECIFIC CSS                                     -->
+<!-- ====================================================== -->
+
+{% block extra_css %}
+
+<link
+    rel="stylesheet"
+    href="{% static 'css/puzzle8.css' %}"
+>
+
+{% endblock %}
+
+
+<!-- ====================================================== -->
+<!-- PAGE-SPECIFIC JAVASCRIPT                              -->
+<!-- ====================================================== -->
+
+{% block extra_js %}
+
+<script
+    src="{% static 'js/puzzle8.js' %}"
+></script>
+
+{% endblock %}

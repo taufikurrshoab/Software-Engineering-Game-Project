@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tic_tac_toe',
+     'puzzle8',
 ]
 
 MIDDLEWARE = [
