@@ -7,4 +7,5 @@ urlpatterns = [
     path('', include('core.urls')),
     path('accounts/', include('accounts.urls')),
     path('games/tic-tac-toe/', include('tic_tac_toe.urls')),
+    path('games/dots-and-boxes/', include('dots_and_boxes.urls')),
 ]

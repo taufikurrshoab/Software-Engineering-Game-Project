@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dots and Boxes | Mind Arena{% endblock %}
+
+{% block content %}
+
+<section class="ttt-page">
+
+    <div class="section-heading ttt-heading">
+        <p class="eyebrow">Mind • Arena</p>
+        <h1>Dots and Boxes</h1>
+        <p class="muted">Draw a line, complete a box to score and go again, avoid setting up your opponent.</p>
+    </div>
+
+
+    <div class="ttt-layout">
+
+        <div class="panel ttt-game-card">
+
+            <div class="ttt-status">
+                <p id="status">Your turn — click a line to draw it</p>
+            </div>
+
+            <div class="dab-board" id="dab-board"></div>
+
+            <button id="restart-btn" class="button full">New Game</button>
+
+        </div>
+
+
+        <div class="panel ttt-score-card">
+
+            <p class="eyebrow">Match Stats</p>
+            <h2>Scoreboard</h2>
+
+            <div class="ttt-score-grid">
+                <div class="ttt-stat">
+                    <span>You</span>
+                    <strong id="player-score">0</strong>
+                </div>
+                <div class="ttt-stat">
+                    <span>AI</span>
+                    <strong id="ai-score">0</strong>
+                </div>
+            </div>
+
+            <div class="ttt-info">
+                <p>
+                    The AI takes free boxes when it can, otherwise avoids
+                    drawing the <strong>3rd side</strong> of any box.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<script src="{% static 'dots_and_boxes/app.js' %}"></script>
+
+{% endblock %}
