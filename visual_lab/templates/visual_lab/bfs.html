@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+BFS Visualizer | Visual Lab
+{% endblock %}
+
+
+{% block extra_css %}
+
+<link
+    rel="stylesheet"
+    href="{% static 'visual_lab/bfs.css' %}"
+>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<section class="visualizer-page">
+
+
+    <!-- ==============================
+         PAGE HEADER
+    =============================== -->
+
+    <div class="visualizer-header">
+
+        <p class="eyebrow">
+            Algorithm Visualization
+        </p>
+
+        <h1>
+            BFS Visualizer
+        </h1>
+
+        <p class="visualizer-description">
+            Create your own graph and visualize
+            Breadth-First Search step by step.
+        </p>
+
+    </div>
+
+
+
+    <!-- ==============================
+         MAIN BFS AREA
+    =============================== -->
+
+    <div class="bfs-layout">
+
+
+        <!-- =================================
+             LEFT SIDE
+        ================================== -->
+
+        <div class="bfs-left">
+
+
+            <!-- =========================
+                 GRAPH INPUT
+            ========================== -->
+
+            <div class="bfs-input-panel">
+
+                <div class="panel-title">
+
+                    <span class="panel-icon">
+                        +
+                    </span>
+
+                    <h2>
+                        Graph Input
+                    </h2>
+
+                </div>
+
+
+                <!-- Nodes -->
+
+                <div class="input-group">
+
+                    <label for="nodes">
+                        Nodes
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nodes"
+                        placeholder="A B C D E F"
+                        value="A B C D E F"
+                    >
+
+                    <small>
+                        Separate nodes with spaces
+                    </small>
+
+                </div>
+
+
+
+                <!-- Edges -->
+
+                <div class="input-group">
+
+                    <label for="edges">
+                        Edges
+                    </label>
+
+                    <textarea
+                        id="edges"
+                        rows="6"
+                        placeholder="A-B&#10;A-C&#10;B-D&#10;B-E&#10;C-F"
+                    >A-B
+A-C
+B-D
+B-E
+C-F</textarea>
+
+                    <small>
+                        Write one edge per line
+                    </small>
+
+                </div>
+
+
+
+                <!-- Start Node -->
+
+                <div class="input-group">
+
+                    <label for="start-node">
+                        Start Node
+                    </label>
+
+                    <input
+                        type="text"
+                        id="start-node"
+                        placeholder="A"
+                        value="A"
+                        maxlength="1"
+                    >
+
+                </div>
+
+
+
+                <!-- Generate -->
+
+                <button
+                    type="button"
+                    id="generate-btn"
+                    class="generate-btn"
+                >
+                    Generate Graph
+                </button>
+
+
+                <!-- Error -->
+
+                <p
+                    id="error-message"
+                    class="error-message"
+                ></p>
+
+            </div>
+
+
+
+            <!-- =================================
+                 BFS CONTROLS
+            ================================== -->
+
+            <div class="bfs-controls">
+
+                <button
+                    type="button"
+                    id="start-btn"
+                    class="start-btn"
+                >
+                    ▶ Start BFS
+                </button>
+
+
+                <button
+                    type="button"
+                    id="next-btn"
+                    class="next-btn"
+                >
+                    ▷ Next Step
+                </button>
+
+
+                <button
+                    type="button"
+                    id="reset-btn"
+                    class="reset-btn"
+                >
+                    ↻ Reset
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================
+                 BFS INFORMATION
+            ================================== -->
+
+            <div class="bfs-info">
+
+
+                <!-- Queue -->
+
+                <div class="info-card queue-card">
+
+                    <div class="info-header">
+
+                        <span class="info-icon queue-icon">
+                            Q
+                        </span>
+
+                        <h3>
+                            Queue
+                        </h3>
+
+                    </div>
+
+                    <div
+                        id="queue"
+                        class="info-value"
+                    >
+                        []
+                    </div>
+
+                </div>
+
+
+
+                <!-- Current Node -->
+
+                <div class="info-card current-card">
+
+                    <div class="info-header">
+
+                        <span class="info-icon current-icon">
+                            •
+                        </span>
+
+                        <h3>
+                            Current Node
+                        </h3>
+
+                    </div>
+
+                    <div
+                        id="current-node"
+                        class="info-value"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+
+                <!-- Visited -->
+
+                <div class="info-card visited-card">
+
+                    <div class="info-header">
+
+                        <span class="info-icon visited-icon">
+                            ✓
+                        </span>
+
+                        <h3>
+                            Visited
+                        </h3>
+
+                    </div>
+
+                    <div
+                        id="visited"
+                        class="info-value"
+                    >
+                        []
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================
+             RIGHT SIDE - GRAPH
+        ================================== -->
+
+        <div class="bfs-right">
+
+
+            <div class="graph-section">
+
+
+                <div class="graph-header">
+
+                    <div>
+
+                        <p class="graph-label">
+                            VISUALIZATION
+                        </p>
+
+                        <h2>
+                            Generated Graph
+                        </h2>
+
+                    </div>
+
+
+                    <div
+                        id="graph-status"
+                        class="graph-status"
+                    >
+                        Ready
+                    </div>
+
+                </div>
+
+
+
+                <!-- Graph -->
+
+                <div id="graph-container">
+
+                    <div class="graph-placeholder">
+
+                        <div class="placeholder-icon">
+                            ◎
+                        </div>
+
+                        <p>
+                            Your graph will appear here
+                        </p>
+
+                        <span>
+                            Enter nodes and edges, then
+                            click Generate Graph.
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script
+    src="{% static 'visual_lab/bfs.js' %}"
+></script>
+
+{% endblock %}

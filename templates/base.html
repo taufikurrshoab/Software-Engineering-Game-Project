@@ -1,112 +1,84 @@
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Student Platform{% endblock %}</title>
 
-    <title>{% block title %}Mind Arena{% endblock %}</title>
-
-    <!-- Main Site CSS -->
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
-
-    <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
 </head>
-
 <body>
 
+    <!-- Navbar -->
     <header class="site-header">
-        <nav class="nav">
+        <nav class="nav" aria-label="Main">
 
-            <!-- Brand -->
-            <a class="brand" href="{% url 'home' %}" aria-label="Mind Arena home">
-                <span class="brand-mark">M</span>
-                <span>Mind Arena</span>
+            <a href="/" class="brand">
+                <span class="brand-mark" aria-hidden="true">‹›</span>
+                <span class="brand-name">Student Platform</span>
             </a>
 
+            <!-- Mobile menu toggle (CSS only, no JavaScript) -->
+            <input type="checkbox" id="nav-toggle" class="nav-toggle">
+            <label for="nav-toggle" class="nav-toggle-btn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </label>
 
-            <!-- Navigation -->
-            <div class="nav-links">
+            <div class="nav-menu">
+                <ul class="nav-links">
+                    <li>
+                        <a href="/" class="nav-link{% if request.path == '/' %} is-active{% endif %}">Home</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'dashboard' %}" class="nav-link{% if request.path == '/dashboard/' %} is-active{% endif %}">Dashboard</a>
+                    </li>
+                    <li>
+                        {# TODO: replace this span with a link when the Academic page exists #}
+                        <span class="nav-link is-soon" aria-disabled="true">Academic <small>Soon</small></span>
+                    </li>
+                    <li>
+                        {# TODO: replace this span with a link when the Skills page exists #}
+                        <span class="nav-link is-soon" aria-disabled="true">Skills <small>Soon</small></span>
+                    </li>
+                    <li>
+                        <a href="{% url 'visual_lab:home' %}" class="nav-link{% if request.resolver_match.namespace == 'visual_lab' %} is-active{% endif %}">Visual Lab</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'mind_arena:home' %}" class="nav-link{% if request.resolver_match.namespace == 'mind_arena' %} is-active{% endif %}">Mind Arena</a>
+                    </li>
+                </ul>
 
-                <a href="{% url 'home' %}">
-                    Home
-                </a>
-
-
-                {% if user.is_authenticated %}
-
-                    <a href="{% url 'dashboard' %}">
-                        Dashboard
-                    </a>
-
-
-                    <!-- Logout -->
-                    <form
-                        class="logout-form"
-                        action="{% url 'logout' %}"
-                        method="post"
-                    >
-                        {% csrf_token %}
-
-                        <button type="submit">
-                            Log out
-                        </button>
-                    </form>
-
-
-                {% else %}
-
-                    <a href="{% url 'login' %}">
-                        Log in
-                    </a>
-
-                    <a
-                        class="button small"
-                        href="{% url 'signup' %}"
-                    >
-                        Sign up
-                    </a>
-
-                {% endif %}
-
+                <!-- Auth -->
+                <div class="nav-auth">
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-btn nav-btn--ghost">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="nav-btn nav-btn--ghost">Login</a>
+                        <a href="{% url 'signup' %}" class="nav-btn nav-btn--primary">Sign up</a>
+                    {% endif %}
+                </div>
             </div>
 
         </nav>
     </header>
 
-
-    <!-- Django Messages -->
     {% if messages %}
-
-        <div class="messages">
-
-            {% for message in messages %}
-
-                <p class="message {{ message.tags }}">
-                    {{ message }}
-                </p>
-
-            {% endfor %}
-
-        </div>
-
+    <div class="messages">
+        {% for message in messages %}
+            <p class="message">{{ message }}</p>
+        {% endfor %}
+    </div>
     {% endif %}
 
-
-    <!-- Main Page Content -->
     <main>
-
-        {% block content %}
-        {% endblock %}
-
+        {% block content %}{% endblock %}
     </main>
 
-
-    <!-- Page-specific JavaScript -->
     {% block extra_js %}{% endblock %}
-
 </body>
-
 </html>

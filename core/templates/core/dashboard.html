@@ -2,329 +2,745 @@
 {% load static %}
 
 {% block title %}
-    Dashboard | Mind Arena
+Dashboard | Student Platform
 {% endblock %}
+
+
+{% block extra_css %}
+
+<link
+    rel="stylesheet"
+    href="{% static 'css/dashboard.css' %}"
+>
+
+{% endblock %}
+
 
 {% block content %}
 
-<section class="page-shell">
+<section class="platform-dashboard">
 
-    <div class="section-heading">
 
-        <p class="eyebrow">
-            Player dashboard
-        </p>
+    <!-- =====================================================
+         WELCOME HEADER
+    ====================================================== -->
 
-        <h1>
-            Welcome, {{ user.username }}
-        </h1>
+    <div class="dashboard-welcome">
 
-        <p class="muted">
-            Explore your games and challenge your mind.
-        </p>
+        <div>
+
+            <p class="dashboard-label">
+                STUDENT DASHBOARD
+            </p>
+
+            <h1>
+                Welcome back, {{ user.username }}
+            </h1>
+
+            <p class="dashboard-subtitle">
+                Continue learning, practice your skills,
+                and explore interactive tools.
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-status">
+
+            <span class="status-dot"></span>
+
+            Ready to learn
+
+        </div>
 
     </div>
 
 
-    <div class="dashboard-grid">
+
+    <!-- =====================================================
+         OVERVIEW
+    ====================================================== -->
+
+    <div class="overview-grid">
 
 
-        <!-- =====================================================
-             GAME LIBRARY
-        ====================================================== -->
+        <!-- GAMES -->
 
-        <section class="panel">
+        <div class="overview-card overview-card-highlight">
+
+            <div class="overview-top">
+
+                <div class="overview-icon">
+                    🎮
+                </div>
+
+                <span class="overview-label">
+                    GAMES
+                </span>
+
+            </div>
+
 
             <h2>
-                Your game library
+                3 Games
             </h2>
 
-
-            <div class="game-list">
-
-
-                <!-- =================================================
-                     TIC TAC TOE
-                ================================================== -->
-
-                <div class="gameforge-card">
+            <p>
+                Play interactive games and improve
+                your problem-solving skills.
+            </p>
 
 
-                    <!-- Game Image -->
+            <a
+                href="{% url 'mind_arena:home' %}"
+                class="dashboard-link"
+            >
+                Explore Games →
+            </a>
 
-                    <div class="gameforge-icon">
-
-                        <img
-                            src="{% static 'tic_tac_toe/ttt.png' %}"
-                            alt="Tic Tac Toe"
-                        >
-
-                    </div>
+        </div>
 
 
-                    <!-- Game Information -->
 
-                    <div class="gameforge-info">
+        <!-- VISUALIZER -->
 
-                        <div class="gameforge-title-row">
+        <div class="overview-card">
 
-                            <h3>
-                                Tic Tac Toe
-                            </h3>
+            <div class="overview-top">
 
-                            <span class="game-status">
-                                Available
-                            </span>
+                <div class="overview-icon">
+                    ◈
+                </div>
 
-                        </div>
+                <span class="overview-label">
+                    VISUAL LAB
+                </span>
 
-
-                        <p>
-                            Challenge the computer and test your strategy
-                            across three difficulty levels.
-                        </p>
+            </div>
 
 
-                        <div class="game-meta">
+            <h2>
+                1 Visualizer
+            </h2>
 
-                            <span>Easy</span>
-                            <span>Medium</span>
-                            <span>Hard</span>
-
-                        </div>
-
-                    </div>
+            <p>
+                Understand algorithms through
+                interactive step-by-step visualization.
+            </p>
 
 
-                    <!-- Play Button -->
+            <a
+                href="{% url 'visual_lab:home' %}"
+                class="dashboard-link"
+            >
+                Explore Visual Lab →
+            </a>
 
-                    <div class="gameforge-action">
+        </div>
 
-                        <a
-                            href="{% url 'tic_tac_toe' %}"
-                            class="button"
-                        >
-                            Play Now →
-                        </a>
 
-                    </div>
+
+        <!-- PROGRESS -->
+
+        <div class="overview-card">
+
+            <div class="overview-top">
+
+                <div class="overview-icon">
+                    ⚡
+                </div>
+
+                <span class="overview-label">
+                    PROGRESS
+                </span>
+
+            </div>
+
+
+            <h2>
+                0% Progress
+            </h2>
+
+            <p>
+                Keep exploring the platform and
+                build your learning progress.
+            </p>
+
+
+            <a
+                href="#progress"
+                class="dashboard-link"
+            >
+                View Progress →
+            </a>
+
+        </div>
+
+
+
+        <!-- MODULES -->
+
+        <div class="overview-card">
+
+            <div class="overview-top">
+
+                <div class="overview-icon">
+                    🚀
+                </div>
+
+                <span class="overview-label">
+                    PLATFORM
+                </span>
+
+            </div>
+
+
+            <h2>
+                4 Modules
+            </h2>
+
+            <p>
+                Academic, Skills, Visual Lab and
+                Mind Arena are part of your platform.
+            </p>
+
+
+            <a
+                href="#modules"
+                class="dashboard-link"
+            >
+                Explore Modules →
+            </a>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         LOWER DASHBOARD
+    ====================================================== -->
+
+    <div class="dashboard-lower-grid">
+
+
+        <!-- =================================================
+             PROGRESS
+        ================================================== -->
+
+        <div
+            class="dashboard-panel"
+            id="progress"
+        >
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <p class="dashboard-label">
+                        PROGRESS
+                    </p>
+
+                    <h2>
+                        Your Learning Journey
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <!-- BFS -->
+
+            <div class="progress-item">
+
+                <div class="progress-info">
+
+                    <span>
+                        Algorithm Visualization
+                    </span>
+
+                    <strong>
+                        25%
+                    </strong>
 
                 </div>
 
 
+                <div class="progress-bar">
 
-                <!-- =================================================
-                     DOTS AND BOXES
-                ================================================== -->
+                    <div
+                        class="progress-fill"
+                        style="width: 25%;"
+                    ></div>
 
-                <div class="gameforge-card">
+                </div>
 
-
-                    <!-- Game Image -->
-
-                    <div class="gameforge-icon symbol-icon">
-
-                        ⬛
-
-                    </div>
+            </div>
 
 
-                    <!-- Game Information -->
 
-                    <div class="gameforge-info">
+            <!-- Games -->
 
-                        <div class="gameforge-title-row">
+            <div class="progress-item">
 
-                            <h3>
-                                Dots and Boxes
-                            </h3>
+                <div class="progress-info">
 
-                            <span class="game-status">
-                                Available
-                            </span>
+                    <span>
+                        Mind Arena
+                    </span>
 
-                        </div>
-
-
-                        <p>
-                            Draw lines, claim boxes to score, and go again —
-                            avoid setting up your opponent for a free box.
-                        </p>
-
-                    </div>
-
-
-                    <!-- Play Button -->
-
-                    <div class="gameforge-action">
-
-                        <a
-                            href="{% url 'dots_and_boxes' %}"
-                            class="button"
-                        >
-                            Play Now →
-                        </a>
-
-                    </div>
+                    <strong>
+                        10%
+                    </strong>
 
                 </div>
 
 
+                <div class="progress-bar">
 
-                <!-- =================================================
-                     8 PUZZLE
-                ================================================== -->
+                    <div
+                        class="progress-fill"
+                        style="width: 10%;"
+                    ></div>
 
-                <div class="gameforge-card">
+                </div>
 
-
-                    <!-- Game Image -->
-
-                    <div class="gameforge-icon">
-
-                        <img
-                            src="{% static 'img/8puzzle.png' %}"
-                            alt="8 Puzzle"
-                        >
-
-                    </div>
+            </div>
 
 
-                    <!-- Game Information -->
 
-                    <div class="gameforge-info">
+            <!-- Academic -->
 
-                        <div class="gameforge-title-row">
+            <div class="progress-item">
 
-                            <h3>
-                                8 Puzzle
-                            </h3>
+                <div class="progress-info">
 
-                            <span class="game-status">
-                                Available
-                            </span>
+                    <span>
+                        Academic
+                    </span>
 
-                        </div>
-
-
-                        <p>
-                            Slide the tiles, solve the puzzle,
-                            and understand A* Search step by step.
-                        </p>
-
-
-                        <div class="game-meta">
-
-                            <span>A* Search</span>
-                            <span>Logic</span>
-                            <span>Problem Solving</span>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- Play Button -->
-
-                    <div class="gameforge-action">
-
-                        <a
-                            href="{% url 'puzzle8' %}"
-                            class="button"
-                        >
-                            Play Now →
-                        </a>
-
-                    </div>
+                    <strong>
+                        0%
+                    </strong>
 
                 </div>
 
 
+                <div class="progress-bar">
 
-                <!-- =================================================
-                     MAZE SOLVER
-                ================================================== -->
+                    <div
+                        class="progress-fill"
+                        style="width: 0%;"
+                    ></div>
 
-                <div class="list-row">
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             QUICK ACTIONS
+        ================================================== -->
+
+        <div class="dashboard-panel">
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <p class="dashboard-label">
+                        QUICK ACCESS
+                    </p>
+
+                    <h2>
+                        Jump Back In
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-actions">
+
+
+                <!-- Visual Lab -->
+
+                <a
+                    href="{% url 'visual_lab:home' %}"
+                    class="quick-action"
+                >
+
+                    <span class="quick-icon">
+                        ◈
+                    </span>
 
                     <div>
 
                         <strong>
-                            Maze Solver
+                            Visual Lab
                         </strong>
 
-                        <small class="game-description">
-                            Find your way through challenging mazes.
+                        <small>
+                            Continue algorithm visualization
                         </small>
 
                     </div>
 
-                    <small>
-                        Coming soon
-                    </small>
+                    <span class="quick-arrow">
+                        →
+                    </span>
 
-                </div>
+                </a>
+
+
+
+                <!-- Mind Arena -->
+
+                <a
+                    href="{% url 'mind_arena:home' %}"
+                    class="quick-action"
+                >
+
+                    <span class="quick-icon">
+                        🎮
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Mind Arena
+                        </strong>
+
+                        <small>
+                            Play and practice
+                        </small>
+
+                    </div>
+
+                    <span class="quick-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+
+                <!-- Academic -->
+
+                <a
+                    href="#"
+                    class="quick-action"
+                >
+
+                    <span class="quick-icon">
+                        📚
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Academic
+                        </strong>
+
+                        <small>
+                            Courses and resources
+                        </small>
+
+                    </div>
+
+                    <span class="quick-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+
+                <!-- Skills -->
+
+                <a
+                    href="#"
+                    class="quick-action"
+                >
+
+                    <span class="quick-icon">
+                        ⚙
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Skills
+                        </strong>
+
+                        <small>
+                            Build technical skills
+                        </small>
+
+                    </div>
+
+                    <span class="quick-arrow">
+                        →
+                    </span>
+
+                </a>
 
 
             </div>
 
-        </section>
-
-
-
-        <!-- =====================================================
-             ACCOUNT
-        ====================================================== -->
-
-        <section class="panel">
-
-            <h2>
-                Account
-            </h2>
-
-
-            <div class="stat-row">
-
-                <span>
-                    Username
-                </span>
-
-                <strong>
-                    {{ user.username }}
-                </strong>
-
-            </div>
-
-
-            <div class="stat-row">
-
-                <span>
-                    Status
-                </span>
-
-                <strong>
-                    Active
-                </strong>
-
-            </div>
-
-
-            <div class="stat-row">
-
-                <span>
-                    Games available
-                </span>
-
-                <strong>
-                    3
-                </strong>
-
-            </div>
-
-        </section>
+        </div>
 
 
     </div>
+
+
+
+    <!-- =====================================================
+         UPCOMING MODULES
+    ====================================================== -->
+
+    <div class="upcoming-panel">
+
+        <div class="panel-heading">
+
+            <div>
+
+                <p class="dashboard-label">
+                    COMING NEXT
+                </p>
+
+                <h2>
+                    More To Explore
+                </h2>
+
+            </div>
+
+            <span class="coming-soon">
+                IN DEVELOPMENT
+            </span>
+
+        </div>
+
+
+        <div class="upcoming-grid">
+
+
+            <div class="upcoming-item">
+
+                <span class="upcoming-icon">
+                    📚
+                </span>
+
+                <div>
+
+                    <strong>
+                        Academic Hub
+                    </strong>
+
+                    <p>
+                        Courses, notes and academic resources.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="upcoming-item">
+
+                <span class="upcoming-icon">
+                    💻
+                </span>
+
+                <div>
+
+                    <strong>
+                        Skills
+                    </strong>
+
+                    <p>
+                        Practice programming and technical skills.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="upcoming-item">
+
+                <span class="upcoming-icon">
+                    🧠
+                </span>
+
+                <div>
+
+                    <strong>
+                        More Visualizers
+                    </strong>
+
+                    <p>
+                        More algorithms will be added soon.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PLATFORM MODULES
+    ====================================================== -->
+
+    <div
+        class="dashboard-panel"
+        id="modules"
+        style="margin-top: 18px;"
+    >
+
+        <div class="panel-heading">
+
+            <div>
+
+                <p class="dashboard-label">
+                    PLATFORM
+                </p>
+
+                <h2>
+                    Explore Student Platform
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="upcoming-grid">
+
+
+            <a
+                href="#"
+                class="upcoming-item"
+                style="text-decoration: none;"
+            >
+
+                <span class="upcoming-icon">
+                    📚
+                </span>
+
+                <div>
+
+                    <strong>
+                        Academic
+                    </strong>
+
+                    <p>
+                        Manage courses and academic resources.
+                    </p>
+
+                </div>
+
+            </a>
+
+
+
+            <a
+                href="#"
+                class="upcoming-item"
+                style="text-decoration: none;"
+            >
+
+                <span class="upcoming-icon">
+                    ⚙
+                </span>
+
+                <div>
+
+                    <strong>
+                        Skills
+                    </strong>
+
+                    <p>
+                        Improve your programming skills.
+                    </p>
+
+                </div>
+
+            </a>
+
+
+
+            <a
+                href="{% url 'visual_lab:home' %}"
+                class="upcoming-item"
+                style="text-decoration: none;"
+            >
+
+                <span class="upcoming-icon">
+                    ◈
+                </span>
+
+                <div>
+
+                    <strong>
+                        Visual Lab
+                    </strong>
+
+                    <p>
+                        Visualize algorithms interactively.
+                    </p>
+
+                </div>
+
+            </a>
+
+
+
+            <a
+                href="{% url 'mind_arena:home' %}"
+                class="upcoming-item"
+                style="text-decoration: none;"
+            >
+
+                <span class="upcoming-icon">
+                    🎮
+                </span>
+
+                <div>
+
+                    <strong>
+                        Mind Arena
+                    </strong>
+
+                    <p>
+                        Play games and sharpen your thinking.
+                    </p>
+
+                </div>
+
+            </a>
+
+
+        </div>
+
+    </div>
+
 
 </section>
 
