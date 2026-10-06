@@ -1,0 +1,1368 @@
+/* =========================================================
+   BFS VISUALIZER
+   ========================================================= */
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.visualizer-page {
+    width: min(1450px, 94%);
+    margin: 0 auto;
+    padding: 45px 0 90px;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.visualizer-header {
+    margin-bottom: 35px;
+}
+
+.visualizer-header .eyebrow {
+    margin: 0 0 8px;
+
+    color: #8b7cff;
+
+    font-size: 0.85rem;
+    font-weight: 800;
+
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+}
+
+.visualizer-header h1 {
+    margin: 0 0 14px;
+
+    font-size: clamp(2.3rem, 4vw, 3.3rem);
+    line-height: 1.1;
+
+    color: #f5f7ff;
+}
+
+.visualizer-description {
+    margin: 0;
+
+    max-width: 700px;
+
+    color: #9ba8bf;
+
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   MAIN LAYOUT
+   LEFT  = INPUT + CONTROLS + STEPS
+   RIGHT = GRAPH
+   ========================================================= */
+
+.bfs-layout {
+    display: grid;
+
+    /*
+       দুই পাশ সমান জায়গা নেবে
+    */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+    gap: 30px;
+
+    align-items: start;
+}
+
+
+/* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+.bfs-left {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 24px;
+}
+
+
+/* =========================================================
+   GRAPH INPUT PANEL
+   ========================================================= */
+
+.bfs-input-panel {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 30px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(27, 37, 63, 0.98),
+            rgba(17, 25, 45, 0.98)
+        );
+
+    border: 1px solid rgba(139, 92, 246, 0.55);
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+
+/* =========================================================
+   PANEL TITLE
+   ========================================================= */
+
+.panel-title {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 28px;
+}
+
+.panel-title h2 {
+    margin: 0;
+
+    color: #f3f5ff;
+
+    font-size: 1.4rem;
+}
+
+.panel-icon {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: rgba(139, 92, 246, 0.18);
+
+    color: #a78bfa;
+
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   INPUT GROUP
+   ========================================================= */
+
+.input-group {
+    margin-bottom: 21px;
+}
+
+.input-group label {
+    display: block;
+
+    margin-bottom: 9px;
+
+    color: #e8ecf7;
+
+    font-size: 0.95rem;
+    font-weight: 750;
+}
+
+.input-group small {
+    display: block;
+
+    margin-top: 7px;
+
+    color: #71809b;
+
+    font-size: 0.8rem;
+}
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 15px 17px;
+
+    background: #080f20;
+
+    border: 1px solid #26334f;
+
+    border-radius: 14px;
+
+    color: #f5f7ff;
+
+    font-family: inherit;
+
+    font-size: 1rem;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.input-group input {
+    height: 58px;
+}
+
+.input-group textarea {
+    min-height: 145px;
+
+    resize: vertical;
+
+    line-height: 1.6;
+}
+
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+    color: #5f6d87;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+    border-color: #8b5cf6;
+
+    box-shadow:
+        0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+
+/* =========================================================
+   GENERATE BUTTON
+   ========================================================= */
+
+.generate-btn {
+    width: 100%;
+
+    height: 58px;
+
+    margin-top: 4px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #6366f1,
+            #8b5cf6
+        );
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 1rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+.generate-btn:hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.08);
+
+    box-shadow:
+        0 12px 30px rgba(99, 102, 241, 0.3);
+}
+
+.generate-btn:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.error-message {
+    margin: 12px 0 0;
+
+    min-height: 20px;
+
+    color: #fb7185;
+
+    font-size: 0.9rem;
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.bfs-right {
+    min-width: 0;
+
+    /*
+       THIS IS THE IMPORTANT PART
+       Graph থাকবে sticky অবস্থায়
+    */
+    position: sticky;
+
+    top: 100px;
+
+    align-self: start;
+}
+
+
+/* =========================================================
+   GRAPH SECTION
+   ========================================================= */
+
+.graph-section {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 25px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(25, 35, 60, 0.98),
+            rgba(15, 23, 42, 0.98)
+        );
+
+    border: 1px solid #293650;
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+
+/* =========================================================
+   GRAPH HEADER
+   ========================================================= */
+
+.graph-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+.graph-label {
+    margin: 0 0 5px;
+
+    color: #7c8aa5;
+
+    font-size: 0.72rem;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+}
+
+.graph-header h2 {
+    margin: 0;
+
+    color: #f3f5ff;
+
+    font-size: 1.45rem;
+}
+
+
+/* =========================================================
+   GRAPH STATUS
+   ========================================================= */
+
+.graph-status {
+    padding: 8px 13px;
+
+    border-radius: 999px;
+
+    background: rgba(34, 197, 94, 0.1);
+
+    border: 1px solid rgba(34, 197, 94, 0.25);
+
+    color: #4ade80;
+
+    font-size: 0.78rem;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   GRAPH CONTAINER
+   ========================================================= */
+
+#graph-container {
+    position: relative;
+
+    width: 100%;
+
+    height: 600px;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(38, 52, 87, 0.35),
+            rgba(5, 12, 28, 0.98)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.04);
+
+    border-radius: 18px;
+}
+
+
+/* SVG generated by JS */
+
+#graph-container svg {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+}
+
+
+/* =========================================================
+   GRAPH PLACEHOLDER
+   ========================================================= */
+
+.graph-placeholder {
+    position: absolute;
+
+    inset: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 30px;
+
+    box-sizing: border-box;
+}
+
+.placeholder-icon {
+    margin-bottom: 15px;
+
+    color: #6366f1;
+
+    font-size: 3rem;
+}
+
+.graph-placeholder p {
+    margin: 0 0 8px;
+
+    color: #cbd5e1;
+
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.graph-placeholder span {
+    max-width: 300px;
+
+    color: #64748b;
+
+    font-size: 0.85rem;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   BFS CONTROLS
+   ========================================================= */
+
+.bfs-controls {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 15px;
+
+    width: 100%;
+}
+
+.bfs-controls button {
+    height: 60px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    color: white;
+
+    font-family: inherit;
+
+    font-size: 1rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        filter 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.bfs-controls button:hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.08);
+}
+
+.bfs-controls button:active {
+    transform: translateY(0);
+}
+
+
+/* Start */
+
+.start-btn {
+    background: #16a86b;
+
+    box-shadow:
+        0 8px 20px rgba(22, 168, 107, 0.15);
+}
+
+
+/* Next */
+
+.next-btn {
+    background: #2563eb;
+
+    box-shadow:
+        0 8px 20px rgba(37, 99, 235, 0.15);
+}
+
+
+/* Reset */
+
+.reset-btn {
+    background: #475569;
+
+    box-shadow:
+        0 8px 20px rgba(71, 85, 105, 0.15);
+}
+
+
+/* =========================================================
+   BFS INFORMATION
+   ========================================================= */
+
+.bfs-info {
+    display: grid;
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   INFO CARD
+   ========================================================= */
+
+.info-card {
+    min-width: 0;
+
+    min-height: 170px;
+
+    box-sizing: border-box;
+
+    padding: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #1a243a,
+            #121b2f
+        );
+
+    border: 1px solid #293650;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+
+/* =========================================================
+   INFO HEADER
+   ========================================================= */
+
+.info-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.info-header h3 {
+    margin: 0;
+
+    color: #e8ecf7;
+
+    font-size: 1.05rem;
+    font-weight: 750;
+}
+
+.info-icon {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+
+/* Queue icon */
+
+.queue-icon {
+    background: rgba(245, 158, 11, 0.15);
+
+    color: #fbbf24;
+}
+
+
+/* Current icon */
+
+.current-icon {
+    background: rgba(139, 92, 246, 0.15);
+
+    color: #a78bfa;
+}
+
+
+/* Visited icon */
+
+.visited-icon {
+    background: rgba(34, 197, 94, 0.15);
+
+    color: #4ade80;
+}
+
+
+/* =========================================================
+   INFO VALUE
+   ========================================================= */
+
+.info-value {
+    width: 100%;
+
+    min-height: 55px;
+
+    box-sizing: border-box;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 13px 15px;
+
+    background: #080f20;
+
+    border: 1px solid rgba(255, 255, 255, 0.03);
+
+    border-radius: 13px;
+
+    color: #f1f5ff;
+
+    font-family: "Courier New", monospace;
+
+    font-size: 1rem;
+
+    font-weight: 700;
+
+    line-height: 1.5;
+
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   GRAPH NODE DEFAULT STYLE
+   ========================================================= */
+
+.graph-node {
+    fill: #162238;
+
+    stroke: #64748b;
+
+    stroke-width: 3;
+
+    transition:
+        fill 0.25s ease,
+        stroke 0.25s ease;
+}
+
+.graph-node-text {
+    fill: white;
+
+    font-size: 18px;
+
+    font-weight: 800;
+
+    text-anchor: middle;
+
+    dominant-baseline: middle;
+
+    pointer-events: none;
+}
+
+.graph-edge {
+    stroke: #64748b;
+
+    stroke-width: 4;
+
+    opacity: 0.85;
+}
+
+
+/* =========================================================
+   BFS NODE STATES
+   ========================================================= */
+
+.graph-node.node-start {
+    fill: #123b2e;
+
+    stroke: #22c55e;
+}
+
+.graph-node.node-current {
+    fill: #5a3b0a;
+
+    stroke: #facc15;
+}
+
+.graph-node.node-visited {
+    fill: #123d34;
+
+    stroke: #34d399;
+}
+
+.graph-node.node-queued {
+    fill: #172554;
+
+    stroke: #60a5fa;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .visualizer-page {
+        width: 94%;
+    }
+
+    .bfs-layout {
+        gap: 22px;
+    }
+
+    .bfs-input-panel {
+        padding: 25px;
+    }
+
+    .graph-section {
+        padding: 20px;
+    }
+
+    #graph-container {
+        height: 520px;
+    }
+
+    .info-card {
+        padding: 18px;
+    }
+
+    .info-header {
+        gap: 8px;
+    }
+
+    .info-header h3 {
+        font-size: 0.95rem;
+    }
+}
+
+
+/* =========================================================
+   MOBILE / SMALL TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    /*
+       Mobile এ দুই column থাকবে না
+    */
+
+    .bfs-layout {
+        grid-template-columns: 1fr;
+    }
+
+    /*
+       Sticky বন্ধ
+    */
+
+    .bfs-right {
+        position: static;
+    }
+
+    /*
+       Graph বড় থাকবে
+    */
+
+    #graph-container {
+        height: 520px;
+    }
+
+    /*
+       Input আগে
+       Graph পরে
+    */
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+    .visualizer-page {
+        width: 92%;
+
+        padding-top: 30px;
+        padding-bottom: 60px;
+    }
+
+
+    .visualizer-header {
+        margin-bottom: 25px;
+    }
+
+
+    .visualizer-header h1 {
+        font-size: 2.25rem;
+    }
+
+
+    .visualizer-description {
+        font-size: 0.95rem;
+    }
+
+
+    .bfs-left {
+        gap: 18px;
+    }
+
+
+    .bfs-input-panel {
+        padding: 21px;
+
+        border-radius: 20px;
+    }
+
+
+    .graph-section {
+        padding: 18px;
+
+        border-radius: 20px;
+    }
+
+
+    .graph-header {
+        align-items: flex-start;
+    }
+
+
+    .graph-header h2 {
+        font-size: 1.25rem;
+    }
+
+
+    #graph-container {
+        height: 430px;
+
+        border-radius: 15px;
+    }
+
+
+    /*
+       Buttons vertically
+    */
+
+    .bfs-controls {
+        grid-template-columns: 1fr;
+    }
+
+
+    /*
+       Info cards vertically
+    */
+
+    .bfs-info {
+        grid-template-columns: 1fr;
+    }
+
+
+    .info-card {
+        min-height: 145px;
+    }
+}
+/* =========================================================
+   BFS ANIMATION
+   ========================================================= */
+
+
+/* Node transition */
+
+.graph-node {
+    transition:
+        fill 0.45s ease,
+        stroke 0.45s ease,
+        r 0.3s ease,
+        filter 0.3s ease;
+}
+
+
+/* Current node pulse */
+
+.graph-node.node-current {
+    filter:
+        drop-shadow(0 0 10px rgba(250, 204, 21, 0.7));
+
+    animation:
+        bfsNodePulse 0.8s ease-in-out;
+}
+
+
+/* Queue node */
+
+.graph-node.node-queued {
+    filter:
+        drop-shadow(0 0 8px rgba(96, 165, 250, 0.5));
+}
+
+
+/* Visited node */
+
+.graph-node.node-visited {
+    filter:
+        drop-shadow(0 0 7px rgba(52, 211, 153, 0.35));
+}
+
+
+/* Start node */
+
+.graph-node.node-start {
+    filter:
+        drop-shadow(0 0 8px rgba(34, 197, 94, 0.5));
+}
+
+
+/* Current node animation */
+
+@keyframes bfsNodePulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+/* Edge transition */
+
+.graph-edge {
+    transition:
+        stroke 0.35s ease,
+        stroke-width 0.35s ease,
+        opacity 0.35s ease;
+}
+
+
+/* Active BFS edge */
+
+.graph-edge.edge-active {
+    stroke: #facc15;
+
+    stroke-width: 6;
+
+    opacity: 1;
+
+    filter:
+        drop-shadow(
+            0 0 5px rgba(250, 204, 21, 0.65)
+        );
+}
+
+
+/* Button click animation */
+
+.bfs-controls button.button-active {
+    transform: scale(0.96);
+
+    filter: brightness(1.15);
+}/* =========================================================
+   CLEAN / CLASSY BFS STYLE
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   GRAPH NODES
+--------------------------------------------------------- */
+
+.graph-node {
+    transition:
+        fill 0.35s ease,
+        stroke 0.35s ease,
+        stroke-width 0.35s ease;
+}
+
+
+/* Normal */
+
+.graph-node {
+    fill: #172033;
+
+    stroke: #52627d;
+
+    stroke-width: 2.5px;
+
+    filter: none;
+}
+
+
+/* ---------------------------------------------------------
+   START NODE
+--------------------------------------------------------- */
+
+.graph-node.node-start {
+    fill: #15352d;
+
+    stroke: #35c98b;
+
+    stroke-width: 3px;
+
+    filter: none;
+}
+
+
+/* ---------------------------------------------------------
+   QUEUED NODE
+--------------------------------------------------------- */
+
+.graph-node.node-queued {
+    fill: #172b4d;
+
+    stroke: #5b9cff;
+
+    stroke-width: 3px;
+
+    filter: none;
+}
+
+
+/* ---------------------------------------------------------
+   VISITED NODE
+--------------------------------------------------------- */
+
+.graph-node.node-visited {
+    fill: #15352d;
+
+    stroke: #35c98b;
+
+    stroke-width: 3px;
+
+    filter: none;
+}
+
+
+/* ---------------------------------------------------------
+   CURRENT NODE
+--------------------------------------------------------- */
+
+.graph-node.node-current {
+    fill: #3b3218;
+
+    stroke: #f3c74f;
+
+    stroke-width: 4px;
+
+    filter: none;
+
+    animation: currentNode 0.45s ease;
+}
+
+
+/* Subtle current animation */
+
+@keyframes currentNode {
+
+    0% {
+        opacity: 0.75;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   EDGES
+--------------------------------------------------------- */
+
+.graph-edge {
+    stroke: #53627b;
+
+    stroke-width: 3px;
+
+    opacity: 0.8;
+
+    transition:
+        stroke 0.3s ease,
+        stroke-width 0.3s ease,
+        opacity 0.3s ease;
+}
+
+
+/* Current BFS edge */
+
+.graph-edge.edge-active {
+    stroke: #e5bd45;
+
+    stroke-width: 4px;
+
+    opacity: 1;
+
+    filter: none;
+}
+
+
+/* ---------------------------------------------------------
+   NODE TEXT
+--------------------------------------------------------- */
+
+.graph-node-text {
+    font-size: 16px;
+
+    font-weight: 800;
+
+    fill: #f4f7ff;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.bfs-controls {
+    gap: 12px;
+}
+
+
+/* Common */
+
+.bfs-controls button {
+    height: 52px;
+
+    border-radius: 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+
+    font-size: 0.95rem;
+
+    font-weight: 750;
+
+    letter-spacing: 0.1px;
+
+    box-shadow: none;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease;
+}
+
+
+.bfs-controls button:hover {
+    transform: translateY(-1px);
+
+    filter: none;
+}
+
+
+.bfs-controls button:active {
+    transform: translateY(0);
+}
+
+
+/* ---------------------------------------------------------
+   START
+--------------------------------------------------------- */
+
+.start-btn {
+    background: #159866;
+
+    border-color: #20aa76;
+}
+
+.start-btn:hover {
+    background: #18a972;
+}
+
+
+/* ---------------------------------------------------------
+   NEXT
+--------------------------------------------------------- */
+
+.next-btn {
+    background: #285fc9;
+
+    border-color: #3971df;
+}
+
+.next-btn:hover {
+    background: #306bdc;
+}
+
+
+/* ---------------------------------------------------------
+   RESET
+--------------------------------------------------------- */
+
+.reset-btn {
+    background: #3c4a61;
+
+    border-color: #52617a;
+}
+
+.reset-btn:hover {
+    background: #46556d;
+}
+
+
+/* =========================================================
+   INFO CARDS
+   ========================================================= */
+
+.info-card {
+    min-height: 155px;
+
+    padding: 20px;
+
+    border-radius: 18px;
+}
+
+
+/* Header */
+
+.info-header {
+    margin-bottom: 16px;
+}
+
+
+/* Value */
+
+.info-value {
+    min-height: 50px;
+
+    padding: 12px 14px;
+
+    border-radius: 11px;
+
+    font-size: 0.95rem;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.graph-status {
+    padding: 7px 11px;
+
+    font-size: 0.74rem;
+}
+
+
+/* =========================================================
+   REMOVE OLD HEAVY EFFECTS
+   ========================================================= */
+
+.graph-node.node-current,
+.graph-node.node-queued,
+.graph-node.node-visited,
+.graph-node.node-start {
+    box-shadow: none;
+}
+
+
+/* Make pulse class subtle */
+
+.graph-node.node-pulse {
+    animation: currentNode 0.45s ease;
+}

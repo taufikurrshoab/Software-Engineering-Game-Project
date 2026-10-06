@@ -1,340 +1,312 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}
-    Mind Arena | Game Platform
+{% block title %}Student Platform | Track. Understand. Visualize. Play.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 
 {% block content %}
+<div class="home">
 
-<section class="hero">
+    <!-- Hero -->
+    <section class="home-hero">
+        <div class="home-hero__glow" aria-hidden="true"></div>
+        <div class="home-container home-hero__inner">
 
-    <div class="hero-copy">
+            <div class="home-hero__content" data-reveal>
+                <span class="home-eyebrow">Student Platform</span>
+                <h1 class="home-hero__title">
+                    Track. Understand.<br>
+                    <span class="home-gradient-text">Visualize. Play.</span>
+                </h1>
+                <p class="home-hero__text">
+                    A unified space for CSE students to Track their academic progress and Skills, Understand algorithms and data structures, Visualize how they work, and Play through challenges to sharpen problem-solving skills.
+                </p>
+                <div class="home-hero__actions">
+                    <a href="#modules" class="home-btn home-btn--primary">Explore Platform</a>
+                    <a href="{% url 'dashboard' %}" class="home-btn home-btn--ghost">Go to Dashboard</a>
+                </div>
+                <ul class="home-hero__meta">
+                    <li>Academic</li>
+                    <li>Skills</li>
+                    <li>Visual Lab</li>
+                    <li>Play Game</li>
+                </ul>
+            </div>
 
-        <p class="eyebrow">
-            Mind Game Platform
-        </p>
+            <div class="home-hero__visual" data-reveal aria-hidden="true">
+                <div class="home-preview">
+                    <div class="home-preview__bar">
+                        <i></i><i></i><i></i>
+                        <span>student-platform / overview</span>
+                    </div>
+                    <div class="home-preview__body">
+                        <ul class="home-preview__nav">
+                            <li class="is-active"><b>▤</b> Academic</li>
+                            <li><b>⌘</b> Skills</li>
+                            <li><b>◈</b> Visual Lab</li>
+                            <li><b>⬢</b> Play Game</li>
+                        </ul>
+                        <div class="home-preview__main">
+                            <div class="home-preview__head">
+                                <strong>Your workspace</strong>
+                                <small>Spring semester</small>
+                            </div>
+                            <div class="home-preview__tiles">
+                                <div class="home-preview__tile home-preview__tile--academic">
+                                    <small>Academic</small>
+                                    <span class="home-preview__line"></span>
+                                    <span class="home-preview__line home-preview__line--short"></span>
+                                </div>
+                                <div class="home-preview__tile home-preview__tile--skills">
+                                    <small>Skills</small>
+                                    <span class="home-preview__tag"></span>
+                                    <span class="home-preview__tag home-preview__tag--short"></span>
+                                </div>
+                                <div class="home-preview__tile home-preview__tile--lab">
+                                    <small>Visual Lab</small>
+                                    <div class="home-preview__bars">
+                                        <i></i><i></i><i></i><i></i><i></i><i></i>
+                                    </div>
+                                </div>
+                                <div class="home-preview__tile home-preview__tile--practice">
+                                    <small>Play Game</small>
+                                    <div class="home-preview__grid">
+                                        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="home-preview__progress">
+                                <span class="home-preview__progress-fill"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <h1>
-            MindArena
-        </h1>
-
-        <p class="lead">
-            Challenge your mind, test your strategy,
-            and play your way through every game.
-        </p>
-
-        <div class="hero-actions">
-
-            {% if user.is_authenticated %}
-
-                <a
-                    class="button"
-                    href="{% url 'dashboard' %}"
-                >
-                    Open dashboard
-                </a>
-
-            {% else %}
-
-                <a
-                    class="button"
-                    href="{% url 'signup' %}"
-                >
-                    Create account
-                </a>
-
-                <a
-                    class="button secondary"
-                    href="{% url 'login' %}"
-                >
-                    Log in
-                </a>
-
-            {% endif %}
+                <div class="home-preview__float">
+                    <span class="home-preview__float-dot"></span>
+                    <div>
+                        <strong>BFS traversal</strong>
+                        <small>Step 3 of 5</small>
+                    </div>
+                </div>
+            </div>
 
         </div>
+    </section>
 
-    </div>
+    <!-- Modules -->
+    <section class="home-section" id="modules">
+        <div class="home-container">
+            <header class="home-section__head" data-reveal>
+                <span class="home-eyebrow">Modules</span>
+                <h2 class="home-section__title">One platform, four connected spaces</h2>
+                <p class="home-section__text">
+                    Each module covers a different part of the CSE journey and
+                    they are designed to work together.
+                </p>
+            </header>
 
+            <div class="home-module-grid">
 
-    <div class="game-preview" aria-hidden="true">
+                <article class="home-module-card home-module-card--academic" data-reveal>
+                    <div class="home-module-card__visual" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="home-module-card__top">
+                        <span class="home-module-card__icon" aria-hidden="true">▤</span>
+                        <span class="home-badge">Coming soon</span>
+                    </div>
+                    <h3>Academic</h3>
+                    <p>Courses, notes and study material organized in a clear, structured way.</p>
+                    {# TODO: replace href="#" with the Academic URL when the page exists #}
+                    <a href="#" class="home-module-card__link home-module-card__link--soon" aria-disabled="true">Not available yet</a>
+                </article>
 
-        <div class="preview-screen">
+                <article class="home-module-card home-module-card--skills" data-reveal>
+                    <div class="home-module-card__visual" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="home-module-card__top">
+                        <span class="home-module-card__icon" aria-hidden="true">⌘</span>
+                        <span class="home-badge">Coming soon</span>
+                    </div>
+                    <h3>Skills</h3>
+                    <p>Practical technical skills that go beyond the syllabus and into real projects.</p>
+                    {# TODO: replace href="#" with the Skills URL when the page exists #}
+                    <a href="#" class="home-module-card__link home-module-card__link--soon" aria-disabled="true">Not available yet</a>
+                </article>
 
-            <span></span>
-            <span></span>
-            <span></span>
+                <article class="home-module-card home-module-card--lab" data-reveal>
+                    <div class="home-module-card__visual" aria-hidden="true">
+                        <i></i><i></i><i></i><i></i><i></i>
+                    </div>
+                    <div class="home-module-card__top">
+                        <span class="home-module-card__icon" aria-hidden="true">◈</span>
+                        <span class="home-badge home-badge--live">Available</span>
+                    </div>
+                    <h3>Visual Lab</h3>
+                    <p>Step through algorithms and data structures with live visualizations.</p>
+                    <a href="{% url 'visual_lab:home' %}" class="home-module-card__link">Enter Visual Lab →</a>
+                </article>
 
-            <strong>
-                Go
-            </strong>
+                <article class="home-module-card home-module-card--arena" data-reveal>
+                    <div class="home-module-card__visual" aria-hidden="true">
+                        <i></i><i></i><i></i><i></i>
+                    </div>
+                    <div class="home-module-card__top">
+                        <span class="home-module-card__icon" aria-hidden="true">⬢</span>
+                        <span class="home-badge home-badge--live">Available</span>
+                    </div>
+                    <h3>Play Game</h3>
+                    <p>Sharpen logic and problem solving through puzzles and strategy games.</p>
+                    <a href="{% url 'mind_arena:home' %}" class="home-module-card__link">Open Play Game →</a>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Showcase -->
+    <section class="home-section home-section--alt">
+        <div class="home-container home-showcase">
+
+            <div class="home-showcase__text" data-reveal>
+                <span class="home-eyebrow">Visual Lab</span>
+                <h2 class="home-section__title">See how an algorithm thinks.</h2>
+                <p class="home-section__text">
+                    Instead of memorizing pseudocode, follow each step as it
+                    runs: which node is visited, what waits in the queue and
+                    how the result builds up.
+                </p>
+                <ol class="home-steps">
+                    <li class="is-done">Pick the start node</li>
+                    <li class="is-done">Visit its neighbors</li>
+                    <li class="is-current">Update the queue</li>
+                    <li>Repeat until the queue is empty</li>
+                </ol>
+                <a href="{% url 'visual_lab:home' %}" class="home-btn home-btn--ghost">Open Visual Lab</a>
+            </div>
+
+            <div class="home-lab" data-reveal aria-hidden="true">
+                <div class="home-lab__bar">
+                    <span>Breadth-First Search</span>
+                    <small>Step 3 of 5</small>
+                </div>
+
+                <svg class="home-graph" viewBox="0 0 360 230" focusable="false">
+                    <line class="home-graph__edge is-active" x1="55" y1="115" x2="150" y2="45" />
+                    <line class="home-graph__edge is-active" x1="55" y1="115" x2="150" y2="185" />
+                    <line class="home-graph__edge is-active" x1="150" y1="45" x2="250" y2="45" />
+                    <line class="home-graph__edge" x1="150" y1="185" x2="250" y2="185" />
+                    <line class="home-graph__edge" x1="250" y1="45" x2="315" y2="115" />
+                    <line class="home-graph__edge" x1="250" y1="185" x2="315" y2="115" />
+
+                    <g class="home-graph__node is-visited">
+                        <circle cx="55" cy="115" r="20" /><text x="55" y="120">A</text>
+                    </g>
+                    <g class="home-graph__node is-visited">
+                        <circle cx="150" cy="45" r="20" /><text x="150" y="50">B</text>
+                    </g>
+                    <g class="home-graph__node is-visited">
+                        <circle cx="150" cy="185" r="20" /><text x="150" y="190">C</text>
+                    </g>
+                    <g class="home-graph__node is-current">
+                        <circle cx="250" cy="45" r="20" /><text x="250" y="50">D</text>
+                    </g>
+                    <g class="home-graph__node is-queued">
+                        <circle cx="250" cy="185" r="20" /><text x="250" y="190">E</text>
+                    </g>
+                    <g class="home-graph__node">
+                        <circle cx="315" cy="115" r="20" /><text x="315" y="120">F</text>
+                    </g>
+                </svg>
+
+                <div class="home-lab__state">
+                    <div><small>Visited</small><code>A B C</code></div>
+                    <div><small>Current</small><code>D</code></div>
+                    <div><small>Queue</small><code>[ E ]</code></div>
+                </div>
+
+                <div class="home-progress">
+                    <span class="home-progress__fill"></span>
+                </div>
+            </div>
 
         </div>
+    </section>
 
-    </div>
+    <!-- Flow -->
+    <section class="home-section">
+        <div class="home-container">
+            <header class="home-section__head" data-reveal>
+                <span class="home-eyebrow">How it fits together</span>
+                <h2 class="home-section__title">From understanding to mastery</h2>
+            </header>
 
-</section>
+            <ol class="home-flow">
+                <li class="home-flow__step" data-reveal>
+                    <span class="home-flow__num">01</span>
+                    <h3>Learn</h3>
+                    <p>Study concepts in an organized way.</p>
+                    <small class="home-flow__tag">Academic</small>
+                </li>
+                <li class="home-flow__step" data-reveal>
+                    <span class="home-flow__num">02</span>
+                    <h3>Build</h3>
+                    <p>Develop practical technical skills.</p>
+                    <small class="home-flow__tag">Skills</small>
+                </li>
+                <li class="home-flow__step" data-reveal>
+                    <span class="home-flow__num">03</span>
+                    <h3>Visualize</h3>
+                    <p>Watch algorithms run step by step.</p>
+                    <small class="home-flow__tag">Visual Lab</small>
+                </li>
+                <li class="home-flow__step" data-reveal>
+                    <span class="home-flow__num">04</span>
+                    <h3>Practice</h3>
+                    <p>Test your thinking through challenges.</p>
+                    <small class="home-flow__tag">Play Game</small>
+                </li>
+            </ol>
+        </div>
+    </section>
 
-
-<section class="section">
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            Game Library
-        </p>
-
-        <h2>
-            Choose your challenge
-        </h2>
-
-        <p class="muted">
-            Play, compete, and sharpen your mind.
-        </p>
-
-    </div>
-
-
-    <div class="home-game-grid">
-
-
-        <!-- =====================================================
-             TIC TAC TOE
-        ====================================================== -->
-
-        <article class="home-game-card">
-
-            <div class="home-game-image">
-
-                <img
-                    src="{% static 'tic_tac_toe/ttt.png' %}"
-                    alt="Tic Tac Toe"
-                >
-
-            </div>
-
-
-            <div class="home-game-content">
-
-                <div class="home-game-title">
-
-                    <h3>
-                        Tic Tac Toe
-                    </h3>
-
-                    <span class="home-game-status">
-                        Available
-                    </span>
-
+    <!-- CTA -->
+    <section class="home-section home-section--tight">
+        <div class="home-container">
+            <div class="home-cta" data-reveal>
+                <div class="home-cta__text">
+                    <h2>Ready to explore?</h2>
+                    <p>Open your dashboard and pick up where you left off.</p>
                 </div>
-
-
-                <p>
-                    Challenge the computer and test your strategy
-                    across three difficulty levels.
-                </p>
-
-
-                <div class="home-game-meta">
-
-                    <span>Easy</span>
-                    <span>Medium</span>
-                    <span>Hard</span>
-
+                <div class="home-cta__actions">
+                    <a href="{% url 'dashboard' %}" class="home-btn home-btn--primary">Go to Dashboard</a>
+                    <a href="{% url 'visual_lab:home' %}" class="home-btn home-btn--ghost">Try Visual Lab</a>
                 </div>
-
             </div>
-
-
-            <div class="home-game-action">
-
-                <a
-                    href="{% url 'tic_tac_toe' %}"
-                    class="button full"
-                >
-                    Play Now →
-                </a>
-
-            </div>
-
-        </article>
-
-
-
-        <!-- =====================================================
-             DOTS AND BOXES
-        ====================================================== -->
-
-        <article class="home-game-card">
-
-            <div class="home-game-image future-image">
-
-                <div class="home-game-image">
-                        <img
-                            src="{% static 'dots_and_boxes/image.png' %}"
-                            alt="Dots and Boxes"
-                        >
-                </div>
-
-            </div>
-
-
-            <div class="home-game-content">
-
-                <div class="home-game-title">
-
-                    <h3>
-                        Dots and Boxes
-                    </h3>
-
-                    <span class="home-game-status">
-                        Available
-                    </span>
-
-                </div>
-
-
-                <p>
-                    Draw lines, claim boxes, and outmaneuver
-                    a heuristic AI.
-                </p>
-
-            </div>
-
-
-            <div class="home-game-action">
-
-                <a
-                    href="{% url 'dots_and_boxes' %}"
-                    class="button full"
-                >
-                    Play Now →
-                </a>
-
-            </div>
-
-        </article>
-
-
-
-        <!-- =====================================================
-             8 PUZZLE
-        ====================================================== -->
-
-        <article class="home-game-card">
-
-            <div class="home-game-image">
-
-                <img
-                    src="{% static 'img/8puzzle.png' %}"
-                    alt="8 Puzzle"
-                >
-
-            </div>
-
-
-            <div class="home-game-content">
-
-                <div class="home-game-title">
-
-                    <h3>
-                        8 Puzzle
-                    </h3>
-
-                    <span class="home-game-status">
-                        Available
-                    </span>
-
-                </div>
-
-
-                <p>
-                    Slide the tiles, solve the puzzle,
-                    and understand A* Search step by step.
-                </p>
-
-
-                <div class="home-game-meta">
-
-                    <span>A* Search</span>
-                    <span>Logic</span>
-                    <span>Problem Solving</span>
-
-                </div>
-
-            </div>
-
-
-            <div class="home-game-action">
-
-                <a
-                    href="{% url 'puzzle8' %}"
-                    class="button full"
-                >
-                    Play Now →
-                </a>
-
-            </div>
-
-        </article>
-
-
-
-        <!-- =====================================================
-             MAZE SOLVER
-        ====================================================== -->
-
-        <article class="home-game-card">
-
-            <div class="home-game-image future-image">
-
-                <div class="future-game-symbol">
-                    M
-                </div>
-
-            </div>
-
-
-            <div class="home-game-content">
-
-                <div class="home-game-title">
-
-                    <h3>
-                        Maze Solver
-                    </h3>
-
-                    <span class="home-game-status">
-                        Coming soon
-                    </span>
-
-                </div>
-
-
-                <p>
-                    Find your way through challenging
-                    mazes and sharpen your problem-solving skills.
-                </p>
-
-            </div>
-
-
-            <div class="home-game-action">
-
-                <button
-                    class="button full"
-                    disabled
-                >
-                    Coming Soon
-                </button>
-
-            </div>
-
-        </article>
-
-
-    </div>
-
-</section>
-
+        </div>
+    </section>
+
+    <!-- Footer (remove if base.html already has one) -->
+    <footer class="home-footer">
+        <div class="home-container home-footer__inner">
+            <strong class="home-footer__brand">Student Platform</strong>
+            <nav class="home-footer__links" aria-label="Footer">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'visual_lab:home' %}">Visual Lab</a>
+                <a href="{% url 'mind_arena:home' %}">Play Game</a>
+            </nav>
+            <small>© ThinkSphere</small>
+        </div>
+    </footer>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/home.js' %}"></script>
 {% endblock %}

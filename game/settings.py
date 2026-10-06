@@ -31,7 +31,10 @@ INSTALLED_APPS = [
     'tic_tac_toe',
     'dots_and_boxes',
      'puzzle8',
-]
+     'mind_arena',
+     'visual_lab',
+    'academic',
+     ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -108,7 +111,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 LOGIN_URL = 'login'

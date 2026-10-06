@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Mind Arena | Game Platform
+{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-copy">
+
+        <p class="eyebrow">
+            Mind Game Platform
+        </p>
+
+        <h1>
+            MindArena
+        </h1>
+
+        <p class="lead">
+            Challenge your mind, test your strategy,
+            and play your way through every game.
+        </p>
+
+        <div class="hero-actions">
+
+            {% if user.is_authenticated %}
+
+                <a
+                    class="button"
+                    href="{% url 'mind_arena:dashboard' %}"
+                >
+                    Open dashboard
+                </a>
+
+            {% else %}
+
+                <a
+                    class="button"
+                    href="{% url 'signup' %}"
+                >
+                    Create account
+                </a>
+
+                <a
+                    class="button secondary"
+                    href="{% url 'login' %}"
+                >
+                    Log in
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <div class="game-preview" aria-hidden="true">
+
+        <div class="preview-screen">
+
+            <span></span>
+            <span></span>
+            <span></span>
+
+            <strong>
+                Go
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="section">
+
+    <div class="section-heading">
+
+        <p class="eyebrow">
+            Game Library
+        </p>
+
+        <h2>
+            Choose your challenge
+        </h2>
+
+        <p class="muted">
+            Play, compete, and sharpen your mind.
+        </p>
+
+    </div>
+
+
+    <div class="home-game-grid">
+
+
+        <!-- =====================================================
+             TIC TAC TOE
+        ====================================================== -->
+
+        <article class="home-game-card">
+
+            <div class="home-game-image">
+
+                <img
+                    src="{% static 'tic_tac_toe/ttt.png' %}"
+                    alt="Tic Tac Toe"
+                >
+
+            </div>
+
+
+            <div class="home-game-content">
+
+                <div class="home-game-title">
+
+                    <h3>
+                        Tic Tac Toe
+                    </h3>
+
+                    <span class="home-game-status">
+                        Available
+                    </span>
+
+                </div>
+
+
+                <p>
+                    Challenge the computer and test your strategy
+                    across three difficulty levels.
+                </p>
+
+
+                <div class="home-game-meta">
+
+                    <span>Easy</span>
+                    <span>Medium</span>
+                    <span>Hard</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-game-action">
+
+                <a
+                    href="{% url 'tic_tac_toe' %}"
+                    class="button full"
+                >
+                    Play Now →
+                </a>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================================
+             DOTS AND BOXES
+        ====================================================== -->
+
+        <article class="home-game-card">
+
+            <div class="home-game-image future-image">
+
+                <div class="future-game-symbol">
+                    ⬛
+                </div>
+
+            </div>
+
+
+            <div class="home-game-content">
+
+                <div class="home-game-title">
+
+                    <h3>
+                        Dots and Boxes
+                    </h3>
+
+                    <span class="home-game-status">
+                        Available
+                    </span>
+
+                </div>
+
+
+                <p>
+                    Draw lines, claim boxes, and outmaneuver
+                    a heuristic AI.
+                </p>
+
+            </div>
+
+
+            <div class="home-game-action">
+
+                <a
+                    href="{% url 'dots_and_boxes' %}"
+                    class="button full"
+                >
+                    Play Now →
+                </a>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================================
+             8 PUZZLE
+        ====================================================== -->
+
+        <article class="home-game-card">
+
+            <div class="home-game-image">
+
+                <img
+                    src="{% static 'img/8puzzle.png' %}"
+                    alt="8 Puzzle"
+                >
+
+            </div>
+
+
+            <div class="home-game-content">
+
+                <div class="home-game-title">
+
+                    <h3>
+                        8 Puzzle
+                    </h3>
+
+                    <span class="home-game-status">
+                        Available
+                    </span>
+
+                </div>
+
+
+                <p>
+                    Slide the tiles, solve the puzzle,
+                    and understand A* Search step by step.
+                </p>
+
+
+                <div class="home-game-meta">
+
+                    <span>A* Search</span>
+                    <span>Logic</span>
+                    <span>Problem Solving</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-game-action">
+
+                <a
+                    href="{% url 'puzzle8' %}"
+                    class="button full"
+                >
+                    Play Now →
+                </a>
+
+            </div>
+
+        </article>
+
+
+
+        <!-- =====================================================
+             MAZE SOLVER
+        ====================================================== -->
+
+        <article class="home-game-card">
+
+            <div class="home-game-image future-image">
+
+                <div class="future-game-symbol">
+                    M
+                </div>
+
+            </div>
+
+
+            <div class="home-game-content">
+
+                <div class="home-game-title">
+
+                    <h3>
+                        Maze Solver
+                    </h3>
+
+                    <span class="home-game-status">
+                        Coming soon
+                    </span>
+
+                </div>
+
+
+                <p>
+                    Find your way through challenging
+                    mazes and sharpen your problem-solving skills.
+                </p>
+
+            </div>
+
+
+            <div class="home-game-action">
+
+                <button
+                    class="button full"
+                    disabled
+                >
+                    Coming Soon
+                </button>
+
+            </div>
+
+        </article>
+
+
+    </div>
+
+</section>
+
+{% endblock %}
