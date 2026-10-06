@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Set Up Semester | ThinkSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'academic/semester-setup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="semester-setup">
+    <div class="semester-setup__container">
+
+        <!-- Header -->
+        <header class="semester-setup__header">
+            <span class="semester-setup__eyebrow">Academic Setup</span>
+            <h1 class="semester-setup__title">Set up your semester</h1>
+            <p class="semester-setup__lead">
+                Add your semester dates and weekly class routine once.
+                Your dashboard and timeline are built from this.
+            </p>
+        </header>
+
+        <form method="post" class="semester-setup__form" data-routine-form>
+            {% csrf_token %}
+
+            {% if semester_form.non_field_errors %}
+            <div class="semester-setup__alert" role="alert">
+                {% for error in semester_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Semester details -->
+            <section class="semester-setup__card" aria-labelledby="semester-details-heading">
+                <div class="semester-setup__card-head">
+                    <h2 id="semester-details-heading">Semester details</h2>
+                    <span class="semester-setup__step">Step 1</span>
+                </div>
+
+                <div class="semester-setup__grid">
+                    <div class="semester-setup__field semester-setup__field--wide{% if semester_form.name.errors %} has-error{% endif %}">
+                        <label for="{{ semester_form.name.id_for_label }}">Semester name</label>
+                        {{ semester_form.name }}
+                        {% if semester_form.name.errors %}<p class="semester-setup__error">{{ semester_form.name.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="semester-setup__field{% if semester_form.start_date.errors %} has-error{% endif %}">
+                        <label for="{{ semester_form.start_date.id_for_label }}">Start date</label>
+                        {{ semester_form.start_date }}
+                        {% if semester_form.start_date.errors %}<p class="semester-setup__error">{{ semester_form.start_date.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="semester-setup__field{% if semester_form.end_date.errors %} has-error{% endif %}">
+                        <label for="{{ semester_form.end_date.id_for_label }}">End date</label>
+                        {{ semester_form.end_date }}
+                        {% if semester_form.end_date.errors %}<p class="semester-setup__error">{{ semester_form.end_date.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Class routine -->
+            <section class="semester-setup__card" aria-labelledby="routine-heading">
+                <div class="semester-setup__card-head">
+                    <div>
+                        <h2 id="routine-heading">Class routine</h2>
+                        <p class="semester-setup__hint">
+                            Add each weekly class once. It repeats every week of the semester.
+                            You can skip this and add it later.
+                        </p>
+                    </div>
+                    <span class="semester-setup__step">Step 2</span>
+                </div>
+
+                {{ routine_formset.management_form }}
+
+                {% if routine_formset.non_form_errors %}
+                <div class="semester-setup__alert" role="alert">
+                    {% for error in routine_formset.non_form_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+                {% endif %}
+
+                <ol class="semester-setup__list" data-routine-list>
+                    {% for form in routine_formset %}
+                    <li class="semester-setup__row" data-routine-row>
+                        <div class="semester-setup__row-head">
+                            <span class="semester-setup__row-title"></span>
+                            <button type="button" class="semester-setup__remove" data-remove-row>Remove</button>
+                        </div>
+
+                        {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+                        {% if form.non_field_errors %}
+                        <div class="semester-setup__alert semester-setup__alert--row" role="alert">
+                            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="semester-setup__row-grid">
+                            <div class="semester-setup__field semester-setup__field--day{% if form.day_of_week.errors %} has-error{% endif %}">
+                                <label for="{{ form.day_of_week.id_for_label }}">Day</label>
+                                {{ form.day_of_week }}
+                                {% if form.day_of_week.errors %}<p class="semester-setup__error">{{ form.day_of_week.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div class="semester-setup__field semester-setup__field--course{% if form.course_name.errors %} has-error{% endif %}">
+                                <label for="{{ form.course_name.id_for_label }}">Course / class name</label>
+                                {{ form.course_name }}
+                                {% if form.course_name.errors %}<p class="semester-setup__error">{{ form.course_name.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div class="semester-setup__field semester-setup__field--room{% if form.room.errors %} has-error{% endif %}">
+                                <label for="{{ form.room.id_for_label }}">Room</label>
+                                {{ form.room }}
+                                {% if form.room.errors %}<p class="semester-setup__error">{{ form.room.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div class="semester-setup__field semester-setup__field--start{% if form.start_time.errors %} has-error{% endif %}">
+                                <label for="{{ form.start_time.id_for_label }}">Start time</label>
+                                {{ form.start_time }}
+                                {% if form.start_time.errors %}<p class="semester-setup__error">{{ form.start_time.errors.0 }}</p>{% endif %}
+                            </div>
+                            <div class="semester-setup__field semester-setup__field--end{% if form.end_time.errors %} has-error{% endif %}">
+                                <label for="{{ form.end_time.id_for_label }}">End time</label>
+                                {{ form.end_time }}
+                                {% if form.end_time.errors %}<p class="semester-setup__error">{{ form.end_time.errors.0 }}</p>{% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ol>
+
+                <button type="button" class="semester-setup__add" data-add-row>
+                    <span aria-hidden="true">+</span> Add another class
+                </button>
+            </section>
+
+            <!-- Actions -->
+            <div class="semester-setup__actions">
+                <a href="{% url 'academic:home' %}" class="semester-setup__btn semester-setup__btn--ghost">Cancel</a>
+                <button type="submit" class="semester-setup__btn semester-setup__btn--primary">Save semester</button>
+            </div>
+        </form>
+
+        <!-- Blank row used by semester-setup.js -->
+        <template data-routine-template>
+            <li class="semester-setup__row" data-routine-row>
+                <div class="semester-setup__row-head">
+                    <span class="semester-setup__row-title"></span>
+                    <button type="button" class="semester-setup__remove" data-remove-row>Remove</button>
+                </div>
+
+                {% for hidden in routine_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+
+                <div class="semester-setup__row-grid">
+                    <div class="semester-setup__field semester-setup__field--day">
+                        <label for="{{ routine_formset.empty_form.day_of_week.id_for_label }}">Day</label>
+                        {{ routine_formset.empty_form.day_of_week }}
+                    </div>
+                    <div class="semester-setup__field semester-setup__field--course">
+                        <label for="{{ routine_formset.empty_form.course_name.id_for_label }}">Course / class name</label>
+                        {{ routine_formset.empty_form.course_name }}
+                    </div>
+                    <div class="semester-setup__field semester-setup__field--room">
+                        <label for="{{ routine_formset.empty_form.room.id_for_label }}">Room</label>
+                        {{ routine_formset.empty_form.room }}
+                    </div>
+                    <div class="semester-setup__field semester-setup__field--start">
+                        <label for="{{ routine_formset.empty_form.start_time.id_for_label }}">Start time</label>
+                        {{ routine_formset.empty_form.start_time }}
+                    </div>
+                    <div class="semester-setup__field semester-setup__field--end">
+                        <label for="{{ routine_formset.empty_form.end_time.id_for_label }}">End time</label>
+                        {{ routine_formset.empty_form.end_time }}
+                    </div>
+                </div>
+            </li>
+        </template>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'academic/semester-setup.js' %}" defer></script>
+{% endblock %}

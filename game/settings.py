@@ -33,6 +33,7 @@ INSTALLED_APPS = [
      'puzzle8',
      'mind_arena',
      'visual_lab',
+    'academic',
      ]
 
 MIDDLEWARE = [

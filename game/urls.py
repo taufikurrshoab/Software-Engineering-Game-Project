@@ -11,4 +11,5 @@ urlpatterns = [
     path('games/dots-and-boxes/', include('dots_and_boxes.urls')),
     path("games/8-puzzle/", include("puzzle8.urls")),
     path("visual-lab/", include("visual_lab.urls")),
+    path("academic/", include("academic.urls")),
 ]

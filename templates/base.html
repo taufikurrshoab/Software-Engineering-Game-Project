@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Student Platform{% endblock %}</title>
+    <title>{% block title %}ThinkSphere{% endblock %}</title>
 
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
     {% block extra_css %}{% endblock %}
@@ -17,7 +17,7 @@
 
             <a href="/" class="brand">
                 <span class="brand-mark" aria-hidden="true">‹›</span>
-                <span class="brand-name">Student Platform</span>
+                <span class="brand-name">ThinkSphere</span>
             </a>
 
             <!-- Mobile menu toggle (CSS only, no JavaScript) -->
@@ -35,15 +35,16 @@
                         <a href="{% url 'dashboard' %}" class="nav-link{% if request.path == '/dashboard/' %} is-active{% endif %}">Dashboard</a>
                     </li>
                     <li>
-                        {# TODO: replace this span with a link when the Academic page exists #}
-                        <span class="nav-link is-soon" aria-disabled="true">Academic <small>Soon</small></span>
+                         <a href="{% url 'academic:home' %}" class="nav-link{% if request.resolver_match.namespace == 'academic' %} is-active{% endif %}">Academic</a>
                     </li>
                     <li>
                         {# TODO: replace this span with a link when the Skills page exists #}
                         <span class="nav-link is-soon" aria-disabled="true">Skills <small>Soon</small></span>
                     </li>
                     <li>
+
                         <a href="{% url 'visual_lab:home' %}" class="nav-link{% if request.resolver_match.namespace == 'visual_lab' %} is-active{% endif %}">Visual Lab</a>
+                       
                     </li>
                     <li>
                         <a href="{% url 'mind_arena:home' %}" class="nav-link{% if request.resolver_match.namespace == 'mind_arena' %} is-active{% endif %}">Mind Arena</a>
