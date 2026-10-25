@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Skill | ThinkSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="skill-page">
+    
+
+    {% if configured %}
+
+    <!-- Dashboard -->
+    <section class="skill-section skill-dashboard">
+        <div class="skill-container">
+
+            <header class="skill-dash-head" data-reveal>
+                <div>
+                    <span class="skill-eyebrow">Skill dashboard</span>
+                    <h1 class="skill-title">Welcome back, {{ user.first_name|default:user.username }}</h1>
+                    <p class="skill-lead">Click any node in your tree to see details and update progress.</p>
+                </div>
+                <a href="{% url 'skill:skill_create' %}" class="skill-btn skill-btn--primary">+ Add skill</a>
+            </header>
+
+            {% if just_completed %}
+            <div class="skill-banner" data-reveal role="status">
+                <div>
+                    <strong>{{ just_completed.name }} completed.</strong>
+                    {% if just_completed_names %}<span class="skill-banner__label">Recommended next skills:</span>{% endif %}
+                </div>
+                {% if just_completed_names %}
+                <div class="skill-chips">
+                    {% for name in just_completed_names %}
+                    <a href="{% url 'skill:skill_create' %}?name={{ name|urlencode }}&amp;parent={{ just_completed.pk }}"
+                       class="skill-chip">+ {{ name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="sk-workspace">
+
+                <!-- Tree -->
+                <div class="skill-panel" data-reveal>
+                    <header class="skill-panel__head">
+                        <h2>Skill tree</h2>
+                        {% if tree %}
+                        <div class="skill-panel__tools">
+                            <button type="button" class="skill-link-btn" data-expand-all>Expand all</button>
+                            <button type="button" class="skill-link-btn" data-collapse-all>Collapse all</button>
+                            <!-- <button type="button" class="skill-link-btn" data-toggle-projects aria-pressed="false">Hide projects</button> -->
+                        {% endif %}
+                    </header>
+
+                    {% if tree %}
+                    <div class="sk-canvas">
+                        <ul class="sk-tree" data-skill-tree>
+                            {% for node in tree %}
+                                {% include "skill/_tree_node.html" with node=node %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <ul class="sk-legend" aria-label="Legend">
+                        <li><i class="sk-dot sk-dot--completed"></i> Completed</li>
+                        <li><i class="sk-dot sk-dot--in_progress"></i> In progress</li>
+                        <li><i class="sk-dot sk-dot--not_started"></i> Not started</li>
+                         <li><i class="sk-dot sk-dot--project"></i> Project</li>
+                    </ul>
+                    {% else %}
+                    <div class="skill-empty">
+                        <p>You have no skills yet.</p>
+                        <a href="{% url 'skill:skill_create' %}" class="skill-btn skill-btn--primary">Add your first skill</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Sidebar -->
+                <aside class="sk-side">
+
+                    <ul class="sk-stats" data-reveal>
+                        <li class="sk-stat"><strong>{{ stats.total }}</strong><span>Skills</span></li>
+                        <li class="sk-stat"><strong>{{ stats.completed }}</strong><span>Completed</span></li>
+                        <li class="sk-stat"><strong>{{ stats.in_progress }}</strong><span>In progress</span></li>
+                        <li class="sk-stat"><strong>{{ stats.average }}%</strong><span>Average</span></li>
+                    </ul>
+
+                                        <!-- Selected skill or project (filled by skill-home.js) -->
+                    <div class="skill-panel sk-detail" data-reveal data-detail>
+                        <h2 class="sk-side-title">Selected</h2>
+                        <p class="skill-muted" data-detail-empty>Select a skill or project in the tree to see its details.</p>
+
+                        <div class="sk-detail__body" data-detail-body hidden>
+                            <div class="sk-detail__head">
+                                <span class="sk-ring sk-ring--lg" data-d-ring><b data-d-percent>0</b></span>
+                                <div>
+                                    <h3 data-d-name></h3>
+                                    <p><span class="skill-tag" data-d-category></span>
+                                       <span class="skill-status" data-d-status></span></p>
+                                </div>
+                            </div>
+
+                            <form method="post" class="sk-detail__form" data-d-form>
+                                {% csrf_token %}
+                                <label for="detail-progress">Progress</label>
+                                <div class="sk-detail__row">
+                                    <input type="range" min="0" max="100" step="5" class="skill-range-live"
+                                           data-d-range aria-label="Progress slider">
+                                    <input type="number" id="detail-progress" name="progress" min="0" max="100" step="5"
+                                           class="skill-input skill-input--small" data-d-number>
+                                </div>
+                                <button type="submit" class="skill-btn skill-btn--primary skill-btn--small">Save progress</button>
+                            </form>
+
+                            <div class="sk-detail__links">
+                                <a href="#" class="skill-link" data-d-edit>Edit skill</a>
+                                <a href="#" class="skill-link" data-d-child>+ Add sub-skill</a>
+                            </div>
+                        </div>
+
+                        <div class="sk-pdetail" data-pdetail hidden>
+                            <img class="sk-pdetail__img" data-p-image alt="" hidden>
+                            <span class="sk-pdetail__kind">Project</span>
+                            <h3 data-p-name></h3>
+                            <p class="sk-pdetail__date" data-p-date></p>
+                            <p class="sk-pdetail__text" data-p-description></p>
+                            <div class="sk-pdetail__row">
+                                <span>Technologies</span>
+                                <div class="skill-chips" data-p-tech></div>
+                            </div>
+                            <div class="sk-pdetail__row">
+                                <span>Related skills</span>
+                                <p data-p-skills></p>
+                            </div>
+                            <div class="sk-detail__links">
+                                <a href="#" class="skill-link" data-p-open>View full details</a>
+                                <a href="#" class="skill-link" data-p-link target="_blank" rel="noopener noreferrer" hidden>Open link &#8599;</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="skill-panel" data-reveal>
+                        <h2 class="sk-side-title">What to learn next</h2>
+                        {% if recommendations %}
+                        <ul class="skill-recs">
+                            {% for rec in recommendations %}
+                            <li class="skill-rec">
+                                <span class="skill-rec__from">After <strong>{{ rec.skill.name }}</strong></span>
+                                <div class="skill-chips">
+                                    {% for name in rec.names %}
+                                    <a href="{% url 'skill:skill_create' %}?name={{ name|urlencode }}&amp;parent={{ rec.skill.pk }}"
+                                       class="skill-chip">+ {{ name }}</a>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <p class="skill-hint">Suggestions only. Nothing is added unless you choose it.</p>
+                        {% else %}
+                        <p class="skill-muted">Complete a skill (100%) and suggestions for what comes next will appear here.</p>
+                        {% endif %}
+                    </div>
+
+                </aside>
+            </div>
+
+            <!-- Project showcase -->
+            <div class="skill-panel" data-reveal>
+                <header class="skill-panel__head">
+                    <h2>Project showcase</h2>
+                     <a href="{% url 'skill:project_create' %}" class="skill-btn skill-btn--small skill-btn--primary">+ Add project</a>
+                </header>
+
+                {% if projects %}
+                <div class="skill-projects">
+                    {% for p in projects %}
+                    <article class="skill-project">
+                        {% if p.screenshot %}
+                        <img src="{{ p.screenshot.url }}" alt="Screenshot of {{ p.name }}" loading="lazy" class="skill-project__img">
+                        {% else %}
+                        <div class="skill-project__img skill-project__img--empty" aria-hidden="true">{{ p.name|slice:":1" }}</div>
+                        {% endif %}
+                        <div class="skill-project__body">
+                            <h3>{{ p.name }}</h3>
+                            <p>{{ p.description|truncatechars:90 }}</p>
+                            <div class="skill-chips">
+                                {% for t in p.technologies.all|slice:":4" %}<span class="skill-tag">{{ t.name }}</span>{% endfor %}
+                            </div>
+                            <a href="{% url 'skill:project_detail' p.pk %}" class="skill-link">View details</a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                               <div class="skill-empty">
+                    <p>No projects yet. Projects you build will show here, linked to the skills they use.</p>
+                    <a href="{% url 'skill:project_create' %}" class="skill-btn skill-btn--ghost skill-btn--small">Add your first project</a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </section>
+
+    {% else %}
+
+    <!-- Welcome -->
+    <section class="skill-hero">
+        <div class="skill-container">
+
+            <div class="skill-hero__content" data-reveal>
+                <span class="skill-eyebrow">Your learning journey</span>
+                <h1 class="skill-title skill-title--hero">Build skills. Create things. Keep growing.</h1>
+                <p class="skill-lead">
+                    Track what you know, explore what to learn next, and connect your learning journey to real projects.
+                </p>
+                <div class="skill-actions">
+                    <a href="{% url 'skill:skill_create' %}" class="skill-btn skill-btn--primary">Start My Skill Journey</a>
+                    <a href="#how-it-works" class="skill-btn skill-btn--ghost">See how it works</a>
+                </div>
+                <div class="skill-starters">
+                    <span>Quick start:</span>
+                    <div class="skill-chips">
+                        {% for name in starter_skills %}
+                        <a href="{% url 'skill:skill_create' %}?name={{ name|urlencode }}" class="skill-chip">{{ name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example tree (illustration only) -->
+            <div class="sk-example" data-reveal aria-hidden="true">
+                <span class="sk-example__label">Example tree &middot; not your data</span>
+                <div class="sk-canvas sk-canvas--example">
+                    <ul class="sk-tree" data-skill-tree>
+                        <li class="sk-branch">
+                            <div class="sk-card"><div class="sk-node sk-node--completed">
+                                <span class="sk-ring" style="--sk-value: 100"><b>100</b></span>
+                                <span class="sk-node__text"><strong>Python</strong><small>Programming</small></span>
+                            </div></div>
+                            <ul class="sk-children">
+                                <li class="sk-branch">
+                                    <div class="sk-card"><div class="sk-node sk-node--in_progress">
+                                        <span class="sk-ring" style="--sk-value: 70"><b>70</b></span>
+                                        <span class="sk-node__text"><strong>Django</strong><small>Web</small></span>
+                                    </div></div>
+                                    <ul class="sk-children">
+                                        <li class="sk-branch">
+                                            <div class="sk-card"><div class="sk-pnode">
+                                                <small>Project</small><strong>Tic Tac Toe</strong>
+                                            </div></div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="sk-branch">
+                                    <div class="sk-card"><div class="sk-node sk-node--in_progress">
+                                        <span class="sk-ring" style="--sk-value: 40"><b>40</b></span>
+                                        <span class="sk-node__text"><strong>Machine Learning</strong><small>Data and AI</small></span>
+                                    </div></div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="sk-branch">
+                            <div class="sk-card"><div class="sk-node sk-node--completed">
+                                <span class="sk-ring" style="--sk-value: 100"><b>100</b></span>
+                                <span class="sk-node__text"><strong>HTML</strong><small>Web</small></span>
+                            </div></div>
+                            <ul class="sk-children">
+                                <li class="sk-branch">
+                                    <div class="sk-card"><div class="sk-node sk-node--completed">
+                                        <span class="sk-ring" style="--sk-value: 100"><b>100</b></span>
+                                        <span class="sk-node__text"><strong>CSS</strong><small>Web</small></span>
+                                    </div></div>
+                                    <ul class="sk-children">
+                                        <li class="sk-branch">
+                                            <div class="sk-card"><div class="sk-node sk-node--in_progress">
+                                                <span class="sk-ring" style="--sk-value: 80"><b>80</b></span>
+                                                <span class="sk-node__text"><strong>JavaScript</strong><small>Web</small></span>
+                                            </div></div>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="skill-section" id="how-it-works">
+        <div class="skill-container">
+
+            <header class="skill-section__head" data-reveal>
+                <span class="skill-eyebrow">How it works</span>
+                <h2 class="skill-title skill-title--section">Three steps to get started</h2>
+            </header>
+
+            <ol class="skill-steps">
+                <li class="skill-step" data-reveal>
+                    <span class="skill-step__num">01</span>
+                    <h3>Add a skill</h3>
+                    <p>Add anything you are learning or already know, like Python or HTML.</p>
+                </li>
+                <li class="skill-step" data-reveal>
+                    <span class="skill-step__num">02</span>
+                    <h3>Set your progress</h3>
+                    <p>You decide the percentage, from 0 to 100. Your status follows it automatically.</p>
+                </li>
+                <li class="skill-step" data-reveal>
+                    <span class="skill-step__num">03</span>
+                    <h3>Grow your tree</h3>
+                    <p>Place skills under parents, such as Django under Python, and build the tree over time.</p>
+                </li>
+            </ol>
+
+            <div class="skill-features">
+                <article class="skill-feature" data-reveal>
+                    <h3>Manual progress tracking</h3>
+                    <p>No quizzes and no automatic scoring. You set the number, and the status changes with it:
+                       0% is not started, 1 to 99% is in progress, and 100% is completed.</p>
+                </article>
+
+                <article class="skill-feature" data-reveal>
+                    <h3>Simple recommendations</h3>
+                    <p>When you complete a skill, ThinkSphere suggests what could come next. For example, after
+                       Python you may see Django and Machine Learning. You choose whether to add them, and your tree
+                       never changes on its own.</p>
+                    <div class="skill-chips" aria-hidden="true">
+                        <span class="skill-chip skill-chip--static">Example: Python done</span>
+                        <span class="skill-chip skill-chip--static">&rarr; Django</span>
+                        <span class="skill-chip skill-chip--static">&rarr; Machine Learning</span>
+                    </div>
+                </article>
+
+                <article class="skill-feature" data-reveal>
+                    <h3>Projects linked to skills</h3>
+                    <p>Record what you build and link it to the skills it used. Projects appear next to the skills
+                       they prove.</p>
+                    <div class="skill-example-project" aria-hidden="true">
+                        <span class="skill-badge">Example</span>
+                        <strong>Tic Tac Toe</strong>
+                        <div class="skill-chips">
+                            <span class="skill-tag">HTML</span>
+                            <span class="skill-tag">CSS</span>
+                            <span class="skill-tag">JavaScript</span>
+                            <span class="skill-tag">Django</span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <div class="skill-cta" data-reveal>
+                <div>
+                    <h2>Ready to start your tree?</h2>
+                    <p>It takes less than a minute to add your first skill.</p>
+                </div>
+                <a href="{% url 'skill:skill_create' %}" class="skill-btn skill-btn--primary">Start My Skill Journey</a>
+            </div>
+
+        </div>
+    </section>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'skill/skill-home.js' %}" defer></script>
+{% endblock %}

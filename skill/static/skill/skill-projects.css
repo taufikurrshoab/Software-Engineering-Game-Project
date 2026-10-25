@@ -1,0 +1,115 @@
+/* Skill projects: form and detail pages. Tokens come from skill-home.css. */
+
+/* Form */
+.sp-form-wrap { max-width: 680px; }
+.sp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.sp-label { display: block; margin-bottom: 8px; color: var(--sk-soft); font-size: 0.84rem; font-weight: 600; }
+
+.sp-file {
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed var(--sk-border-hover);
+    border-radius: var(--sk-r-sm);
+    background: var(--sk-surface);
+    color: var(--sk-soft);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+.sp-file::file-selector-button {
+    margin-right: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--sk-border);
+    border-radius: var(--sk-r-sm);
+    background: var(--sk-elevated);
+    color: var(--sk-text);
+    font: inherit;
+    cursor: pointer;
+}
+.sp-current { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.sp-current img { width: 120px; height: 76px; object-fit: cover; border: 1px solid var(--sk-border); border-radius: var(--sk-r-sm); }
+.sp-clear { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--sk-muted); font-size: 0.84rem; font-weight: 400; }
+.sp-preview { margin-top: 12px; }
+.sp-preview[hidden] { display: none; }
+.sp-preview img { display: block; max-width: 100%; max-height: 220px; border: 1px solid var(--sk-border); border-radius: var(--sk-r-sm); }
+.sp-tech-preview { min-height: 0; margin-top: 10px; }
+.sp-tech-preview:empty { display: none; }
+
+.sp-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.sp-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--sk-border);
+    border-radius: 999px;
+    background: var(--sk-overlay);
+    color: var(--sk-soft);
+    font-size: 0.84rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: border-color var(--sk-ease), background var(--sk-ease);
+}
+.sp-check:hover { border-color: var(--sk-border-hover); }
+.sp-check input { accent-color: var(--sk-primary); }
+.sp-check:has(input:checked) { border-color: var(--sk-primary); background: var(--sk-primary-soft); color: var(--sk-text); }
+
+/* Detail */
+.sp-detail-wrap { padding-block: 40px 72px; }
+.sp-detail__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.sp-detail__head .skill-title { margin-bottom: 0; }
+.sp-detail__actions { display: flex; gap: 10px; }
+.sp-detail__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+
+.sp-detail__img {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    margin-bottom: 24px;
+    object-fit: cover;
+    border: 1px solid var(--sk-border);
+    border-radius: var(--sk-r-md);
+}
+.sp-detail__img--empty {
+    display: grid;
+    place-items: center;
+    height: 240px;
+    background: var(--sk-elevated);
+    color: var(--sk-muted);
+    font-size: 3rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.sp-h { margin-bottom: 8px; font-size: 0.95rem; }
+.sp-text { color: var(--sk-soft); font-size: 0.95rem; overflow-wrap: anywhere; }
+.sp-detail__side { display: grid; gap: 14px; }
+.sp-box { padding: 16px 18px; border: 1px solid var(--sk-border); border-radius: var(--sk-r-md); background: var(--sk-card); }
+
+.sp-skills { display: grid; gap: 6px; }
+.sp-skills a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--sk-border);
+    border-radius: var(--sk-r-sm);
+    background: var(--sk-surface);
+    font-size: 0.88rem;
+    transition: border-color var(--sk-ease), background var(--sk-ease);
+}
+.sp-skills a:hover { border-color: var(--sk-border-hover); background: var(--sk-elevated); }
+.sp-skills b { color: var(--sk-accent); font-family: var(--sk-mono); font-size: 0.78rem; font-weight: 500; }
+
+@media (max-width: 860px) {
+    .sp-detail__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .sp-two { grid-template-columns: 1fr; }
+    .sp-detail__head { flex-direction: column; align-items: flex-start; }
+    .sp-current { flex-direction: column; align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sp-check, .sp-skills a { transition: none; }
+}

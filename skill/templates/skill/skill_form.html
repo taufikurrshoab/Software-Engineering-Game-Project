@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if skill %}Edit {{ skill.name }}{% else %}Add skill{% endif %} | ThinkSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+<link rel="stylesheet" href="{% static 'skill/skill-forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="skill-page">
+    <div class="skill-container skill-form-wrap">
+
+        <a href="{% url 'skill:home' %}" class="skill-back">&larr; Back to Skill</a>
+
+        <header class="skill-form-head">
+            <span class="skill-eyebrow">{% if skill %}Edit skill{% else %}New skill{% endif %}</span>
+            <h1 class="skill-title">{% if skill %}Edit {{ skill.name }}{% else %}Add a skill{% endif %}</h1>
+            <p class="skill-lead">
+                {% if skill %}
+                Change the details or update your progress. The status follows the percentage.
+                {% else %}
+                Add something you are learning or already know. You can change everything later.
+                {% endif %}
+            </p>
+        </header>
+
+        <form method="post" class="skill-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="skill-alert" role="alert">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="skill-field{% if field.errors %} has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+
+                {% if field.name == "progress" %}
+                <input type="range" min="0" max="100" step="5" value="{{ field.value|default:0 }}"
+                       class="skill-range" data-progress-range aria-label="Progress slider">
+                {% endif %}
+
+                {% if field.help_text %}<p class="skill-help">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<p class="skill-error">{{ error }}</p>{% endfor %}
+            </div>
+            {% endfor %}
+
+            <div class="skill-form-actions">
+                <a href="{% url 'skill:home' %}" class="skill-btn skill-btn--ghost">Cancel</a>
+                <button type="submit" class="skill-btn skill-btn--primary">{% if skill %}Save changes{% else %}Add skill{% endif %}</button>
+            </div>
+        </form>
+
+        {% if skill %}
+        <details class="skill-danger">
+            <summary>Delete this skill</summary>
+            <p>Its sub-skills will stay in your tree as top-level skills. This cannot be undone.</p>
+            <form method="post" action="{% url 'skill:skill_delete' skill.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="skill-btn skill-btn--danger">Yes, delete {{ skill.name }}</button>
+            </form>
+        </details>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'skill/skill-home.js' %}" defer></script>
+{% endblock %}

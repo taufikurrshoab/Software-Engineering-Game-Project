@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if project %}Edit {{ project.name }}{% else %}Add project{% endif %} | ThinkSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+<link rel="stylesheet" href="{% static 'skill/skill-projects.css' %}">
+<link rel="stylesheet" href="{% static 'skill/skill-forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="skill-page">
+    {% include "skill/_messages.html" %}
+    <div class="skill-container skill-form-wrap sp-form-wrap">
+
+        <a href="{% if project %}{% url 'skill:project_detail' project.pk %}{% else %}{% url 'skill:home' %}{% endif %}"
+           class="skill-back">&larr; Back</a>
+
+        <header class="skill-form-head">
+            <span class="skill-eyebrow">{% if project %}Edit project{% else %}New project{% endif %}</span>
+            <h1 class="skill-title">{% if project %}Edit {{ project.name }}{% else %}Add a project{% endif %}</h1>
+            <p class="skill-lead">Record something you built and link it to the skills it used.</p>
+        </header>
+
+        <form method="post" enctype="multipart/form-data" class="skill-form" data-project-form>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="skill-alert" role="alert">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="skill-field{% if form.name.errors %} has-error{% endif %}">
+                <label for="{{ form.name.id_for_label }}">Project name</label>
+                {{ form.name }}
+                {% for e in form.name.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+            </div>
+
+            <div class="skill-field{% if form.description.errors %} has-error{% endif %}">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% for e in form.description.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+            </div>
+
+            <div class="skill-field{% if form.screenshot.errors %} has-error{% endif %}">
+                <label for="id_screenshot">Screenshot (optional)</label>
+
+                {% if project and project.screenshot %}
+                <div class="sp-current">
+                    <img src="{{ project.screenshot.url }}" alt="Current screenshot of {{ project.name }}">
+                    <label class="sp-clear">
+                        <input type="checkbox" name="screenshot-clear" id="screenshot-clear"> Remove current screenshot
+                    </label>
+                </div>
+                {% endif %}
+
+                <input type="file" name="screenshot" id="id_screenshot" accept="image/*"
+                       class="sp-file" data-sp-file>
+                <p class="skill-help">PNG, JPG or WebP, up to 5 MB.</p>
+                <p class="skill-error" data-sp-file-error hidden></p>
+                {% for e in form.screenshot.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+                <div class="sp-preview" data-sp-preview hidden>
+                    <img alt="Preview of the selected screenshot">
+                </div>
+            </div>
+
+            <div class="skill-field{% if form.technologies_text.errors %} has-error{% endif %}">
+                <label for="{{ form.technologies_text.id_for_label }}">Technologies used</label>
+                {{ form.technologies_text }}
+                <p class="skill-help">{{ form.technologies_text.help_text }}</p>
+                <div class="skill-chips sp-tech-preview" data-sp-tech-preview aria-live="polite"></div>
+                {% for e in form.technologies_text.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+            </div>
+
+            <div class="sp-two">
+                <div class="skill-field{% if form.completed_date.errors %} has-error{% endif %}">
+                    <label for="{{ form.completed_date.id_for_label }}">Completion date (optional)</label>
+                    {{ form.completed_date }}
+                    {% for e in form.completed_date.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+                </div>
+                <div class="skill-field{% if form.project_url.errors %} has-error{% endif %}">
+                    <label for="{{ form.project_url.id_for_label }}">GitHub or live link (optional)</label>
+                    {{ form.project_url }}
+                    {% for e in form.project_url.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <div class="skill-field{% if form.related_skills.errors %} has-error{% endif %}">
+                <span class="sp-label">Related skills</span>
+                {% if form.related_skills.field.queryset.exists %}
+                <div class="sp-checks">
+                    {% for box in form.related_skills %}
+                    <label class="sp-check">{{ box.tag }}<span>{{ box.choice_label }}</span></label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="skill-help">You have no skills yet.
+                    <a href="{% url 'skill:skill_create' %}" class="skill-link">Add a skill first</a>
+                    to link it here. You can also do it later by editing the project.</p>
+                {% endif %}
+                {% for e in form.related_skills.errors %}<p class="skill-error">{{ e }}</p>{% endfor %}
+            </div>
+
+            <div class="skill-form-actions">
+                <a href="{% if project %}{% url 'skill:project_detail' project.pk %}{% else %}{% url 'skill:home' %}{% endif %}"
+                   class="skill-btn skill-btn--ghost">Cancel</a>
+                <button type="submit" class="skill-btn skill-btn--primary">{% if project %}Save changes{% else %}Add project{% endif %}</button>
+            </div>
+        </form>
+
+        {% if project %}
+        <details class="skill-danger">
+            <summary>Delete this project</summary>
+            <p>The project and its screenshot will be removed. Your skills are not affected.</p>
+            <form method="post" action="{% url 'skill:project_delete' project.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="skill-btn skill-btn--danger">Yes, delete {{ project.name }}</button>
+            </form>
+        </details>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'skill/skill-home.js' %}" defer></script>
+<script src="{% static 'skill/skill-projects.js' %}" defer></script>
+{% endblock %}
