@@ -1,0 +1,53 @@
+{% with s=node.skill n=node.children|length m=node.projects|length %}
+<li class="sk-branch">
+    <div class="sk-card">
+        <a href="{% url 'skill:skill_edit' s.pk %}"
+           class="sk-node sk-node--{{ s.status }}" data-node
+           data-name="{{ s.name }}"
+           data-category="{{ s.get_category_display }}"
+           data-status="{{ s.status }}"
+           data-status-label="{{ s.get_status_display }}"
+           data-progress="{{ s.progress }}"
+           data-edit-url="{% url 'skill:skill_edit' s.pk %}"
+           data-progress-url="{% url 'skill:skill_progress' s.pk %}"
+           data-child-url="{% url 'skill:skill_create' %}?parent={{ s.pk }}">
+            <span class="sk-ring" style="--sk-value: {{ s.progress }}"><b>{{ s.progress }}</b></span>
+            <span class="sk-node__text">
+                <strong>{{ s.name }}</strong>
+                <small>{{ s.get_category_display }}</small>
+            </span>
+        </a>
+        {% if n or m %}
+        <button type="button" class="sk-toggle" data-toggle aria-expanded="true"
+                aria-label="Collapse {{ s.name }}" title="Show or hide sub-skills and projects">{{ n|add:m }}</button>
+        {% endif %}
+    </div>
+
+    {% if n or m %}
+    <ul class="sk-children">
+        {% for child in node.children %}
+            {% include "skill/_tree_node.html" with node=child %}
+        {% endfor %}
+
+        {% for p in node.projects %}
+        <li class="sk-branch sk-branch--project">
+            <div class="sk-card">
+                <a href="{% url 'skill:project_detail' p.pk %}" class="sk-pnode" data-pnode
+                   data-name="{{ p.name }}"
+                   data-description="{{ p.description|truncatechars:180 }}"
+                   data-image="{% if p.screenshot %}{{ p.screenshot.url }}{% endif %}"
+                   data-tech="{% for t in p.technologies.all %}{{ t.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                   data-skills="{% for rs in p.related_skills.all %}{{ rs.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+                   data-date="{% if p.completed_date %}{{ p.completed_date|date:'j F Y' }}{% endif %}"
+                   data-link="{{ p.project_url }}"
+                   data-detail-url="{% url 'skill:project_detail' p.pk %}">
+                    <small>Project</small>
+                    <strong>{{ p.name }}</strong>
+                </a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</li>
+{% endwith %}

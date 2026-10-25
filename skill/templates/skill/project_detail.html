@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ project.name }} | ThinkSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+<link rel="stylesheet" href="{% static 'skill/skill-projects.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="skill-page">
+    {% include "skill/_messages.html" %}
+    <div class="skill-container sp-detail-wrap">
+
+        <a href="{% url 'skill:home' %}" class="skill-back">&larr; Back to Skill</a>
+
+        <article class="sp-detail">
+            <header class="sp-detail__head">
+                <div>
+                    <span class="skill-eyebrow">Project</span>
+                    <h1 class="skill-title">{{ project.name }}</h1>
+                </div>
+                <div class="sp-detail__actions">
+                    {% if project.project_url %}
+                    <a href="{{ project.project_url }}" target="_blank" rel="noopener noreferrer"
+                       class="skill-btn skill-btn--ghost skill-btn--small">Open link &#8599;</a>
+                    {% endif %}
+                    <a href="{% url 'skill:project_edit' project.pk %}" class="skill-btn skill-btn--primary skill-btn--small">Edit</a>
+                </div>
+            </header>
+
+            <div class="sp-detail__grid">
+                <div class="sp-detail__main">
+                    {% if project.screenshot %}
+                    <img src="{{ project.screenshot.url }}" alt="Screenshot of {{ project.name }}" class="sp-detail__img">
+                    {% else %}
+                    <div class="sp-detail__img sp-detail__img--empty" aria-hidden="true">{{ project.name|slice:":1" }}</div>
+                    {% endif %}
+
+                    <h2 class="sp-h">About this project</h2>
+                    <p class="sp-text">{{ project.description|linebreaksbr }}</p>
+                </div>
+
+                <aside class="sp-detail__side">
+                    <section class="sp-box">
+                        <h2 class="sp-h">Completed</h2>
+                        <p class="sp-text">
+                            {% if project.completed_date %}{{ project.completed_date|date:"j F Y" }}{% else %}Not set{% endif %}
+                        </p>
+                    </section>
+
+                    <section class="sp-box">
+                        <h2 class="sp-h">Technologies</h2>
+                        {% with techs=project.technologies.all %}
+                        {% if techs %}
+                        <div class="skill-chips">{% for t in techs %}<span class="skill-tag">{{ t.name }}</span>{% endfor %}</div>
+                        {% else %}<p class="skill-muted">None added.</p>{% endif %}
+                        {% endwith %}
+                    </section>
+
+                    <section class="sp-box">
+                        <h2 class="sp-h">Related skills</h2>
+                        {% with skills=project.related_skills.all %}
+                        {% if skills %}
+                        <ul class="sp-skills">
+                            {% for s in skills %}
+                            <li>
+                                <a href="{% url 'skill:skill_edit' s.pk %}">
+                                    <span>{{ s.name }}</span>
+                                    <b>{{ s.progress }}%</b>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}<p class="skill-muted">No skills linked yet.</p>{% endif %}
+                        {% endwith %}
+                    </section>
+                </aside>
+            </div>
+        </article>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'skill/skill-home.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,97 @@
+/* Skill forms (add skill, add/edit project).
+   Styled by structure, so it works even if a widget has no CSS class. */
+
+.skill-page .skill-form {
+    display: grid;
+    gap: 18px;
+    padding: 26px;
+    border: 1px solid var(--sk-border);
+    border-radius: var(--sk-r-lg);
+    background: var(--sk-card);
+}
+
+/* Labels */
+.skill-page .skill-form .skill-field > label,
+.skill-page .skill-form .sp-label {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--sk-soft);
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+/* Text, number, date, url, select and textarea */
+.skill-page .skill-form .skill-field :is(
+    input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="hidden"]),
+    select,
+    textarea
+) {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid var(--sk-border);
+    border-radius: var(--sk-r-sm);
+    background: var(--sk-surface);
+    color: var(--sk-text);
+    font: inherit;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    color-scheme: dark;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color var(--sk-ease), box-shadow var(--sk-ease);
+}
+.skill-page .skill-form .skill-field select {
+    padding-right: 36px;
+    cursor: pointer;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--sk-muted) 50%),
+        linear-gradient(135deg, var(--sk-muted) 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+.skill-page .skill-form .skill-field textarea {
+    min-height: 120px;
+    padding: 10px 12px;
+    resize: vertical;
+}
+.skill-page .skill-form .skill-field input[type="number"] { width: 100%; }
+
+.skill-page .skill-form .skill-field :is(input, select, textarea)::placeholder { color: var(--sk-muted); opacity: 1; }
+.skill-page .skill-form .skill-field :is(input:not([type="file"]), select, textarea):hover { border-color: var(--sk-border-hover); }
+.skill-page .skill-form .skill-field :is(input:not([type="file"]), select, textarea):focus {
+    outline: none;
+    border-color: var(--sk-primary);
+    box-shadow: 0 0 0 3px var(--sk-primary-soft);
+}
+.skill-page .skill-form .skill-field.has-error :is(input, select, textarea) { border-color: var(--sk-danger); }
+
+/* Slider under the progress field */
+.skill-page .skill-form .skill-range { width: 100%; margin-top: 12px; accent-color: var(--sk-primary); }
+
+/* Help and errors */
+.skill-page .skill-form .skill-help,
+.skill-page .skill-form .helptext {
+    display: block;
+    margin: 6px 0 0;
+    color: var(--sk-muted);
+    font-size: 0.8rem;
+}
+.skill-page .skill-form .skill-error { margin: 6px 0 0; color: var(--sk-danger); font-size: 0.82rem; }
+.skill-page .skill-form .skill-error[hidden] { display: none; }
+
+/* Project form: two-column row must be allowed to shrink */
+.skill-page .sp-two > .skill-field { min-width: 0; }
+
+/* Buttons row */
+.skill-page .skill-form .skill-form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 4px; }
+
+@media (max-width: 600px) {
+    .skill-page .skill-form { padding: 18px; }
+    .skill-page .skill-form .skill-form-actions { flex-direction: column-reverse; }
+    .skill-page .skill-form .skill-form-actions .skill-btn { width: 100%; }
+}
