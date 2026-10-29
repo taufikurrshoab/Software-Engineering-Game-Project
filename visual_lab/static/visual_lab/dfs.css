@@ -1,0 +1,69 @@
+
+/* =========================================================
+   DFS VISUALIZER
+   Reuse the existing BFS design
+   ========================================================= */
+
+@import url("./bfs.css");
+
+/* DFS stack icon */
+.stack-icon {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+}
+
+/* DFS node states */
+.graph-node.node-start {
+    fill: #15352d;
+    stroke: #35c98b;
+    stroke-width: 3px;
+}
+
+.graph-node.node-queued {
+    fill: #172b4d;
+    stroke: #5b9cff;
+    stroke-width: 3px;
+}
+
+.graph-node.node-visited {
+    fill: #153d34;
+    stroke: #34d399;
+    stroke-width: 3px;
+}
+
+.graph-node.node-current {
+    fill: #3b3218;
+    stroke: #f3c74f;
+    stroke-width: 4px;
+    animation: dfsCurrentNode 0.45s ease;
+}
+
+/* Highlight edges connected to the current node */
+.graph-edge.edge-active {
+    stroke: #e5bd45;
+    stroke-width: 4px;
+    opacity: 1;
+}
+
+/* Subtle current-node animation */
+@keyframes dfsCurrentNode {
+    0% {
+        opacity: 0.75;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Disabled controls */
+.bfs-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    filter: none;
+}

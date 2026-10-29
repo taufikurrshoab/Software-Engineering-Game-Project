@@ -1,0 +1,110 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Puzzle A* Visualizer | ThinkSphere</title>
+    <link rel="stylesheet" href="{% static 'visual_lab/puzzle8.css' %}">
+</head>
+<body>
+<main class="page">
+    <header class="header">
+        <a class="back-link" href="{% url 'visual_lab:home' %}">
+            ← Back to Visual Lab
+        </a>
+        <p class="eyebrow">ARTIFICIAL INTELLIGENCE</p>
+        <h1>8-Puzzle <span>A* Search</span></h1>
+        <p class="subtitle">
+            Find a shortest solution using Manhattan distance.
+            The blank tile is represented by 0.
+        </p>
+    </header>
+
+    <section class="panel">
+        <h2>Initial State</h2>
+        <p class="help">
+            Enter numbers 0–8 exactly once. Use commas or spaces.
+            The goal is 1, 2, 3 / 4, 5, 6 / 7, 8, blank.
+        </p>
+
+        <label for="initial-state">Puzzle values</label>
+        <input
+            id="initial-state"
+            type="text"
+            value="8,6,7,2,5,4,3,0,1"
+            autocomplete="off"
+        >
+
+        <div class="button-row">
+            <button id="solve-btn" class="primary">Find Solution</button>
+            <button id="next-btn" disabled>Next Step →</button>
+            <button id="auto-btn" disabled>Auto Solve</button>
+            <button id="reset-btn" class="ghost">Reset</button>
+        </div>
+
+        <p id="error-message" class="error" role="alert"></p>
+        <p id="status" class="status">Enter a puzzle and find its solution.</p>
+    </section>
+
+    <section class="workspace">
+        <div class="panel board-panel">
+            <div class="section-heading">
+                <div>
+                    <h2>Current Puzzle</h2>
+                    <p id="move-label">Move 0</p>
+                </div>
+                <span id="solved-badge" class="badge">Not solved</span>
+            </div>
+
+            <div id="puzzle-board" class="puzzle-board"
+                 aria-label="Current 8 puzzle board"></div>
+
+            <p class="help">
+                Green indicates the blank tile. Each Next Step shows
+                the next state in the solution path.
+            </p>
+        </div>
+
+        <div class="panel metrics-panel">
+            <h2>A* Evaluation</h2>
+            <div class="metric">
+                <span>g(n) · Moves so far</span>
+                <strong id="g-value">0</strong>
+            </div>
+            <div class="metric">
+                <span>h(n) · Manhattan distance</span>
+                <strong id="h-value">0</strong>
+            </div>
+            <div class="metric highlight">
+                <span>f(n) = g(n) + h(n)</span>
+                <strong id="f-value">0</strong>
+            </div>
+            <div class="metric">
+                <span>Solution length</span>
+                <strong id="solution-length">—</strong>
+            </div>
+            <div class="metric">
+                <span>States explored</span>
+                <strong id="explored-count">0</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Solution Path</h2>
+        <p class="help">
+            After Find Solution, select Next Step to move through
+            the states in order.
+        </p>
+        <div id="path-list" class="path-list">
+            The solution path will appear here.
+        </div>
+    </section>
+
+    <footer>ThinkSphere · Visual Lab</footer>
+</main>
+<script src="{% static 'visual_lab/puzzle8.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijkstra Visualizer | ThinkSphere</title>
+    <link rel="stylesheet" href="{% static 'visual_lab/dijkstra.css' %}">
+</head>
+<body>
+<main class="page">
+    <header class="header">
+        <a class="back-link" href="{% url 'visual_lab:home' %}">
+            ← Back to Visual Lab
+        </a>
+        <p class="eyebrow">GRAPH ALGORITHM VISUALIZER</p>
+        <h1>Dijkstra's Algorithm</h1>
+        <p class="subtitle">
+            Explore how the shortest distances are found in a
+            weighted graph using a greedy approach.
+        </p>
+    </header>
+
+    <section class="panel controls">
+        <h2>Graph Configuration</h2>
+
+        <div class="field">
+            <label for="nodes-input">Nodes (space or comma separated)</label>
+            <input id="nodes-input" value="A B C D E F">
+        </div>
+
+        <div class="field">
+            <label for="edges-input">Undirected weighted edges</label>
+            <textarea id="edges-input" rows="5">A-B:4
+A-C:2
+B-C:1
+B-D:5
+C-D:8
+C-E:10
+D-E:2
+D-F:6
+E-F:3</textarea>
+            <small>Format: A-B:4 means an edge between A and B with weight 4.</small>
+        </div>
+
+        <div class="field">
+            <label for="source-input">Source node</label>
+            <select id="source-input">
+                <option value="A" selected>A</option>
+            </select>
+        </div>
+
+        <div class="button-row">
+            <button id="generate-btn" class="primary">Generate Graph</button>
+            <button id="start-btn" disabled>Start</button>
+            <button id="next-btn" disabled>Next Step →</button>
+            <button id="reset-btn" class="ghost">Reset</button>
+        </div>
+
+        <p id="error-message" class="error" role="alert"></p>
+        <p id="status" class="status">Generate a graph to begin.</p>
+    </section>
+
+    <section class="legend">
+        <span><i class="dot source-dot"></i> Source</span>
+        <span><i class="dot current-dot"></i> Current node</span>
+        <span><i class="dot visited-dot"></i> Visited / finalized</span>
+        <span><i class="dot path-dot"></i> Shortest path</span>
+    </section>
+
+    <section class="panel graph-panel">
+        <div class="section-heading">
+            <div>
+                <h2>Weighted Graph</h2>
+                <p>Numbers on edges represent weights.</p>
+            </div>
+            <span id="step-counter" class="badge">Step 0</span>
+        </div>
+
+        <div id="graph-container">
+            <svg id="graph-svg" role="img" aria-label="Weighted graph"></svg>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Algorithm Progress</h2>
+        <p id="step-description">
+            Configure the graph and click Generate Graph.
+        </p>
+
+        <div class="metrics">
+            <div class="metric">
+                <span>Current node</span>
+                <strong id="current-node">—</strong>
+            </div>
+            <div class="metric">
+                <span>Current distance</span>
+                <strong id="current-distance">—</strong>
+            </div>
+            <div class="metric">
+                <span>Finalized nodes</span>
+                <strong id="visited-count">0</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Shortest Distances</h2>
+        <div id="distance-list" class="distance-list">
+            Generate a graph to see distances.
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Shortest Path</h2>
+        <div class="path-controls">
+            <div class="field">
+                <label for="target-input">Destination node</label>
+                <select id="target-input">
+                    <option value="F" selected>F</option>
+                </select>
+            </div>
+            <button id="path-btn" class="secondary" disabled>
+                Show Shortest Path
+            </button>
+        </div>
+        <p id="path-result" class="status">
+            Run the algorithm to find a path.
+        </p>
+    </section>
+
+    <footer>ThinkSphere · Visual Lab</footer>
+</main>
+<script src="{% static 'visual_lab/dijkstra.js' %}"></script>
+</body>
+</html>

@@ -233,8 +233,8 @@
                         <p>Go as deep as possible along each branch before backtracking.</p>
                     </div>
                     <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status">Coming soon</span>
-                        <span class="visual-lab-card__link is-disabled" aria-disabled="true">Not available yet</span>
+                        <span class="visual-lab-status visual-lab-status--available">Available</span>
+                        <a href="{% url 'visual_lab:dfs' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
                     </div>
                 </article>
 
@@ -275,8 +275,8 @@
                         <p>See how an AI picks the best move by looking ahead through a game tree.</p>
                     </div>
                     <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status">Coming soon</span>
-                        <span class="visual-lab-card__link is-disabled" aria-disabled="true">Not available yet</span>
+                        <span class="visual-lab-status visual-lab-status--available">Available</span>
+                        <a href="{% url 'visual_lab:minimax' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
                     </div>
                 </article>
 
@@ -299,8 +299,8 @@
                         <p>Solve sliding tiles with heuristic search and compare the cost of each path.</p>
                     </div>
                     <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status">Coming soon</span>
-                        <span class="visual-lab-card__link is-disabled" aria-disabled="true">Not available yet</span>
+                        <span class="visual-lab-status visual-lab-status--available">Available</span>
+                        <a href="{% url 'visual_lab:puzzle8' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
                     </div>
                 </article>
 
@@ -336,10 +336,58 @@
                         <p>Find the shortest path in a weighted graph, one settled node at a time.</p>
                     </div>
                     <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status">Coming soon</span>
-                        <span class="visual-lab-card__link is-disabled" aria-disabled="true">Not available yet</span>
+                        <span class="visual-lab-status visual-lab-status--available">Available</span>
+                        <a href="{% url 'visual_lab:dijkstra' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
                     </div>
                 </article>
+
+
+                <!-- Bellman-Ford -->
+                <article class="visual-lab-card" data-card data-category="pathfinding" data-status="available"
+                        data-search="bellman-ford shortest path negative weight graph negative cycle">
+
+                    <div class="visual-lab-card__preview" aria-hidden="true">
+                        <svg class="visual-lab-pv" viewBox="0 0 200 110" focusable="false">
+                            <line class="visual-lab-pv-edge" x1="22" y1="55" x2="80" y2="20" />
+                            <line class="visual-lab-pv-edge is-step-2" x1="22" y1="55" x2="80" y2="92" />
+                            <line class="visual-lab-pv-edge is-step-3" x1="80" y1="20" x2="178" y2="55" />
+                            <line class="visual-lab-pv-edge" x1="80" y1="92" x2="178" y2="55" />
+
+                            <text class="visual-lab-pv-weight" x="42" y="33">4</text>
+                            <text class="visual-lab-pv-weight" x="42" y="84">2</text>
+                            <text class="visual-lab-pv-weight" x="132" y="32">-3</text>
+                            <text class="visual-lab-pv-weight" x="132" y="84">5</text>
+
+                            <circle class="visual-lab-pv-node is-step-1" cx="22" cy="55" r="10" />
+                            <circle class="visual-lab-pv-node is-step-2" cx="80" cy="20" r="10" />
+                            <circle class="visual-lab-pv-node" cx="80" cy="92" r="10" />
+                            <circle class="visual-lab-pv-node is-step-3" cx="178" cy="55" r="10" />
+
+                            <text class="visual-lab-pv-label" x="22" y="58">S</text>
+                            <text class="visual-lab-pv-label" x="80" y="23">A</text>
+                            <text class="visual-lab-pv-label" x="80" y="95">B</text>
+                            <text class="visual-lab-pv-label" x="178" y="58">T</text>
+                        </svg>
+                    </div>
+
+                    <div class="visual-lab-card__body">
+                        <div class="visual-lab-card__meta">
+                            <span class="visual-lab-card__mark">BF</span>
+                            <span class="visual-lab-tag">Pathfinding</span>
+                        </div>
+
+                        <h3>Bellman-Ford</h3>
+                        <p>Find shortest paths with negative edge weights and detect negative-weight cycles.</p>
+                    </div>
+
+                    <div class="visual-lab-card__foot">
+                        <span class="visual-lab-status visual-lab-status--available">Available</span>
+                        <a href="{% url 'visual_lab:bellman_ford' %}" class="visual-lab-card__link">
+                            Explore <span class="visual-lab-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </article>
+
 
                 <!-- More placeholder -->
                 <article class="visual-lab-card visual-lab-card--more" data-more>

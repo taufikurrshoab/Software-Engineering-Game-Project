@@ -1,0 +1,131 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellman-Ford Visualizer | ThinkSphere</title>
+    <link rel="stylesheet" href="{% static 'visual_lab/bellman_ford.css' %}">
+</head>
+<body>
+<main class="page">
+    <header class="header">
+        <a class="back-link" href="{% url 'visual_lab:home' %}">
+            ← Back to Visual Lab
+        </a>
+        <p class="eyebrow">GRAPH ALGORITHM VISUALIZER</p>
+        <h1>Bellman–Ford <span>Algorithm</span></h1>
+        <p class="subtitle">
+            Explore edge relaxation, shortest distances, and
+            negative-weight cycle detection step by step.
+        </p>
+    </header>
+
+    <section class="panel">
+        <h2>Graph Configuration</h2>
+
+        <div class="field">
+            <label for="nodes-input">Nodes (space or comma separated)</label>
+            <input id="nodes-input" value="A B C D E">
+        </div>
+
+        <div class="field">
+            <label for="edges-input">Directed weighted edges</label>
+            <textarea id="edges-input" rows="6">A->B:6
+A->C:7
+B->C:8
+B->D:5
+B->E:-4
+C->D:-3
+C->E:9
+D->B:-2
+E->A:2
+E->D:7</textarea>
+            <small>Format: A-&gt;B:4 means a directed edge from A to B with weight 4. Negative weights are allowed.</small>
+        </div>
+
+        <div class="field">
+            <label for="source-input">Source node</label>
+            <select id="source-input">
+                <option value="A" selected>A</option>
+            </select>
+        </div>
+
+        <div class="button-row">
+            <button id="generate-btn" class="primary">Generate Graph</button>
+            <button id="start-btn" disabled>Start</button>
+            <button id="next-btn" disabled>Next Step →</button>
+            <button id="reset-btn" class="ghost">Reset</button>
+        </div>
+
+        <p id="error-message" class="error" role="alert"></p>
+        <p id="status" class="status">Generate a graph to begin.</p>
+    </section>
+
+    <section class="legend">
+        <span><i class="dot source-dot"></i> Source</span>
+        <span><i class="dot current-dot"></i> Current edge</span>
+        <span><i class="dot updated-dot"></i> Distance updated</span>
+        <span><i class="dot cycle-dot"></i> Negative cycle</span>
+    </section>
+
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h2>Directed Weighted Graph</h2>
+                <p>Arrows show edge direction; labels show weights.</p>
+            </div>
+            <span id="step-counter" class="badge">Pass 0 · Edge 0</span>
+        </div>
+        <div id="graph-container">
+            <svg id="graph-svg" role="img" aria-label="Directed weighted graph"></svg>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Current Step</h2>
+        <p id="step-description">Generate a graph, then press Start.</p>
+
+        <div class="metrics">
+            <div class="metric">
+                <span>Current edge</span>
+                <strong id="current-edge">—</strong>
+            </div>
+            <div class="metric">
+                <span>Candidate distance</span>
+                <strong id="candidate-distance">—</strong>
+            </div>
+            <div class="metric">
+                <span>Successful relaxations</span>
+                <strong id="relax-count">0</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Distance Table</h2>
+        <div id="distance-list" class="distance-list">
+            Generate a graph to see distances.
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Shortest Path</h2>
+        <div class="field">
+            <label for="target-input">Destination node</label>
+            <select id="target-input">
+                <option value="E" selected>E</option>
+            </select>
+        </div>
+        <button id="path-btn" disabled>Show Shortest Path</button>
+        <p id="path-result" class="status">
+            Complete the algorithm to find a path.
+        </p>
+    </section>
+
+    <footer>ThinkSphere · Visual Lab</footer>
+</main>
+<script src="{% static 'visual_lab/bellman_ford.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimax Visualizer | ThinkSphere</title>
+    <link rel="stylesheet" href="{% static 'visual_lab/minimax.css' %}">
+</head>
+<body>
+    <main class="minimax-page">
+        <header class="page-header">
+            <a class="back-link" href="{% url 'visual_lab:home' %}">
+                ← Back to Visual Lab
+            </a>
+            <p class="eyebrow">AI ALGORITHM VISUALIZER</p>
+            <h1>Minimax Algorithm</h1>
+            <p class="subtitle">
+                Explore how MAX and MIN players choose the best outcome
+                from a game tree.
+            </p>
+        </header>
+
+        <section class="control-panel">
+            <div class="field">
+                <label for="depth">Tree depth</label>
+                <select id="depth">
+                    <option value="1">Depth 1 (2 leaves)</option>
+                    <option value="2" selected>Depth 2 (4 leaves)</option>
+                    <option value="3">Depth 3 (8 leaves)</option>
+                    <option value="4">Depth 4 (16 leaves)</option>
+                </select>
+            </div>
+
+            <div class="field leaf-field">
+                <label for="leaf-values">Leaf values (comma-separated)</label>
+                <input
+                    id="leaf-values"
+                    type="text"
+                    value="3, 5, 2, 9"
+                    placeholder="Example: 3, 5, 2, 9"
+                >
+                <small id="leaf-hint">Enter 4 numbers for depth 2.</small>
+            </div>
+
+            <div class="button-row">
+                <button id="generate-btn" class="btn btn-primary">
+                    Generate Tree
+                </button>
+                <button id="start-btn" class="btn btn-secondary" disabled>
+                    Start
+                </button>
+                <button id="next-btn" class="btn btn-secondary" disabled>
+                    Next Step →
+                </button>
+                <button id="reset-btn" class="btn btn-ghost">
+                    Reset
+                </button>
+            </div>
+
+            <p id="error-message" class="error-message" role="alert"></p>
+        </section>
+
+        <section class="legend">
+            <span><i class="dot max-dot"></i> MAX node</span>
+            <span><i class="dot min-dot"></i> MIN node</span>
+            <span><i class="dot leaf-dot"></i> Leaf value</span>
+            <span><i class="dot active-dot"></i> Current step</span>
+        </section>
+
+        <section class="tree-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Game Tree</h2>
+                    <p>Root starts with MAX, then levels alternate.</p>
+                </div>
+                <span id="step-counter" class="step-counter">Step 0</span>
+            </div>
+
+            <div id="tree-scroll" class="tree-scroll">
+                <svg id="tree-svg"
+                     role="img"
+                     aria-label="Minimax game tree"></svg>
+            </div>
+
+            <p id="graph-status" class="status-message">
+                Generate a tree to begin.
+            </p>
+        </section>
+
+        <section class="result-panel">
+            <h2>Algorithm Progress</h2>
+            <p id="step-description">
+                Set the leaf values, then click Generate Tree.
+            </p>
+            <div class="result-grid">
+                <div class="result-card">
+                    <span>Current node</span>
+                    <strong id="current-node">—</strong>
+                </div>
+                <div class="result-card">
+                    <span>Current value</span>
+                    <strong id="current-value">—</strong>
+                </div>
+                <div class="result-card">
+                    <span>Root Minimax value</span>
+                    <strong id="root-value">Not calculated</strong>
+                </div>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            ThinkSphere · Visual Lab
+        </footer>
+    </main>
+
+    <script src="{% static 'visual_lab/minimax.js' %}"></script>
+</body>
+</html>

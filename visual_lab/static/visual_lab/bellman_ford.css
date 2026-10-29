@@ -1,0 +1,398 @@
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    color-scheme: dark;
+    --bg: #0b1120;
+    --panel: #111a2b;
+    --panel2: #151f32;
+    --border: #293750;
+    --text: #e5eaf4;
+    --muted: #98a6bd;
+    --blue: #69b7ce;
+    --green: #35c98b;
+    --yellow: #f3c74f;
+    --purple: #a78bfa;
+    --red: #ff9292;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+button, input, textarea, select {
+    font: inherit;
+}
+
+.page {
+    width: min(1150px, 94%);
+    margin: auto;
+    padding: 28px 0 40px;
+}
+
+.header {
+    margin-bottom: 26px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 22px;
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.eyebrow {
+    color: var(--blue);
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+h1 {
+    font-size: clamp(30px, 5vw, 44px);
+    margin: 8px 0;
+}
+
+h1 span {
+    color: var(--blue);
+}
+
+.subtitle, .section-heading p, footer {
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.panel h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.field label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.field input, .field textarea, .field select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px;
+    background: #0d1525;
+    color: var(--text);
+    outline: none;
+}
+
+.field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--blue);
+}
+
+.field textarea {
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.field small {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+button {
+    padding: 11px 15px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #1b2b45;
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover:not(:disabled) {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+button.primary {
+    background: var(--blue);
+    color: #07121c;
+    border-color: var(--blue);
+}
+
+button.ghost {
+    background: transparent;
+    color: var(--muted);
+}
+
+.error {
+    color: var(--red);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.status {
+    color: var(--blue);
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 18px 4px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.source-dot { background: var(--blue); }
+.current-dot { background: var(--yellow); }
+.updated-dot { background: var(--green); }
+.cycle-dot { background: var(--red); }
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.section-heading h2 {
+    margin-bottom: 5px;
+}
+
+.section-heading p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.badge {
+    border: 1px solid var(--border);
+    color: var(--blue);
+    border-radius: 20px;
+    padding: 7px 11px;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+#graph-container {
+    width: 100%;
+    overflow: auto;
+    background: #0d1525;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+#graph-svg {
+    display: block;
+    min-width: 600px;
+    width: 100%;
+    height: auto;
+}
+
+.edge {
+    stroke: #3a4c6b;
+    stroke-width: 2.5;
+}
+
+.edge.current-edge {
+    stroke: var(--yellow);
+    stroke-width: 4;
+}
+
+.edge.path-edge {
+    stroke: var(--purple);
+    stroke-width: 4.5;
+}
+
+.edge.cycle-edge {
+    stroke: var(--red);
+    stroke-width: 4;
+}
+
+.edge-label-bg {
+    fill: #0d1525;
+    stroke: #293750;
+}
+
+.edge-label {
+    fill: var(--text);
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.node {
+    stroke-width: 3;
+}
+
+.node.normal {
+    fill: #17243a;
+    stroke: #50678c;
+}
+
+.node.source {
+    fill: #15334a;
+    stroke: var(--blue);
+}
+
+.node.updated {
+    fill: #153d34;
+    stroke: var(--green);
+}
+
+.node.path-node {
+    fill: #2a2041;
+    stroke: var(--purple);
+    stroke-width: 4;
+}
+
+.node.cycle-node {
+    fill: #4a2029;
+    stroke: var(--red);
+    stroke-width: 4;
+}
+
+.node-label {
+    fill: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.node-distance {
+    fill: var(--muted);
+    font-size: 12px;
+    text-anchor: middle;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.metric {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    min-width: 0;
+}
+
+.metric span {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 9px;
+}
+
+.metric strong {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+}
+
+.distance-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+}
+
+.distance-item {
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    border-radius: 10px;
+    padding: 13px;
+}
+
+.distance-item.updated {
+    border-color: var(--green);
+}
+
+.distance-item .name {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.distance-item strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 21px;
+}
+
+.distance-item small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+}
+
+footer {
+    text-align: center;
+    padding-top: 10px;
+    font-size: 13px;
+}
+
+@media (max-width: 650px) {
+    .panel {
+        padding: 16px;
+    }
+
+    .metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .button-row button {
+        flex: 1 1 130px;
+    }
+}

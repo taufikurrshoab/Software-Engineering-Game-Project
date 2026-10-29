@@ -1,0 +1,314 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+DFS Visualizer | Visual Lab
+{% endblock %}
+
+
+{% block extra_css %}
+
+<link
+    rel="stylesheet"
+    href="{% static 'visual_lab/dfs.css' %}"
+>
+
+{% endblock %}
+
+
+{% block content %}
+
+<section class="visualizer-page">
+
+    <!-- PAGE HEADER -->
+
+    <div class="visualizer-header">
+
+        <p class="eyebrow">
+            Algorithm Visualization
+        </p>
+
+        <h1>
+            DFS Visualizer
+        </h1>
+
+        <p class="visualizer-description">
+            Create your own graph and visualize
+            Depth-First Search step by step.
+        </p>
+
+    </div>
+
+
+    <!-- MAIN DFS AREA -->
+
+    <div class="bfs-layout">
+
+        <!-- LEFT SIDE -->
+
+        <div class="bfs-left">
+
+            <!-- GRAPH INPUT -->
+
+            <div class="bfs-input-panel">
+
+                <div class="panel-title">
+
+                    <span class="panel-icon">+</span>
+
+                    <h2>Graph Input</h2>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label for="nodes">Nodes</label>
+
+                    <input
+                        type="text"
+                        id="nodes"
+                        placeholder="A B C D E F"
+                        value="A B C D E F"
+                    >
+
+                    <small>
+                        Separate nodes with spaces
+                    </small>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label for="edges">Edges</label>
+
+                    <textarea
+                        id="edges"
+                        rows="6"
+                        placeholder="A-B&#10;A-C&#10;B-D&#10;B-E&#10;C-F"
+                    >A-B
+A-C
+B-D
+B-E
+C-F</textarea>
+
+                    <small>
+                        Write one edge per line
+                    </small>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label for="start-node">
+                        Start Node
+                    </label>
+
+                    <input
+                        type="text"
+                        id="start-node"
+                        placeholder="A"
+                        value="A"
+                        maxlength="1"
+                    >
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="generate-btn"
+                    class="generate-btn"
+                >
+                    Generate Graph
+                </button>
+
+
+                <p
+                    id="error-message"
+                    class="error-message"
+                ></p>
+
+            </div>
+
+
+            <!-- DFS CONTROLS -->
+
+            <div class="bfs-controls">
+
+                <button
+                    type="button"
+                    id="start-btn"
+                    class="start-btn"
+                >
+                    ▶ Start DFS
+                </button>
+
+                <button
+                    type="button"
+                    id="next-btn"
+                    class="next-btn"
+                >
+                    ▷ Next Step
+                </button>
+
+                <button
+                    type="button"
+                    id="reset-btn"
+                    class="reset-btn"
+                >
+                    ↻ Reset
+                </button>
+
+            </div>
+
+
+            <!-- DFS INFORMATION -->
+
+            <div class="bfs-info">
+
+                <!-- STACK -->
+
+                <div class="info-card queue-card">
+
+                    <div class="info-header">
+
+                        <span class="info-icon queue-icon">
+                            S
+                        </span>
+
+                        <h3>Stack</h3>
+
+                    </div>
+
+                    <div
+                        id="stack"
+                        class="info-value"
+                    >
+                        []
+                    </div>
+
+                </div>
+
+
+                <!-- CURRENT NODE -->
+
+                <div class="info-card current-card">
+
+                    <div class="info-header">
+
+                        <span class="info-icon current-icon">
+                            •
+                        </span>
+
+                        <h3>Current Node</h3>
+
+                    </div>
+
+                    <div
+                        id="current-node"
+                        class="info-value"
+                    >
+                        -
+                    </div>
+
+                </div>
+
+
+                <!-- VISITED -->
+
+                <div class="info-card visited-card">
+
+                    <div class="info-header">
+
+                        <span class="info-icon visited-icon">
+                            ✓
+                        </span>
+
+                        <h3>Visited</h3>
+
+                    </div>
+
+                    <div
+                        id="visited"
+                        class="info-value"
+                    >
+                        []
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT SIDE - GRAPH -->
+
+        <div class="bfs-right">
+
+            <div class="graph-section">
+
+                <div class="graph-header">
+
+                    <div>
+
+                        <p class="graph-label">
+                            VISUALIZATION
+                        </p>
+
+                        <h2>Generated Graph</h2>
+
+                    </div>
+
+                    <div
+                        id="graph-status"
+                        class="graph-status"
+                    >
+                        Ready
+                    </div>
+
+                </div>
+
+
+                <div id="graph-container">
+
+                    <div class="graph-placeholder">
+
+                        <div class="placeholder-icon">
+                            ◎
+                        </div>
+
+                        <p>
+                            Your graph will appear here
+                        </p>
+
+                        <span>
+                            Enter nodes and edges, then
+                            click Generate Graph.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script
+    src="{% static 'visual_lab/dfs.js' %}"
+></script>
+
+{% endblock %}
