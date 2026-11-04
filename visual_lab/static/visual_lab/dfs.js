@@ -1,6 +1,4 @@
-
 document.addEventListener("DOMContentLoaded", () => {
-
     // =====================================================
     // ELEMENTS
     // =====================================================
@@ -23,6 +21,146 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessage = document.getElementById("error-message");
     const graphStatus = document.getElementById("graph-status");
 
+    const nodeCount = document.getElementById("node-count");
+    const edgeCount = document.getElementById("edge-count");
+
+    const stepNumber = document.getElementById("step-number");
+
+    const descriptionTitle = document.getElementById("description-title");
+    const stepDescription = document.getElementById("step-description");
+    const descriptionFacts = document.getElementById("description-facts");
+
+    const progressBar = document.getElementById("progress-bar");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressText = document.getElementById("progress-text");
+
+    // Scroll target after Generate Graph: the visualization workspace.
+    const visualizerSection = document.getElementById("dfs-workspace");
+
+    // =====================================================
+    // THEORY: CLICKABLE CONCEPT CARDS
+    // =====================================================
+
+    const conceptCards = document.querySelectorAll(".dfs-concept-card");
+    const conceptDetail = document.getElementById("concept-detail");
+
+    conceptCards.forEach(card => {
+        card.addEventListener("click", () => {
+            conceptCards.forEach(item => item.classList.remove("is-active"));
+
+            card.classList.add("is-active");
+
+            if (conceptDetail) {
+                conceptDetail.textContent = card.dataset.detail || "";
+            }
+        });
+    });
+
+    // =====================================================
+    // THEORY: MINI STACK DEMO (PUSH / POP)
+    // =====================================================
+
+    const stackPushBtn = document.getElementById("stack-push");
+    const stackPopBtn = document.getElementById("stack-pop");
+    const demoItemsEl = document.getElementById("stack-items");
+    const demoMessage = document.getElementById("stack-message");
+
+    const DEMO_MAX = 6;
+
+    let demoItems = [];
+    let demoCounter = 0;
+
+    function renderDemoStack() {
+        if (!demoItemsEl) return;
+
+        demoItemsEl.replaceChildren();
+
+        if (demoItems.length === 0) {
+            const empty = document.createElement("span");
+
+            empty.className = "empty-text";
+            empty.textContent = "Stack is empty";
+
+            demoItemsEl.appendChild(empty);
+            return;
+        }
+
+        demoItems.forEach((label, index) => {
+            const isTop = index === demoItems.length - 1;
+
+            const chip = makeChip(
+                label,
+                isTop ? "chip stack-chip is-top" : "chip stack-chip"
+            );
+
+            if (isTop) {
+                chip.appendChild(makeTag("TOP"));
+            }
+
+            demoItemsEl.appendChild(chip);
+        });
+    }
+
+    function demoPush() {
+        if (demoItems.length >= DEMO_MAX) {
+            if (demoMessage) {
+                demoMessage.textContent =
+                    "The demo stack is full. Try Pop to remove the top item.";
+            }
+            return;
+        }
+
+        const label = String.fromCharCode(65 + (demoCounter % 26));
+
+        demoCounter++;
+        demoItems.push(label);
+
+        if (demoMessage) {
+            demoMessage.textContent = `${label} was pushed onto the TOP of the stack.`;
+        }
+
+        renderDemoStack();
+    }
+
+    function demoPop() {
+        if (demoItems.length === 0) {
+            if (demoMessage) {
+                demoMessage.textContent = "Nothing to pop yet. Press Push first.";
+            }
+            return;
+        }
+
+        const removed = demoItems.pop();
+
+        if (demoMessage) {
+            demoMessage.textContent =
+                `${removed} left from the TOP: it was the last one in, so it is the first one out.`;
+        }
+
+        renderDemoStack();
+    }
+
+    if (stackPushBtn) stackPushBtn.addEventListener("click", demoPush);
+    if (stackPopBtn) stackPopBtn.addEventListener("click", demoPop);
+
+    // =====================================================
+    // PSEUDOCODE LINE EXPLANATION
+    // =====================================================
+
+    const codeLines = document.querySelectorAll(".dfs-code-line");
+    const lineExplanation = document.getElementById("dfs-line-explanation");
+
+    codeLines.forEach(line => {
+        line.addEventListener("click", () => {
+            codeLines.forEach(item => item.classList.remove("is-selected"));
+
+            line.classList.add("is-selected");
+
+            if (lineExplanation) {
+                lineExplanation.textContent = line.dataset.explain || "";
+            }
+        });
+    });
 
     // =====================================================
     // DFS DATA
@@ -31,178 +169,260 @@ document.addEventListener("DOMContentLoaded", () => {
     let nodes = [];
     let edges = [];
     let adjacency = {};
-    let positions = {};
 
     let startNode = "";
 
-    let stack = [];
-    let visited = [];
-    let currentNode = null;
-    let previousNode = null;
+    let stack = [];          // bottom ... top  (the current path)
+    let visited = [];        // in the order nodes were discovered
+    let currentNode = null;  // node on top of the stack
+    let parent = {};         // discovered-from map (DFS tree edges)
+    let activeEdge = null;   // edge used in the latest step
 
     let dfsStarted = false;
     let dfsFinished = false;
-
+    let stepCount = 0;
 
     // =====================================================
-    // GRAPH GENERATION
+    // DESCRIPTION HELPER
+    // facts = [{ label, value, tone }]  (tone: current | stack | visited)
+    // =====================================================
+
+    function showDescription(title, message, facts = []) {
+        if (descriptionTitle) {
+            descriptionTitle.textContent = title;
+        }
+
+        if (stepDescription) {
+            stepDescription.textContent = message;
+        }
+
+        if (descriptionFacts) {
+            descriptionFacts.replaceChildren();
+
+            facts.forEach(fact => {
+                const row = document.createElement("div");
+                row.className = `fact-row fact-${fact.tone || "stack"}`;
+
+                const label = document.createElement("span");
+                label.className = "fact-label";
+                label.textContent = fact.label;
+
+                const value = document.createElement("strong");
+                value.className = "fact-value";
+                value.textContent = fact.value;
+
+                row.appendChild(label);
+                row.appendChild(value);
+                descriptionFacts.appendChild(row);
+            });
+        }
+    }
+
+    function formatStack() {
+        return stack.length ? `[${stack.join(", ")}]  (top: ${stack[stack.length - 1]})` : "[ ] empty";
+    }
+
+    // =====================================================
+    // STATUS HELPER
+    // =====================================================
+
+    function setStatus(message, type = "ready") {
+        if (!graphStatus) return;
+
+        graphStatus.textContent = message;
+
+        const styles = {
+            ready: {
+                color: "#a9c9ff",
+                background: "#1b3151",
+                border: "#36527c"
+            },
+            active: {
+                color: "#c8b5ff",
+                background: "#382d61",
+                border: "#7655b9"
+            },
+            complete: {
+                color: "#6be2bd",
+                background: "#104538",
+                border: "#176e5b"
+            }
+        };
+
+        const style = styles[type] || styles.ready;
+
+        graphStatus.style.color = style.color;
+        graphStatus.style.background = style.background;
+        graphStatus.style.borderColor = style.border;
+    }
+
+    // =====================================================
+    // GENERATE GRAPH
     // =====================================================
 
     function generateGraph() {
-
         clearError();
 
-        const nodeText = nodesInput.value.trim();
-        const edgeText = edgesInput.value.trim();
-        const startText = startInput.value.trim().toUpperCase();
-
-        // Validate nodes
+        const nodeText = nodesInput?.value.trim() || "";
+        const edgeText = edgesInput?.value.trim() || "";
+        const startText = (startInput?.value || "").trim().toUpperCase();
 
         if (!nodeText) {
-            showError("Please enter nodes.");
+            showError("Please enter at least one node.");
             return;
         }
 
-        const parsedNodes = nodeText
+        const newNodes = nodeText
             .split(/[\s,]+/)
             .map(node => node.trim().toUpperCase())
             .filter(Boolean);
 
-        if (parsedNodes.some(node => node.length !== 1)) {
-            showError("Each node must be a single character.");
+        const uniqueNodes = [...new Set(newNodes)];
+
+        if (uniqueNodes.length === 0) {
+            showError("Please enter valid nodes.");
             return;
         }
 
-        if (new Set(parsedNodes).size !== parsedNodes.length) {
-            showError("Duplicate nodes are not allowed.");
+        if (!startText) {
+            showError("Please enter a starting node.");
             return;
         }
 
-        nodes = parsedNodes;
-
-        // Validate start node
-
-        startNode = startText;
-
-        if (!startNode) {
-            showError("Please enter a start node.");
+        if (!uniqueNodes.includes(startText)) {
+            showError(`Starting node "${startText}" does not exist.`);
             return;
         }
 
-        if (!nodes.includes(startNode)) {
-            showError(
-                `Start node "${startNode}" does not exist in the graph.`
-            );
-            return;
-        }
+        // Parse into temporary variables first, so invalid input
+        // never leaves the visualizer half-updated.
+        const newAdjacency = {};
 
-        // Create adjacency list
-
-        adjacency = {};
-
-        nodes.forEach(node => {
-            adjacency[node] = [];
+        uniqueNodes.forEach(node => {
+            newAdjacency[node] = [];
         });
 
-        edges = [];
-
-        // Parse edges
+        const newEdges = [];
 
         if (edgeText) {
-
-            const edgeLines = edgeText
-                .split(/[\n,]+/)
+            const lines = edgeText
+                .split("\n")
                 .map(line => line.trim())
                 .filter(Boolean);
 
-            for (const line of edgeLines) {
-
+            for (const line of lines) {
                 let parts;
 
                 if (line.includes("-")) {
-                    parts = line
-                        .split("-")
-                        .map(value => value.trim().toUpperCase());
+                    parts = line.split("-").map(x => x.trim().toUpperCase());
                 } else {
-                    parts = line
-                        .split(/\s+/)
-                        .map(value => value.trim().toUpperCase());
+                    parts = line.split(/\s+/).map(x => x.trim().toUpperCase());
                 }
 
                 if (parts.length !== 2 || !parts[0] || !parts[1]) {
-                    showError(
-                        `Invalid edge "${line}". Use A-B format.`
-                    );
+                    showError(`Invalid edge "${line}". Use A-B format.`);
                     return;
                 }
 
                 const [from, to] = parts;
 
-                if (!nodes.includes(from) || !nodes.includes(to)) {
-                    showError(
-                        `Edge "${line}" contains a node that does not exist.`
-                    );
+                if (!uniqueNodes.includes(from) || !uniqueNodes.includes(to)) {
+                    showError(`Edge "${line}" contains an unknown node.`);
                     return;
                 }
 
                 if (from === to) {
-                    showError(
-                        `Self-loop "${line}" is not supported.`
-                    );
-                    return;
+                    continue;
                 }
 
-                // Avoid duplicate undirected edges
-
-                const exists = edges.some(edge =>
+                const duplicate = newEdges.some(edge =>
                     (edge.from === from && edge.to === to) ||
                     (edge.from === to && edge.to === from)
                 );
 
-                if (exists) {
+                if (duplicate) {
                     continue;
                 }
 
-                edges.push({ from, to });
+                newEdges.push({ from, to });
 
                 // Undirected graph
-
-                adjacency[from].push(to);
-                adjacency[to].push(from);
+                newAdjacency[from].push(to);
+                newAdjacency[to].push(from);
             }
         }
 
-        // Sort neighbors for predictable traversal
+        // Input is valid: commit it.
+        nodes = uniqueNodes;
+        edges = newEdges;
+        adjacency = newAdjacency;
+        startNode = startText;
 
-        nodes.forEach(node => {
-            adjacency[node].sort();
-        });
+        // Keep neighbour order predictable (alphabetical).
+        nodes.forEach(node => adjacency[node].sort());
 
-        // Reset DFS state
+        resetState();
 
+        renderGraph();
+
+        if (nodeCount) {
+            nodeCount.textContent = `${nodes.length} Nodes`;
+        }
+
+        if (edgeCount) {
+            edgeCount.textContent = `${edges.length} Edges`;
+        }
+
+        setStatus("Graph Ready", "ready");
+
+        showDescription(
+            "Graph generated",
+            `${nodes.length} nodes and ${edges.length} edges. DFS will start from ${startNode}. Press Start DFS to begin.`,
+            [{ label: "Start node", value: startNode, tone: "visited" }]
+        );
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
+
+        if (startBtn) startBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = true;
+
+        // Scroll only after Generate Graph.
+        // Start DFS, Next Step and Reset never change the page scroll.
+        if (visualizerSection) {
+            requestAnimationFrame(() => {
+                visualizerSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            });
+        }
+    }
+
+    // =====================================================
+    // RESET DFS DATA
+    // =====================================================
+
+    function resetState() {
         stack = [];
         visited = [];
         currentNode = null;
-        previousNode = null;
+        parent = {};
+        activeEdge = null;
 
         dfsStarted = false;
         dfsFinished = false;
-
-        startBtn.disabled = false;
-        nextBtn.disabled = true;
-
-        updateInformation();
-        renderGraph();
-
-        setStatus("Graph Ready", "ready");
+        stepCount = 0;
     }
-
 
     // =====================================================
     // RENDER GRAPH
     // =====================================================
 
     function renderGraph() {
+        if (!graphContainer) return;
 
         graphContainer.innerHTML = "";
 
@@ -210,30 +430,32 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const width = Math.max(graphContainer.clientWidth, 350);
-        const height = Math.max(graphContainer.clientHeight, 350);
+        const width = graphContainer.clientWidth || 700;
+        const height = graphContainer.clientHeight || 400;
 
         const centerX = width / 2;
         const centerY = height / 2;
 
+        const nodeRadius = nodes.length > 12 ? 21 : 26;
+
+        // Keep every node fully inside the container.
         const radius = Math.max(
-            0,
-            Math.min(width, height) * 0.32
+            40,
+            Math.min(width, height) / 2 - nodeRadius - 22
         );
 
-        positions = {};
-
-        // Calculate node positions
+        const positions = {};
 
         nodes.forEach((node, index) => {
-
             const angle =
-                (2 * Math.PI * index / nodes.length) -
-                Math.PI / 2;
+                (2 * Math.PI * index / nodes.length) - Math.PI / 2;
+
+            // A single node is centered.
+            const r = nodes.length === 1 ? 0 : radius;
 
             positions[node] = {
-                x: centerX + radius * Math.cos(angle),
-                y: centerY + radius * Math.sin(angle)
+                x: centerX + r * Math.cos(angle),
+                y: centerY + r * Math.sin(angle)
             };
         });
 
@@ -246,10 +468,8 @@ document.addEventListener("DOMContentLoaded", () => {
         svg.setAttribute("role", "img");
         svg.setAttribute("aria-label", "DFS graph visualization");
 
-        // Draw edges first
-
+        // Draw edges first, so they stay behind the nodes.
         edges.forEach(edge => {
-
             const line = document.createElementNS(svgNS, "line");
 
             line.setAttribute("x1", positions[edge.from].x);
@@ -265,40 +485,43 @@ document.addEventListener("DOMContentLoaded", () => {
             svg.appendChild(line);
         });
 
-        // Draw nodes
-
+        // Draw circular nodes.
         nodes.forEach(node => {
-
             const group = document.createElementNS(svgNS, "g");
 
             group.classList.add("graph-node-group");
             group.dataset.node = node;
 
-            const circle = document.createElementNS(
-                svgNS,
-                "circle"
-            );
+            const circle = document.createElementNS(svgNS, "circle");
 
             circle.setAttribute("cx", positions[node].x);
             circle.setAttribute("cy", positions[node].y);
-            circle.setAttribute("r", "30");
+            circle.setAttribute("r", nodeRadius);
 
             circle.classList.add("graph-node");
             circle.dataset.node = node;
 
-            const label = document.createElementNS(
-                svgNS,
-                "text"
-            );
+            const text = document.createElementNS(svgNS, "text");
 
-            label.setAttribute("x", positions[node].x);
-            label.setAttribute("y", positions[node].y);
-            label.textContent = node;
-
-            label.classList.add("graph-node-text");
+            text.setAttribute("x", positions[node].x);
+            text.setAttribute("y", positions[node].y);
+            text.classList.add("graph-node-text");
+            text.textContent = node;
 
             group.appendChild(circle);
-            group.appendChild(label);
+            group.appendChild(text);
+
+            // Small label that keeps the start node easy to identify.
+            if (node === startNode) {
+                const label = document.createElementNS(svgNS, "text");
+
+                label.setAttribute("x", positions[node].x);
+                label.setAttribute("y", positions[node].y + nodeRadius + 13);
+                label.classList.add("graph-start-label");
+                label.textContent = "START";
+
+                group.appendChild(label);
+            }
 
             svg.appendChild(group);
         });
@@ -308,53 +531,53 @@ document.addEventListener("DOMContentLoaded", () => {
         updateGraphVisuals();
     }
 
-
     // =====================================================
     // START DFS
     // =====================================================
 
     function startDFS() {
-
         clearError();
 
         if (nodes.length === 0) {
-            showError("Generate the graph first.");
+            showError("Generate a graph first.");
             return;
         }
 
-        // Initialize the stack with the start node
+        resetState();
 
+        // Initialize Stack and Visited.
         stack = [startNode];
-        visited = [];
-
-        currentNode = null;
-        previousNode = null;
+        visited = [startNode];
+        currentNode = startNode;
 
         dfsStarted = true;
-        dfsFinished = false;
-
-        startBtn.disabled = true;
-        nextBtn.disabled = false;
 
         updateInformation();
         updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
 
-        setStatus(`DFS Started from ${startNode}`, "running");
+        setStatus(`DFS Started from ${startNode}`, "active");
 
-        startBtn.classList.add("button-active");
+        showDescription(
+            "Step 0 · Initialize",
+            `${startNode} is marked visited and pushed onto the stack. Next Step will explore from the top of the stack.`,
+            [
+                { label: "Stack", value: formatStack(), tone: "stack" },
+                { label: "Visited", value: `[${visited.join(", ")}]`, tone: "visited" }
+            ]
+        );
 
-        setTimeout(() => {
-            startBtn.classList.remove("button-active");
-        }, 300);
+        if (startBtn) startBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = false;
     }
-
 
     // =====================================================
     // NEXT DFS STEP
+    // One step = either "go deeper" (push) or "backtrack" (pop)
     // =====================================================
 
     function nextStep() {
-
         clearError();
 
         if (!dfsStarted) {
@@ -366,199 +589,329 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Find the next unvisited node from the top of the stack
-
-        let nextNode = null;
-
-        while (stack.length > 0) {
-
-            const candidate = stack.pop();
-
-            if (!visited.includes(candidate)) {
-                nextNode = candidate;
-                break;
-            }
-        }
-
-        // No nodes remain
-
-        if (nextNode === null) {
-
-            dfsFinished = true;
-            currentNode = null;
-            previousNode = null;
-
-            nextBtn.disabled = true;
-            startBtn.disabled = false;
-
-            updateInformation();
-            updateGraphVisuals();
-
-            setStatus("DFS Completed", "ready");
-
+        if (stack.length === 0) {
+            finishDFS();
             return;
         }
 
-        previousNode = currentNode;
-        currentNode = nextNode;
+        stepCount++;
 
-        // Mark current node as visited
+        // Look at the top of the stack (without removing it).
+        const top = stack[stack.length - 1];
 
-        visited.push(currentNode);
+        const unvisitedNeighbors =
+            (adjacency[top] || []).filter(n => !visited.includes(n));
 
-        // Push neighbors in reverse order.
-        // Stack is LIFO, so the alphabetically first
-        // neighbor will be explored first.
+        let title;
+        let message;
+        let facts;
 
-        const neighbors = [...adjacency[currentNode]].sort().reverse();
+        if (unvisitedNeighbors.length > 0) {
+            // -------- GO DEEPER --------
+            const next = unvisitedNeighbors[0];
 
-        neighbors.forEach(neighbor => {
+            visited.push(next);
+            stack.push(next);
+            parent[next] = top;
 
-            if (
-                !visited.includes(neighbor) &&
-                !stack.includes(neighbor)
-            ) {
-                stack.push(neighbor);
+            currentNode = next;
+            activeEdge = { from: top, to: next };
+
+            setStatus(`Exploring ${next}`, "active");
+
+            title = `Step ${stepCount} · Go deeper`;
+
+            message =
+                `${top} still has unvisited neighbours (${unvisitedNeighbors.join(", ")}). ` +
+                `DFS takes the first one, ${next}, marks it visited and pushes it onto the stack.`;
+
+            facts = [
+                { label: "Current", value: next, tone: "current" },
+                { label: "Came from", value: top, tone: "visited" },
+                { label: "Stack now", value: formatStack(), tone: "stack" }
+            ];
+
+        } else {
+            // -------- BACKTRACK --------
+            stack.pop();
+
+            const newTop = stack.length ? stack[stack.length - 1] : null;
+
+            currentNode = newTop;
+            activeEdge = newTop ? { from: top, to: newTop } : null;
+
+            const done = stack.length === 0;
+
+            if (done) {
+                dfsFinished = true;
+
+                if (nextBtn) nextBtn.disabled = true;
+
+                setStatus("DFS Completed", "complete");
+
+                title = `Step ${stepCount} · Complete`;
+
+                message =
+                    `${top} has no unvisited neighbours, so it is popped. ` +
+                    `The stack is empty: DFS is complete.`;
+
+                if (visited.length < nodes.length) {
+                    message +=
+                        ` Nodes not connected to ${startNode} stay unvisited.`;
+                }
+
+                facts = [
+                    { label: "Popped", value: top, tone: "visited" },
+                    { label: "Stack now", value: formatStack(), tone: "stack" },
+                    { label: "Visited", value: `[${visited.join(", ")}]`, tone: "visited" }
+                ];
+
+            } else {
+                setStatus(`Backtracking to ${newTop}`, "active");
+
+                title = `Step ${stepCount} · Backtrack`;
+
+                message =
+                    `${top} has no unvisited neighbours: a dead end. ` +
+                    `It is popped from the stack and DFS backtracks to ${newTop}.`;
+
+                facts = [
+                    { label: "Popped", value: top, tone: "visited" },
+                    { label: "Back at", value: newTop, tone: "current" },
+                    { label: "Stack now", value: formatStack(), tone: "stack" }
+                ];
             }
-        });
-
-        // Check whether any unvisited node remains in the stack
-
-        const hasUnvisited = stack.some(
-            node => !visited.includes(node)
-        );
-
-        if (!hasUnvisited) {
-            dfsFinished = true;
-            nextBtn.disabled = true;
-            startBtn.disabled = false;
         }
 
         updateInformation();
         updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
 
-        if (dfsFinished) {
-            setStatus(
-                `DFS Completed: ${visited.join(" → ")}`,
-                "ready"
-            );
-        } else {
-            setStatus(`Visiting ${currentNode}`, "running");
-        }
-
-        // Current node animation
-
-        const currentElement = document.querySelector(
-            `.graph-node[data-node="${currentNode}"]`
-        );
-
-        if (currentElement) {
-
-            currentElement.classList.add("node-pulse");
-
-            setTimeout(() => {
-                currentElement.classList.remove("node-pulse");
-            }, 700);
-        }
+        showDescription(title, message, facts);
     }
 
+    // =====================================================
+    // FINISH DFS (safety net)
+    // =====================================================
+
+    function finishDFS() {
+        dfsFinished = true;
+        currentNode = null;
+        activeEdge = null;
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+
+        setStatus("DFS Completed", "complete");
+
+        showDescription(
+            "DFS complete",
+            `The stack is empty. DFS has explored every node reachable from ${startNode}.`,
+            [{ label: "Visited", value: `[${visited.join(", ")}]`, tone: "visited" }]
+        );
+
+        if (nextBtn) nextBtn.disabled = true;
+    }
 
     // =====================================================
-    // RESET DFS
+    // RESET BUTTON
     // =====================================================
 
     function resetDFS() {
+        if (nodes.length === 0) {
+            showError("Generate a graph first.");
+            return;
+        }
 
-        stack = [];
-        visited = [];
-
-        currentNode = null;
-        previousNode = null;
-
-        dfsStarted = false;
-        dfsFinished = false;
-
-        startBtn.disabled = false;
-        nextBtn.disabled = true;
+        resetState();
 
         updateInformation();
         updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
 
         setStatus("Ready", "ready");
+
+        showDescription(
+            "DFS reset",
+            `Traversal cleared. Press Start DFS to begin again from ${startNode}.`,
+            [{ label: "Start node", value: startNode, tone: "visited" }]
+        );
+
+        if (startBtn) startBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = true;
+
         clearError();
     }
 
+    // =====================================================
+    // CHIP HELPERS
+    // =====================================================
+
+    function makeChip(label, className) {
+        const chip = document.createElement("span");
+
+        chip.className = className;
+        chip.textContent = label;
+
+        return chip;
+    }
+
+    function makeTag(text) {
+        const tag = document.createElement("small");
+
+        tag.className = "chip-tag";
+        tag.textContent = text;
+
+        return tag;
+    }
+
+    function showEmpty(container, message) {
+        if (!container) return;
+
+        const span = document.createElement("span");
+
+        span.className = "empty-text";
+        span.textContent = message;
+
+        container.appendChild(span);
+    }
 
     // =====================================================
-    // UPDATE INFORMATION
+    // UPDATE STACK / CURRENT / VISITED
     // =====================================================
 
     function updateInformation() {
+        // ---------------- STACK (bottom -> top) ----------------
 
-        stackDisplay.textContent =
-            `[${stack.join(", ")}]`;
+        if (stackDisplay) {
+            stackDisplay.replaceChildren();
 
-        currentDisplay.textContent =
-            currentNode || "-";
+            if (stack.length === 0) {
+                showEmpty(
+                    stackDisplay,
+                    dfsFinished
+                        ? "Stack is empty"
+                        : dfsStarted
+                            ? "Stack is empty"
+                            : "Press Start DFS"
+                );
+            } else {
+                stack.forEach((node, index) => {
+                    const isTop = index === stack.length - 1;
 
-        visitedDisplay.textContent =
-            `[${visited.join(", ")}]`;
+                    const chip = makeChip(
+                        node,
+                        isTop ? "chip stack-chip is-top" : "chip stack-chip"
+                    );
+
+                    if (isTop) {
+                        chip.appendChild(makeTag("TOP"));
+                    }
+
+                    stackDisplay.appendChild(chip);
+                });
+            }
+        }
+
+        // ---------------- CURRENT NODE ----------------
+
+        if (currentDisplay) {
+            currentDisplay.replaceChildren();
+
+            if (currentNode) {
+                currentDisplay.appendChild(
+                    makeChip(currentNode, "chip current-chip")
+                );
+            } else {
+                showEmpty(
+                    currentDisplay,
+                    dfsFinished ? "Done" : "No node yet"
+                );
+            }
+        }
+
+        // ---------------- VISITED ----------------
+
+        if (visitedDisplay) {
+            visitedDisplay.replaceChildren();
+
+            if (visited.length === 0) {
+                showEmpty(visitedDisplay, "None yet");
+            } else {
+                visited.forEach((node, index) => {
+                    const chip = makeChip(node, "chip visited-chip");
+
+                    const order = document.createElement("sup");
+                    order.className = "chip-order";
+                    order.textContent = index + 1;
+
+                    chip.appendChild(order);
+                    visitedDisplay.appendChild(chip);
+                });
+            }
+        }
     }
 
-
     // =====================================================
-    // UPDATE GRAPH VISUALS
+    // UPDATE GRAPH NODE + EDGE COLORS
     // =====================================================
 
     function updateGraphVisuals() {
-
-        const graphNodes = graphContainer.querySelectorAll(
-            ".graph-node"
-        );
+        const graphNodes = document.querySelectorAll(".graph-node");
 
         graphNodes.forEach(circle => {
-
             const node = circle.dataset.node;
 
             circle.classList.remove(
                 "node-start",
                 "node-current",
                 "node-visited",
-                "node-queued"
+                "node-stacked"
             );
 
+            // Start node (distinct amber ring, set in CSS)
             if (node === startNode) {
                 circle.classList.add("node-start");
             }
 
-            if (stack.includes(node)) {
-                circle.classList.add("node-queued");
-            }
-
+            // Visited nodes (includes finished / backtracked nodes)
             if (visited.includes(node)) {
                 circle.classList.add("node-visited");
             }
 
+            // Nodes on the stack (the current path)
+            if (stack.includes(node)) {
+                circle.classList.add("node-stacked");
+            }
+
+            // Current node gets the highest priority.
             if (node === currentNode) {
                 circle.classList.add("node-current");
             }
         });
 
-        // Highlight edges connected to the current node
-
-        const graphEdges = graphContainer.querySelectorAll(
-            ".graph-edge"
-        );
+        const graphEdges = document.querySelectorAll(".graph-edge");
 
         graphEdges.forEach(edge => {
+            const a = edge.dataset.from;
+            const b = edge.dataset.to;
 
-            edge.classList.remove("edge-active");
+            edge.classList.remove("edge-active", "edge-tree");
 
+            // Edges DFS has already walked along.
+            if (parent[b] === a || parent[a] === b) {
+                edge.classList.add("edge-tree");
+            }
+
+            // Edge used by the latest step (deeper or backtrack).
             if (
-                currentNode &&
+                activeEdge &&
                 (
-                    edge.dataset.from === currentNode ||
-                    edge.dataset.to === currentNode
+                    (activeEdge.from === a && activeEdge.to === b) ||
+                    (activeEdge.from === b && activeEdge.to === a)
                 )
             ) {
                 edge.classList.add("edge-active");
@@ -566,60 +919,104 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-
     // =====================================================
-    // STATUS
+    // UPDATE PROGRESS
     // =====================================================
 
-    function setStatus(message, type) {
+    function updateProgress() {
+        const total = nodes.length;
+        const discovered = visited.length;
 
-        graphStatus.textContent = message;
+        const percent = total > 0
+            ? Math.round((discovered / total) * 100)
+            : 0;
 
-        if (type === "running") {
-            graphStatus.style.color = "#60a5fa";
-            graphStatus.style.borderColor =
-                "rgba(96, 165, 250, 0.25)";
-            graphStatus.style.background =
-                "rgba(37, 99, 235, 0.12)";
-        } else {
-            graphStatus.style.color = "#4ade80";
-            graphStatus.style.borderColor =
-                "rgba(34, 197, 94, 0.25)";
-            graphStatus.style.background =
-                "rgba(34, 197, 94, 0.1)";
+        if (progressBar) {
+            progressBar.style.width = `${percent}%`;
+        }
+
+        if (progressPercent) {
+            progressPercent.textContent = `${percent}%`;
+        }
+
+        if (progressText) {
+            progressText.textContent = `${discovered}/${total} discovered`;
         }
     }
 
+    // =====================================================
+    // UPDATE STEP COUNTER
+    // =====================================================
+
+    function updateStepCounter() {
+        if (stepNumber) {
+            stepNumber.textContent = `STEP ${stepCount}`;
+        }
+    }
 
     // =====================================================
     // ERROR HANDLING
     // =====================================================
 
     function showError(message) {
-        errorMessage.textContent = message;
+        if (errorMessage) {
+            errorMessage.textContent = message;
+        }
     }
 
     function clearError() {
-        errorMessage.textContent = "";
+        if (errorMessage) {
+            errorMessage.textContent = "";
+        }
     }
 
-
     // =====================================================
-    // EVENT LISTENERS
+    // BUTTON EVENTS
     // =====================================================
 
-    generateBtn.addEventListener("click", generateGraph);
-    startBtn.addEventListener("click", startDFS);
-    nextBtn.addEventListener("click", nextStep);
-    resetBtn.addEventListener("click", resetDFS);
+    if (generateBtn) {
+        generateBtn.addEventListener("click", generateGraph);
+    }
 
+    if (startBtn) {
+        startBtn.addEventListener("click", startDFS);
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener("click", nextStep);
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener("click", resetDFS);
+    }
+
+    // Re-draw the graph if the window size changes (no scrolling involved).
+    let resizeTimer = null;
+
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(() => {
+            if (nodes.length > 0) {
+                renderGraph();
+            }
+        }, 150);
+    });
 
     // =====================================================
     // INITIAL STATE
     // =====================================================
 
-    nextBtn.disabled = true;
+    // Generate Graph is user-triggered, so the page never
+    // scrolls on its own when it loads.
+    renderDemoStack();
+    updateInformation();
+    updateProgress();
+    updateStepCounter();
 
-    generateGraph();
+    if (startBtn) startBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+
+    setStatus("Ready", "ready");
 
 });

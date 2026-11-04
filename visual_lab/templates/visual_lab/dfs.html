@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
@@ -6,297 +5,423 @@
 DFS Visualizer | Visual Lab
 {% endblock %}
 
-
 {% block extra_css %}
-
-<link
-    rel="stylesheet"
-    href="{% static 'visual_lab/dfs.css' %}"
->
-
+<link rel="stylesheet" href="{% static 'visual_lab/dfs.css' %}?v=2">
 {% endblock %}
-
 
 {% block content %}
 
 <section class="visualizer-page">
 
     <!-- PAGE HEADER -->
-
     <div class="visualizer-header">
-
-        <p class="eyebrow">
-            Algorithm Visualization
-        </p>
-
-        <h1>
-            DFS Visualizer
-        </h1>
-
+        <p class="eyebrow">Algorithm Visualization</p>
+        <h1>DFS Visualizer</h1>
         <p class="visualizer-description">
             Create your own graph and visualize
             Depth-First Search step by step.
         </p>
-
     </div>
 
+    <!-- 01 / WHAT IS DFS -->
+    <section class="dfs-quick-learn" aria-labelledby="dfs-quick-title">
 
-    <!-- MAIN DFS AREA -->
+        <div class="dfs-learn-head">
+            <div>
+                <span class="learn-kicker">01 / QUICK CONCEPT</span>
+                <h2 id="dfs-quick-title">What is DFS?</h2>
+                <p>
+                    Pick one path and follow it as deep as you can. At a dead end,
+                    step back and try the next path.
+                </p>
+            </div>
+            <span class="dfs-complexity">DFS · Stack · LIFO</span>
+        </div>
 
-    <div class="bfs-layout">
+        <!-- Clickable concept cards -->
+        <div class="dfs-concept-row">
 
-        <!-- LEFT SIDE -->
+            <button type="button" class="dfs-concept-card is-active"
+                    data-detail="Go deep first: DFS follows one path as far as it can before trying any other. It explores one branch completely, then moves to the next branch. Unlike BFS, it does not visit nodes level by level.">
+                <span class="concept-icon concept-blue">01</span>
+                <span class="concept-text">
+                    <strong>Go deep first</strong>
+                    <small>One path at a time.</small>
+                </span>
+            </button>
 
-        <div class="bfs-left">
+            <button type="button" class="dfs-concept-card"
+                    data-detail="A stack is a pile. LIFO means Last In, First Out: the node you added most recently sits on top and is handled first. DFS pushes a node when it goes deeper and pops it when it is finished.">
+                <span class="concept-icon concept-violet">02</span>
+                <span class="concept-text">
+                    <strong>Use a Stack</strong>
+                    <small>LIFO: last in, first out.</small>
+                </span>
+            </button>
 
-            <!-- GRAPH INPUT -->
+            <button type="button" class="dfs-concept-card"
+                    data-detail="Backtracking: when the current node has no unvisited neighbours, it is a dead end. DFS pops it off the stack, returns to the previous node, and tries that node's next unvisited neighbour. The visited set stops loops.">
+                <span class="concept-icon concept-green">03</span>
+                <span class="concept-text">
+                    <strong>Backtrack</strong>
+                    <small>Dead end? Step back.</small>
+                </span>
+            </button>
 
-            <div class="bfs-input-panel">
+        </div>
 
-                <div class="panel-title">
+        <p id="concept-detail" class="concept-detail" aria-live="polite">
+            Go deep first: DFS follows one path as far as it can before trying
+            any other. It explores one branch completely, then moves to the next
+            branch. Unlike BFS, it does not visit nodes level by level.
+        </p>
 
-                    <span class="panel-icon">+</span>
+        <div class="dfs-demo-row">
 
-                    <h2>Graph Input</h2>
-
+            <!-- Mini Stack demo -->
+            <div class="stack-demo">
+                <div class="stack-demo-top">
+                    <strong>Try a Stack</strong>
+                    <div class="stack-demo-buttons">
+                        <button type="button" id="stack-push" class="mini-btn">+ Push</button>
+                        <button type="button" id="stack-pop" class="mini-btn mini-btn-ghost">− Pop</button>
+                    </div>
                 </div>
 
-                <div class="input-group">
-
-                    <label for="nodes">Nodes</label>
-
-                    <input
-                        type="text"
-                        id="nodes"
-                        placeholder="A B C D E F"
-                        value="A B C D E F"
-                    >
-
-                    <small>
-                        Separate nodes with spaces
-                    </small>
-
+                <div class="stack-lane">
+                    <span class="stack-end">BOTTOM</span>
+                    <div id="stack-items" class="stack-items"></div>
+                    <span class="stack-end">TOP ▶</span>
                 </div>
 
+                <p id="stack-message" class="stack-message" aria-live="polite">
+                    Push a few items, then pop them. The last one in is the first one out.
+                </p>
+            </div>
 
-                <div class="input-group">
+            <!-- Maze analogy -->
+            <div class="dfs-level-demo">
+                <div class="level-demo-copy">
+                    <strong>Like exploring a maze</strong>
+                    <span>Walk to a dead end, then back up to the last junction.</span>
+                </div>
 
-                    <label for="edges">Edges</label>
+                <div class="level-track" aria-label="DFS goes A, B, D, then backtracks to B and visits E, then backtracks to A and visits C, F">
+                    <div class="level-step">
+                        <b>A → B → D</b>
+                        <small>Go deep</small>
+                    </div>
+                    <i></i>
+                    <div class="level-step level-step-blue">
+                        <b>back · E</b>
+                        <small>Backtrack</small>
+                    </div>
+                    <i></i>
+                    <div class="level-step level-step-green">
+                        <b>back · C → F</b>
+                        <small>Backtrack</small>
+                    </div>
+                </div>
+            </div>
 
-                    <textarea
-                        id="edges"
-                        rows="6"
-                        placeholder="A-B&#10;A-C&#10;B-D&#10;B-E&#10;C-F"
-                    >A-B
+        </div>
+
+        <!-- Complexity -->
+        <div class="complexity-row">
+
+            <article class="complexity-card complexity-time">
+                <span class="complexity-label">TIME COMPLEXITY</span>
+                <strong>O(V + E)</strong>
+                <p>
+                    Each node is pushed and popped once, and each edge is
+                    checked at most twice. V = nodes, E = edges.
+                </p>
+            </article>
+
+            <article class="complexity-card complexity-space">
+                <span class="complexity-label">SPACE COMPLEXITY</span>
+                <strong>O(V)</strong>
+                <p>
+                    The visited set and the stack hold at most V nodes. The
+                    stack is deepest when the graph is one long path.
+                </p>
+            </article>
+
+        </div>
+
+    </section>
+
+    <!-- 02 / INTERACTIVE PSEUDOCODE -->
+    <section class="dfs-code-section" id="dfs-algorithm">
+
+        <div class="dfs-code-heading">
+            <div>
+                <span class="learn-kicker">02 / THE LOGIC</span>
+                <h2>How DFS Works</h2>
+                <p>Click any line to see what it does.</p>
+            </div>
+            <span class="code-language">PSEUDOCODE</span>
+        </div>
+
+        <div class="dfs-code-card">
+
+            <div class="dfs-code-window">
+
+                <div class="code-window-top">
+                    <span class="code-dots"><i></i><i></i><i></i></span>
+                    <span>dfs(graph, start)</span>
+                    <span class="code-badge">CORE ALGORITHM</span>
+                </div>
+
+                <div class="dfs-code-lines">
+
+                    <button type="button" class="dfs-code-line is-selected"
+                            data-explain="The algorithm takes a graph and a starting node, then explores deeper and deeper from that start.">
+                        <em>01</em>
+                        <code><b>DFS</b>(graph, start):</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="S is a stack (last in, first out) that holds the path DFS is currently following. The visited set remembers nodes already discovered so none is repeated.">
+                        <em>02</em>
+                        <code class="indent-1">create empty stack <b>S</b> and <b>visited</b> set</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Begin at the start node: mark it visited and push it onto the stack. It is the first node on the path.">
+                        <em>03</em>
+                        <code class="indent-1">add start to visited; push start onto S</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Repeat while the path is not empty. When the stack becomes empty, DFS has explored everything reachable from the start.">
+                        <em>04</em>
+                        <code class="indent-1"><span>while</span> S is not empty:</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Look at the node on TOP of the stack without removing it. This is the Current Node: the node DFS is exploring right now.">
+                        <em>05</em>
+                        <code class="indent-2">current = top of S</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Check the neighbours of the current node. If at least one is not visited yet, DFS can go deeper.">
+                        <em>06</em>
+                        <code class="indent-2"><span>if</span> current has an unvisited neighbor:</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Take the first unvisited neighbour, mark it visited and push it. It becomes the new top, so the next step continues from it. This is how DFS goes deep.">
+                        <em>07</em>
+                        <code class="indent-3">add neighbor to visited; push neighbor onto S</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Otherwise every neighbour has already been visited. The current node is a dead end.">
+                        <em>08</em>
+                        <code class="indent-2"><span>else</span>:</code>
+                    </button>
+
+                    <button type="button" class="dfs-code-line"
+                            data-explain="Pop the top node. This is backtracking: DFS returns to the node below it, which may still have unvisited neighbours.">
+                        <em>09</em>
+                        <code class="indent-3">pop S &nbsp;<span>// backtrack</span></code>
+                    </button>
+
+                </div>
+            </div>
+
+            <aside class="dfs-code-explain">
+                <span class="explain-label">LINE EXPLANATION</span>
+                <div class="explain-pulse">↳</div>
+
+                <p id="dfs-line-explanation" aria-live="polite">
+                    The algorithm takes a graph and a starting node, then
+                    explores deeper and deeper from that start.
+                </p>
+
+                <div class="stack-mini">
+                    <span>STACK RULE</span>
+                    <strong>LIFO</strong>
+                    <small>Last In, First Out</small>
+                </div>
+            </aside>
+
+        </div>
+
+        <div class="dfs-code-foot">
+            <span><b>Key idea:</b> go deep by pushing, backtrack by popping. Recursive DFS does the same with the call stack.</span>
+            <a href="#visualizer">Now try it ↓</a>
+        </div>
+
+    </section>
+
+    <!-- 03 / HANDS-ON -->
+    <div class="learn-heading" id="visualizer">
+        <p class="learn-kicker">03 / HANDS-ON</p>
+        <h2>Run DFS yourself</h2>
+    </div>
+
+    <!-- GRAPH CONFIGURATION -->
+    <section class="dfs-input-panel">
+
+        <div class="input-grid">
+
+            <div class="input-group">
+                <label for="nodes">Nodes</label>
+                <input type="text" id="nodes"
+                       placeholder="A B C D E F"
+                       value="A B C D E F">
+                <small>Separate nodes using spaces.</small>
+            </div>
+
+            <div class="input-group">
+                <label for="start-node">Starting Node</label>
+                <input type="text" id="start-node"
+                       placeholder="A" value="A" maxlength="1">
+                <small>Where DFS begins.</small>
+            </div>
+
+            <button type="button" id="generate-btn" class="generate-btn">
+                <span aria-hidden="true"></span> Generate Graph
+            </button>
+
+        </div>
+
+        <div class="input-group input-group-edges">
+            <label for="edges">Edges</label>
+            <textarea id="edges" rows="4"
+                      placeholder="A-B&#10;A-C&#10;B-D&#10;B-E&#10;C-F">A-B
 A-C
 B-D
 B-E
 C-F</textarea>
-
-                    <small>
-                        Write one edge per line
-                    </small>
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label for="start-node">
-                        Start Node
-                    </label>
-
-                    <input
-                        type="text"
-                        id="start-node"
-                        placeholder="A"
-                        value="A"
-                        maxlength="1"
-                    >
-
-                </div>
-
-
-                <button
-                    type="button"
-                    id="generate-btn"
-                    class="generate-btn"
-                >
-                    Generate Graph
-                </button>
-
-
-                <p
-                    id="error-message"
-                    class="error-message"
-                ></p>
-
-            </div>
-
-
-            <!-- DFS CONTROLS -->
-
-            <div class="bfs-controls">
-
-                <button
-                    type="button"
-                    id="start-btn"
-                    class="start-btn"
-                >
-                    ▶ Start DFS
-                </button>
-
-                <button
-                    type="button"
-                    id="next-btn"
-                    class="next-btn"
-                >
-                    ▷ Next Step
-                </button>
-
-                <button
-                    type="button"
-                    id="reset-btn"
-                    class="reset-btn"
-                >
-                    ↻ Reset
-                </button>
-
-            </div>
-
-
-            <!-- DFS INFORMATION -->
-
-            <div class="bfs-info">
-
-                <!-- STACK -->
-
-                <div class="info-card queue-card">
-
-                    <div class="info-header">
-
-                        <span class="info-icon queue-icon">
-                            S
-                        </span>
-
-                        <h3>Stack</h3>
-
-                    </div>
-
-                    <div
-                        id="stack"
-                        class="info-value"
-                    >
-                        []
-                    </div>
-
-                </div>
-
-
-                <!-- CURRENT NODE -->
-
-                <div class="info-card current-card">
-
-                    <div class="info-header">
-
-                        <span class="info-icon current-icon">
-                            •
-                        </span>
-
-                        <h3>Current Node</h3>
-
-                    </div>
-
-                    <div
-                        id="current-node"
-                        class="info-value"
-                    >
-                        -
-                    </div>
-
-                </div>
-
-
-                <!-- VISITED -->
-
-                <div class="info-card visited-card">
-
-                    <div class="info-header">
-
-                        <span class="info-icon visited-icon">
-                            ✓
-                        </span>
-
-                        <h3>Visited</h3>
-
-                    </div>
-
-                    <div
-                        id="visited"
-                        class="info-value"
-                    >
-                        []
-                    </div>
-
-                </div>
-
-            </div>
-
+            <small>One connection per line. Example: A-B</small>
         </div>
 
+        <p id="error-message" class="error-message" role="alert"></p>
 
-        <!-- RIGHT SIDE - GRAPH -->
+    </section>
 
-        <div class="bfs-right">
+    <!-- MAIN VISUALIZATION WORKSPACE (fits one desktop screen) -->
+    <div class="dfs-layout" id="dfs-workspace">
+
+        <!-- LEFT: STATE CARDS + GRAPH -->
+        <div class="dfs-graph-column">
 
             <div class="graph-section">
 
-                <div class="graph-header">
+                <!-- Compact live state -->
+                <div class="dfs-info">
 
-                    <div>
-
-                        <p class="graph-label">
-                            VISUALIZATION
-                        </p>
-
-                        <h2>Generated Graph</h2>
-
+                    <div class="info-card stack-card">
+                        <div class="info-header">
+                            <span class="info-icon stack-icon">S</span>
+                            <h3>Stack</h3>
+                            <span class="info-note">bottom → top</span>
+                        </div>
+                        <div id="stack" class="info-value" aria-live="polite">—</div>
                     </div>
 
-                    <div
-                        id="graph-status"
-                        class="graph-status"
-                    >
-                        Ready
+                    <div class="info-card current-card">
+                        <div class="info-header">
+                            <span class="info-icon current-icon">●</span>
+                            <h3>Current Node</h3>
+                        </div>
+                        <div id="current-node" class="info-value current-value" aria-live="polite">—</div>
+                    </div>
+
+                    <div class="info-card visited-card">
+                        <div class="info-header">
+                            <span class="info-icon visited-icon">✓</span>
+                            <h3>Visited</h3>
+                            <span class="info-note">in order</span>
+                        </div>
+                        <div id="visited" class="info-value visited-value" aria-live="polite">—</div>
                     </div>
 
                 </div>
 
+                <div class="graph-header">
+                    <h2>Graph Visualization</h2>
+
+                    <div class="graph-meta">
+                        <span id="node-count" class="meta-pill">0 Nodes</span>
+                        <span id="edge-count" class="meta-pill">0 Edges</span>
+                        <div id="graph-status" class="graph-status">Ready</div>
+                    </div>
+                </div>
 
                 <div id="graph-container">
-
                     <div class="graph-placeholder">
+                        <div class="placeholder-icon">◎</div>
+                        <p>Your graph will appear here</p>
+                        <span>Configure your nodes and edges, then generate the graph.</span>
+                    </div>
+                </div>
 
-                        <div class="placeholder-icon">
-                            ◎
+                <div class="graph-legend">
+                    <span class="legend-item"><i class="legend-swatch swatch-current"></i>Current</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-stack"></i>On stack</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-visited"></i>Visited</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-start"></i>Start node</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-unvisited"></i>Unvisited</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: ONE COMPACT CONTROL PANEL -->
+        <aside class="dfs-detail-column">
+
+            <div class="dfs-control-panel">
+
+                <div class="control-top">
+                    <div class="control-top-row">
+                        <div>
+                            <span class="description-kicker">DFS CONTROL</span>
+                            <strong  class="step-number">DESCRIPTION</strong>
                         </div>
-
-                        <p>
-                            Your graph will appear here
-                        </p>
-
-                        <span>
-                            Enter nodes and edges, then
-                            click Generate Graph.
-                        </span>
-
+                        <span id="progress-text" class="progress-text">0/0 discovered</span>
                     </div>
 
+                    <div class="progress-row">
+                        <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+                        <span id="progress-percent" class="progress-percent">0%</span>
+                    </div>
+                </div>
+
+                <section class="dfs-description-card" aria-live="polite" aria-atomic="true">
+
+                    <div class="description-card-heading">
+                        <span class="description-icon">✦</span>
+                        <div>
+                            <span class="description-kicker">LIVE EXPLANATION</span>
+                            <h3>What is happening?</h3>
+                        </div>
+                    </div>
+
+                    <h4 id="description-title">Your DFS journey starts here</h4>
+
+                    <p id="step-description">
+                        Generate a graph, click Start DFS, then press Next Step
+                        to watch DFS go deep and backtrack.
+                    </p>
+
+                    <div id="description-facts" class="description-facts"></div>
+
+                </section>
+
+                <div class="dfs-controls">
+                    <button type="button" id="start-btn" class="start-btn">▶ Start DFS</button>
+                    <button type="button" id="next-btn" class="next-btn">Next Step ▷</button>
+                    <button type="button" id="reset-btn" class="reset-btn">↻ Reset</button>
                 </div>
 
             </div>
 
-        </div>
+        </aside>
 
     </div>
 
@@ -304,11 +429,6 @@ C-F</textarea>
 
 {% endblock %}
 
-
 {% block extra_js %}
-
-<script
-    src="{% static 'visual_lab/dfs.js' %}"
-></script>
-
+<script src="{% static 'visual_lab/dfs.js' %}?v=2"></script>
 {% endblock %}

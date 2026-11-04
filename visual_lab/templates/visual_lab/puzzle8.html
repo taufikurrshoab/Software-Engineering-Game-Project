@@ -1,110 +1,337 @@
-
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>8-Puzzle A* Visualizer | ThinkSphere</title>
-    <link rel="stylesheet" href="{% static 'visual_lab/puzzle8.css' %}">
-</head>
-<body>
-<main class="page">
-    <header class="header">
-        <a class="back-link" href="{% url 'visual_lab:home' %}">
-            ← Back to Visual Lab
-        </a>
-        <p class="eyebrow">ARTIFICIAL INTELLIGENCE</p>
-        <h1>8-Puzzle <span>A* Search</span></h1>
-        <p class="subtitle">
-            Find a shortest solution using Manhattan distance.
-            The blank tile is represented by 0.
-        </p>
-    </header>
 
-    <section class="panel">
-        <h2>Initial State</h2>
-        <p class="help">
-            Enter numbers 0–8 exactly once. Use commas or spaces.
-            The goal is 1, 2, 3 / 4, 5, 6 / 7, 8, blank.
-        </p>
+{% block title %}A* Search | Visual Lab | ThinkSphere{% endblock %}
 
-        <label for="initial-state">Puzzle values</label>
-        <input
-            id="initial-state"
-            type="text"
-            value="8,6,7,2,5,4,3,0,1"
-            autocomplete="off"
-        >
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'visual_lab/astar.css' %}">
+{% endblock %}
 
-        <div class="button-row">
-            <button id="solve-btn" class="primary">Find Solution</button>
-            <button id="next-btn" disabled>Next Step →</button>
-            <button id="auto-btn" disabled>Auto Solve</button>
-            <button id="reset-btn" class="ghost">Reset</button>
-        </div>
+{% block content %}
+<div class="as-page" id="as-root">
+    <div class="as-container">
 
-        <p id="error-message" class="error" role="alert"></p>
-        <p id="status" class="status">Enter a puzzle and find its solution.</p>
-    </section>
+        <header class="as-header">
+            <a class="as-back" href="{% url 'visual_lab:home' %}">&larr; Back to Visual Lab</a>
+            <h1 class="as-title">A* Search</h1>
+            <p class="as-subtitle">Find the cheapest path by combining the cost so far with an estimate of the cost to go.</p>
+        </header>
 
-    <section class="workspace">
-        <div class="panel board-panel">
-            <div class="section-heading">
+        <!-- 01 Theory -->
+        <section class="as-section" id="as-theory" aria-labelledby="as-theory-h">
+            <header class="as-section__head">
+                <span class="as-section__num">01</span>
                 <div>
-                    <h2>Current Puzzle</h2>
-                    <p id="move-label">Move 0</p>
+                    <h2 id="as-theory-h">Theory</h2>
+                    <p>Pick a topic to read it, and play with the f(n) calculator.</p>
                 </div>
-                <span id="solved-badge" class="badge">Not solved</span>
+            </header>
+
+            <div class="as-theory">
+                <div class="as-card as-explorer">
+                    <div class="as-tabs" id="as-concept-tabs" role="tablist" aria-label="A* concepts"></div>
+                    <div class="as-concept" id="as-concept-panel" role="tabpanel" aria-live="polite">
+                        <h3 id="as-concept-title">What is A* Search?</h3>
+                        <p id="as-concept-body">A* is a best-first graph search that finds a lowest-cost path from a start node to a goal node. It always expands the open node that looks cheapest overall, using the cost so far plus an estimate of the cost still to go.</p>
+                    </div>
+                </div>
+
+                <div class="as-theory__side">
+                    <div class="as-card as-calc">
+                        <h3>f(n) calculator</h3>
+                        <div class="as-calc__row">
+                            <label for="as-calc-g">g(n), cost so far <output id="as-calc-gv" for="as-calc-g">4</output></label>
+                            <input type="range" id="as-calc-g" min="0" max="20" value="4">
+                        </div>
+                        <div class="as-calc__row">
+                            <label for="as-calc-h">h(n), estimated cost to go <output id="as-calc-hv" for="as-calc-h">6</output></label>
+                            <input type="range" id="as-calc-h" min="0" max="20" value="6">
+                        </div>
+                        <div class="as-calc__bar" aria-hidden="true">
+                            <span id="as-bar-g" class="as-calc__g"></span><span id="as-bar-h" class="as-calc__h"></span>
+                        </div>
+                        <p class="as-calc__result">f(n) = g(n) + h(n) = <output id="as-calc-f">10</output></p>
+                    </div>
+
+                    <div class="as-card">
+                        <h3>Dijkstra and A*</h3>
+                        <table class="as-table">
+                            <thead><tr><th scope="col"></th><th scope="col">Dijkstra</th><th scope="col">A*</th></tr></thead>
+                            <tbody>
+                                <tr><th scope="row">Next node</th><td>lowest g</td><td>lowest g + h</td></tr>
+                                <tr><th scope="row">Knows the goal</th><td>no</td><td>yes, via h</td></tr>
+                                <tr><th scope="row">Exploration</th><td>all directions</td><td>leans toward goal</td></tr>
+                                <tr><th scope="row">Optimal path</th><td>yes</td><td>yes, if h is admissible</td></tr>
+                            </tbody>
+                        </table>
+                        <p class="as-note">With h(n) = 0 for every node, A* behaves exactly like Dijkstra.</p>
+                    </div>
+
+                    <div class="as-card">
+                        <h3>Complexity</h3>
+                        <dl class="as-facts">
+                            <div><dt>Time</dt><dd>O(E log V) with a binary heap in the worst case. A good heuristic expands far fewer nodes.</dd></div>
+                            <div><dt>Space</dt><dd>O(V), because open and closed sets can hold every node.</dd></div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02 Pseudocode -->
+        <section class="as-section" id="as-pseudocode" aria-labelledby="as-pseudo-h">
+            <header class="as-section__head">
+                <span class="as-section__num">02</span>
+                <div>
+                    <h2 id="as-pseudo-h">Interactive Pseudocode</h2>
+                    <p>Click any line to read what it does. While the algorithm runs, the active line follows the step.</p>
+                </div>
+            </header>
+
+            <div class="as-code-wrap">
+                <ol class="as-code" id="as-pseudo" aria-label="A* pseudocode"></ol>
+                <div class="as-card as-explain" aria-live="polite">
+                    <span class="as-explain__line" id="as-line-label">Line 1</span>
+                    <p id="as-line-explain">Click a line of pseudocode to see its explanation here.</p>
+                    <ul class="as-keys" aria-label="Line highlight key">
+                        <li><i class="as-key as-key--active"></i> Active line</li>
+                        <li><i class="as-key as-key--running"></i> Running lines</li>
+                        <li><i class="as-key as-key--picked"></i> Selected by you</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03 Configuration -->
+        <section class="as-section" id="as-config" aria-labelledby="as-config-h">
+            <header class="as-section__head">
+                <span class="as-section__num">03</span>
+                <div>
+                    <h2 id="as-config-h">Grid Configuration</h2>
+                    <p>Draw your own search space, choose a heuristic, then generate the search.</p>
+                </div>
+            </header>
+
+            <div class="as-config">
+                <div class="as-card as-controls">
+                    <div class="as-group">
+                        <span class="as-group__title" id="as-tools-label">Draw tool</span>
+                        <div class="as-tools" id="as-tools" role="radiogroup" aria-labelledby="as-tools-label">
+                            <label class="as-tool"><input type="radio" name="as-tool" value="wall" checked><span>Wall</span></label>
+                            <label class="as-tool"><input type="radio" name="as-tool" value="erase"><span>Erase</span></label>
+                            <label class="as-tool"><input type="radio" name="as-tool" value="start"><span>Start</span></label>
+                            <label class="as-tool"><input type="radio" name="as-tool" value="goal"><span>Goal</span></label>
+                        </div>
+                        <p class="as-note">Click or drag on the grid. Walls toggle on first click, so dragging can add or remove them.</p>
+                    </div>
+
+                    <div class="as-group">
+                        <span class="as-group__title">Grid size</span>
+                        <div class="as-inline">
+                            <label class="as-field"><span>Rows (4 to 20)</span><input type="number" id="as-rows" min="4" max="20" value="10" inputmode="numeric"></label>
+                            <label class="as-field"><span>Columns (4 to 30)</span><input type="number" id="as-cols" min="4" max="30" value="16" inputmode="numeric"></label>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-apply-size">Apply size</button>
+                        </div>
+                    </div>
+
+                    <div class="as-group">
+                        <span class="as-group__title">Search rules</span>
+                        <div class="as-inline">
+                            <label class="as-field"><span>Movement</span>
+                                <select id="as-movement">
+                                    <option value="4" selected>4 directions (cost 1)</option>
+                                    <option value="8">8 directions (diagonal cost 1.41)</option>
+                                </select>
+                            </label>
+                            <label class="as-field"><span>Heuristic</span>
+                                <select id="as-heuristic">
+                                    <option value="manhattan" selected>Manhattan distance</option>
+                                    <option value="euclidean">Euclidean distance</option>
+                                    <option value="chebyshev">Chebyshev distance</option>
+                                </select>
+                            </label>
+                        </div>
+                        <p class="as-note" id="as-heuristic-note"></p>
+                    </div>
+
+                    <div class="as-group">
+                        <span class="as-group__title">Quick setups</span>
+                        <div class="as-inline">
+                            <label class="as-field"><span>Example</span>
+                                <select id="as-example">
+                                    <option value="open">Open field</option>
+                                    <option value="gap" selected>Wall with a gap</option>
+                                    <option value="trap">U-shaped trap</option>
+                                    <option value="maze">Winding maze</option>
+                                    <option value="blocked">Goal is blocked</option>
+                                </select>
+                            </label>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-load-example">Load example</button>
+                        </div>
+                        <div class="as-inline">
+                            <label class="as-field"><span>Random walls</span>
+                                <select id="as-density">
+                                    <option value="0.15">Light (15%)</option>
+                                    <option value="0.25" selected>Medium (25%)</option>
+                                    <option value="0.35">Heavy (35%)</option>
+                                </select>
+                            </label>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-random">Random grid</button>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-clear">Clear walls</button>
+                        </div>
+                    </div>
+
+                    <div class="as-actions">
+                        <button type="button" class="as-btn as-btn--primary" id="as-generate">Generate Search</button>
+                    </div>
+                    <p class="as-error" id="as-config-error" role="alert"></p>
+                    <p class="as-note as-stale" id="as-stale" hidden>The grid changed after the last search. Click Generate Search to update the visualization.</p>
+                </div>
+
+                <div class="as-card as-editor-card">
+                    <div class="as-editor-scroll" id="as-editor-scroll">
+                        <div class="as-grid as-grid--editor" id="as-editor" role="grid" aria-label="Grid editor. Use arrow keys to move and Enter to apply the selected tool."></div>
+                    </div>
+                    <ul class="as-legend" aria-label="Grid legend">
+                        <li><i class="as-swatch as-swatch--start"></i> Start</li>
+                        <li><i class="as-swatch as-swatch--goal"></i> Goal</li>
+                        <li><i class="as-swatch as-swatch--wall"></i> Wall</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04 Workspace -->
+        <section class="as-section" id="as-workspace" aria-labelledby="as-work-h">
+            <header class="as-section__head">
+                <span class="as-section__num">04</span>
+                <div>
+                    <h2 id="as-work-h">Visualization Workspace</h2>
+                    <p>Step forward and backward, or let Auto Play run the search.</p>
+                </div>
+            </header>
+
+            <div class="as-card as-placeholder" id="as-placeholder">
+                <p>No search yet. Set up the grid above and click <strong>Generate Search</strong>.</p>
             </div>
 
-            <div id="puzzle-board" class="puzzle-board"
-                 aria-label="Current 8 puzzle board"></div>
+            <div class="as-work" id="as-work" hidden>
+                <div class="as-work__left">
+                    <div class="as-cards">
+                        <div class="as-stat"><span>Current node</span><strong id="as-cur-node">none</strong></div>
+                        <div class="as-stat"><span>g(n)</span><strong id="as-cur-g">-</strong></div>
+                        <div class="as-stat"><span>h(n)</span><strong id="as-cur-h">-</strong></div>
+                        <div class="as-stat"><span>f(n)</span><strong id="as-cur-f">-</strong></div>
+                    </div>
 
-            <p class="help">
-                Green indicates the blank tile. Each Next Step shows
-                the next state in the solution path.
-            </p>
-        </div>
+                    <div class="as-card as-board">
+                        <div class="as-grid-scroll" id="as-grid-scroll">
+                            <div class="as-grid as-grid--run" id="as-grid" role="grid" aria-label="A* search grid"></div>
+                        </div>
+                        <ul class="as-legend" aria-label="Grid legend">
+                            <li><i class="as-swatch as-swatch--start"></i> Start</li>
+                            <li><i class="as-swatch as-swatch--goal"></i> Goal</li>
+                            <li><i class="as-swatch as-swatch--wall"></i> Wall</li>
+                            <li><i class="as-swatch as-swatch--open"></i> Open set</li>
+                            <li><i class="as-swatch as-swatch--closed"></i> Closed set</li>
+                            <li><i class="as-swatch as-swatch--neighbor"></i> Neighbor checked</li>
+                            <li><i class="as-swatch as-swatch--path"></i> Final path</li>
+                        </ul>
+                        <p class="as-inspector" id="as-inspector">Hover a cell to see its g, h and f values. Cells show f(n).</p>
+                    </div>
 
-        <div class="panel metrics-panel">
-            <h2>A* Evaluation</h2>
-            <div class="metric">
-                <span>g(n) · Moves so far</span>
-                <strong id="g-value">0</strong>
-            </div>
-            <div class="metric">
-                <span>h(n) · Manhattan distance</span>
-                <strong id="h-value">0</strong>
-            </div>
-            <div class="metric highlight">
-                <span>f(n) = g(n) + h(n)</span>
-                <strong id="f-value">0</strong>
-            </div>
-            <div class="metric">
-                <span>Solution length</span>
-                <strong id="solution-length">—</strong>
-            </div>
-            <div class="metric">
-                <span>States explored</span>
-                <strong id="explored-count">0</strong>
-            </div>
-        </div>
-    </section>
+                    <div class="as-sets">
+                        <div class="as-card as-set">
+                            <h3>Open set <span class="as-count" id="as-open-count">0</span></h3>
+                            <ul class="as-chips" id="as-open-list"></ul>
+                        </div>
+                        <div class="as-card as-set">
+                            <h3>Closed set <span class="as-count" id="as-closed-count">0</span></h3>
+                            <ul class="as-chips" id="as-closed-list"></ul>
+                        </div>
+                    </div>
+                </div>
 
-    <section class="panel">
-        <h2>Solution Path</h2>
-        <p class="help">
-            After Find Solution, select Next Step to move through
-            the states in order.
-        </p>
-        <div id="path-list" class="path-list">
-            The solution path will appear here.
-        </div>
-    </section>
+                <aside class="as-work__right">
+                    <div class="as-card as-progress">
+                        <div class="as-progress__row">
+                            <span>Progress</span>
+                            <span id="as-progress-text">Not started</span>
+                        </div>
+                        <div class="as-progress__track" role="progressbar" aria-label="Algorithm progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="as-progress">
+                            <span id="as-progress-bar"></span>
+                        </div>
+                    </div>
 
-    <footer>ThinkSphere · Visual Lab</footer>
-</main>
-<script src="{% static 'visual_lab/puzzle8.js' %}"></script>
-</body>
-</html>
+                    <div class="as-card as-description" aria-live="polite">
+                        <h3>DESCRIPTION</h3>
+                        <p id="as-desc-text">Press Start to run A* on this grid.</p>
+                        <ul class="as-desc-list" id="as-desc-list"></ul>
+                    </div>
+
+                    <div class="as-card as-playback">
+                        <div class="as-buttons">
+                            <button type="button" class="as-btn as-btn--primary" id="as-start">Start</button>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-prev" disabled>Previous Step</button>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-next" disabled>Next Step</button>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-play" disabled>Auto Play</button>
+                            <button type="button" class="as-btn as-btn--ghost" id="as-reset">Reset</button>
+                        </div>
+                        <label class="as-speed" for="as-speed">
+                            <span>Speed <output id="as-speed-label" for="as-speed">5 steps per second</output></span>
+                            <input type="range" id="as-speed" min="1" max="10" value="5">
+                        </label>
+                    </div>
+
+                    <div class="as-card as-summary">
+                        <h3>Summary</h3>
+                        <dl class="as-summary__grid">
+                            <div><dt>Result</dt><dd id="as-sum-result">-</dd></div>
+                            <div><dt>Path cost</dt><dd id="as-sum-cost">-</dd></div>
+                            <div><dt>Path length</dt><dd id="as-sum-length">-</dd></div>
+                            <div><dt>Nodes visited</dt><dd id="as-sum-visited">-</dd></div>
+                            <div><dt>Nodes generated</dt><dd id="as-sum-generated">-</dd></div>
+                        </dl>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- 05 Applications -->
+        <section class="as-section" id="as-apps" aria-labelledby="as-apps-h">
+            <header class="as-section__head">
+                <span class="as-section__num">05</span>
+                <div>
+                    <h2 id="as-apps-h">Applications</h2>
+                    <p>Where A* is used outside the classroom.</p>
+                </div>
+            </header>
+
+            <div class="as-apps">
+                <div class="as-card as-apps__main">
+                    <div class="as-tabs" id="as-app-tabs" role="tablist" aria-label="A* applications"></div>
+                    <div class="as-concept" id="as-app-panel" role="tabpanel" aria-live="polite">
+                        <h3 id="as-app-title">GPS navigation and route planning</h3>
+                        <p id="as-app-body">Road maps are graphs. A* uses straight-line distance to the destination as h(n), so it can find a fast route without searching the whole country.</p>
+                    </div>
+                </div>
+
+                <aside class="as-card as-apps__card">
+                    <h3>Application of A*</h3>
+                    <p>Explore how A* finds efficient paths in games and intelligent navigation systems.</p>
+                    {# TODO: add a link to the 8 Puzzle / A* game here once its URL name is known #}
+                    <a class="as-btn as-btn--primary"
+       href="/games/8-puzzle/">
+        Play 8 Puzzle
+    </a>
+                </aside>
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'visual_lab/astar.js' %}" defer></script>
+{% endblock %}

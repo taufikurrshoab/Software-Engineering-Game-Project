@@ -1,38 +1,321 @@
-
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dijkstra Visualizer | ThinkSphere</title>
-    <link rel="stylesheet" href="{% static 'visual_lab/dijkstra.css' %}">
-</head>
-<body>
-<main class="page">
-    <header class="header">
-        <a class="back-link" href="{% url 'visual_lab:home' %}">
-            ← Back to Visual Lab
-        </a>
-        <p class="eyebrow">GRAPH ALGORITHM VISUALIZER</p>
-        <h1>Dijkstra's Algorithm</h1>
-        <p class="subtitle">
-            Explore how the shortest distances are found in a
-            weighted graph using a greedy approach.
+
+{% block title %}
+Dijkstra Visualizer | Visual Lab
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'visual_lab/dijkstra.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+
+<section class="visualizer-page">
+
+    <!-- PAGE HEADER -->
+    <div class="visualizer-header">
+        <p class="eyebrow">Algorithm Visualization</p>
+        <h1>Dijkstra Visualizer</h1>
+        <p class="visualizer-description">
+            Build a weighted graph and watch Dijkstra's algorithm find the
+            cheapest path, one step at a time.
         </p>
-    </header>
+    </div>
 
-    <section class="panel controls">
-        <h2>Graph Configuration</h2>
+    <!-- 01 / THEORY -->
+    <section class="dj-quick-learn" aria-labelledby="dj-quick-title">
 
-        <div class="field">
-            <label for="nodes-input">Nodes (space or comma separated)</label>
-            <input id="nodes-input" value="A B C D E F">
+        <div class="dj-learn-head">
+            <div>
+                <span class="learn-kicker">01 / QUICK CONCEPT</span>
+                <h2 id="dj-quick-title">Theory</h2>
+                <p>
+                    Dijkstra's algorithm finds the cheapest route from one source
+                    node to every other reachable node in a weighted graph.
+                </p>
+            </div>
+            <span class="dj-complexity">Dijkstra · Priority Queue · Greedy</span>
         </div>
 
-        <div class="field">
-            <label for="edges-input">Undirected weighted edges</label>
-            <textarea id="edges-input" rows="5">A-B:4
+        <!-- Clickable concept cards -->
+        <div class="dj-concept-row">
+
+            <button type="button" class="dj-concept-card is-active"
+                    data-detail="Weighted graph: every edge has a weight, which is the cost of travelling along it (distance, time or price). The cost of a path is the sum of its edge weights, not the number of edges. Dijkstra needs every weight to be 0 or more.">
+                <span class="concept-icon concept-blue">01</span>
+                <span class="concept-text">
+                    <strong>Weighted Graph</strong>
+                    <small>Every edge has a cost.</small>
+                </span>
+            </button>
+
+            <button type="button" class="dj-concept-card"
+                    data-detail="Shortest path: the source starts with distance 0 and every other node starts at Infinity. Dijkstra keeps improving each node's best-known distance until no cheaper route exists. The result is the cheapest path from the source to every reachable node.">
+                <span class="concept-icon concept-violet">02</span>
+                <span class="concept-text">
+                    <strong>Shortest Path</strong>
+                    <small>Cheapest total cost wins.</small>
+                </span>
+            </button>
+
+            <button type="button" class="dj-concept-card"
+                    data-detail="Minimum distance: each turn, Dijkstra picks the unvisited node with the smallest tentative distance, because no cheaper route to it can appear later. A priority queue (min-heap) hands over that node quickly, so the algorithm does not scan every node each time.">
+                <span class="concept-icon concept-green">03</span>
+                <span class="concept-text">
+                    <strong>Minimum Distance</strong>
+                    <small>Always pick the smallest.</small>
+                </span>
+            </button>
+
+        </div>
+
+        <p id="concept-detail" class="concept-detail" aria-live="polite">
+            Weighted graph: every edge has a weight, which is the cost of
+            travelling along it (distance, time or price). The cost of a path
+            is the sum of its edge weights, not the number of edges. Dijkstra
+            needs every weight to be 0 or more.
+        </p>
+
+        <div class="dj-demo-row">
+
+            <!-- Mini priority queue demo -->
+            <div class="pq-demo">
+                <div class="pq-demo-top">
+                    <strong>Try a Priority Queue</strong>
+                    <div class="pq-demo-buttons">
+                        <button type="button" id="pq-add" class="mini-btn">Add random</button>
+                        <button type="button" id="pq-pop" class="mini-btn mini-btn-ghost">Pop smallest</button>
+                    </div>
+                </div>
+
+                <div class="pq-lane">
+                    <span class="pq-end">MIN OUT</span>
+                    <div id="pq-items" class="pq-items"></div>
+                </div>
+
+                <p id="pq-message" class="pq-message" aria-live="polite">
+                    Add a few items, then pop. The smallest cost always leaves first,
+                    no matter when it was added.
+                </p>
+            </div>
+
+            <!-- Relaxation example -->
+            <div class="dj-level-demo">
+                <div class="level-demo-copy">
+                    <strong>Relaxing an edge</strong>
+                    <span>Is the new route cheaper than the best one known?</span>
+                </div>
+
+                <div class="level-track" aria-label="Example: distance to D is Infinity, a route through B costs 3 plus 4 equals 7, so the distance becomes 7">
+                    <div class="level-step">
+                        <b>D = Infinity</b>
+                        <small>Known so far</small>
+                    </div>
+                    <i></i>
+                    <div class="level-step level-step-blue">
+                        <b>3 + 4 = 7</b>
+                        <small>Route via B</small>
+                    </div>
+                    <i></i>
+                    <div class="level-step level-step-green">
+                        <b>D = 7</b>
+                        <small>7 is smaller</small>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Complexity -->
+        <div class="complexity-row">
+
+            <article class="complexity-card complexity-time">
+                <span class="complexity-label">TIME COMPLEXITY</span>
+                <strong>O((V + E) log V)</strong>
+                <p>
+                    Adjacency list with a binary min-heap. V = number of nodes,
+                    E = number of edges (connections).
+                </p>
+            </article>
+
+            <article class="complexity-card complexity-space">
+                <span class="complexity-label">SPACE COMPLEXITY</span>
+                <strong>O(V + E)</strong>
+                <p>
+                    Stores the graph, the distance and previous-node tables
+                    (V each) and the heap (up to E entries).
+                </p>
+            </article>
+
+        </div>
+
+    </section>
+
+    <!-- 02 / INTERACTIVE PSEUDOCODE -->
+    <section class="dj-code-section" id="dj-algorithm">
+
+        <div class="dj-code-heading">
+            <div>
+                <span class="learn-kicker">02 / THE LOGIC</span>
+                <h2>How Dijkstra Works</h2>
+                <p>Click any line to see what it does.</p>
+            </div>
+            <span class="code-language">PSEUDOCODE</span>
+        </div>
+
+        <div class="dj-code-card">
+
+            <div class="dj-code-window">
+
+                <div class="code-window-top">
+                    <span class="code-dots"><i></i><i></i><i></i></span>
+                    <span>dijkstra(graph, source)</span>
+                    <span class="code-badge">CORE ALGORITHM</span>
+                </div>
+
+                <div class="dj-code-lines">
+
+                    <button type="button" class="dj-code-line is-selected"
+                            data-explain="The algorithm takes a weighted graph and a source node. It will find the cheapest path from the source to every reachable node.">
+                        <em>01</em>
+                        <code><b>Dijkstra</b>(graph, source):</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Initialization: no route is known yet, so every distance starts at Infinity and no node has a previous node.">
+                        <em>02</em>
+                        <code class="indent-1"><span>for each</span> node v: dist[v] = Infinity, prev[v] = none</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="The source is 0 away from itself. Put it in the priority queue PQ so the algorithm can start from it.">
+                        <em>03</em>
+                        <code class="indent-1">dist[source] = 0; add (source, 0) to <b>PQ</b></code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Keep going while the priority queue still holds candidates. When it is empty, every reachable node is finished.">
+                        <em>04</em>
+                        <code class="indent-1"><span>while</span> PQ is not empty:</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Remove the entry with the smallest distance from the priority queue. This is the closest node that is not finished yet.">
+                        <em>05</em>
+                        <code class="indent-2">u = node with the smallest distance in PQ</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="The same node can be added to the queue more than once with different distances. If u is already finished, this entry is outdated, so skip it.">
+                        <em>06</em>
+                        <code class="indent-2"><span>if</span> u is already visited: <span>continue</span></code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Mark u as visited. Its distance is now final: no cheaper route to u can be found later, because all weights are 0 or more.">
+                        <em>07</em>
+                        <code class="indent-2">mark u as visited</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Look at every neighbour v of u, together with the weight w of the edge between them.">
+                        <em>08</em>
+                        <code class="indent-2"><span>for each</span> neighbor v of u with edge weight w:</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Calculate the cost of reaching v by going through u: the known distance to u plus the edge weight.">
+                        <em>09</em>
+                        <code class="indent-3">newDist = dist[u] + w</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Relaxing the edge: compare the new route with the best one known. Only a strictly cheaper route is worth keeping.">
+                        <em>10</em>
+                        <code class="indent-3"><span>if</span> newDist &lt; dist[v]:</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Update the shortest known distance, remember that u is the node before v on this path, and add v to the queue with its new distance.">
+                        <em>11</em>
+                        <code class="indent-4">dist[v] = newDist; prev[v] = u; add (v, newDist) to PQ</code>
+                    </button>
+
+                    <button type="button" class="dj-code-line"
+                            data-explain="Finished. dist holds the shortest distance to every node, and following prev backwards from any node gives its shortest path. Nodes still at Infinity cannot be reached.">
+                        <em>12</em>
+                        <code class="indent-1"><span>return</span> dist, prev</code>
+                    </button>
+
+                </div>
+            </div>
+
+            <aside class="dj-code-explain">
+                <span class="explain-label">LINE EXPLANATION</span>
+                <div class="explain-pulse">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 10 5 5-5 5"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg>
+                </div>
+
+                <p id="dj-line-explanation" aria-live="polite">
+                    The algorithm takes a weighted graph and a source node. It
+                    will find the cheapest path from the source to every
+                    reachable node.
+                </p>
+
+                <div class="rule-mini">
+                    <span>GREEDY RULE</span>
+                    <strong>MIN</strong>
+                    <small>Smallest distance first</small>
+                </div>
+            </aside>
+
+        </div>
+
+        <div class="dj-code-foot">
+            <span><b>Key idea:</b> once the smallest-distance node is picked, its distance is final.</span>
+            <a href="#visualizer">
+                Now try it
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+            </a>
+        </div>
+
+    </section>
+
+    <!-- 03 / HANDS-ON -->
+    <div class="learn-heading" id="visualizer">
+        <p class="learn-kicker">03 / HANDS-ON</p>
+        <h2>Run Dijkstra yourself</h2>
+    </div>
+
+    <!-- GRAPH CONFIGURATION -->
+    <section class="dj-input-panel">
+
+        <div class="input-grid">
+
+            <div class="input-group">
+                <label for="nodes">Nodes</label>
+                <input type="text" id="nodes"
+                       placeholder="A B C D E F"
+                       value="A B C D E F">
+                <small>Separate node names with spaces.</small>
+            </div>
+
+            <div class="input-group">
+                <label for="start-node">Starting Node</label>
+                <input type="text" id="start-node"
+                       placeholder="A" value="A" maxlength="4">
+                <small>The source of all paths.</small>
+            </div>
+
+        </div>
+
+        <div class="edges-grid">
+
+            <div class="input-group">
+                <label for="edges">Weighted Edges</label>
+                <textarea id="edges" rows="5"
+                          placeholder="A-B:4&#10;A-C:2&#10;B-C:1">A-B:4
 A-C:2
 B-C:1
 B-D:5
@@ -41,97 +324,166 @@ C-E:10
 D-E:2
 D-F:6
 E-F:3</textarea>
-            <small>Format: A-B:4 means an edge between A and B with weight 4.</small>
-        </div>
-
-        <div class="field">
-            <label for="source-input">Source node</label>
-            <select id="source-input">
-                <option value="A" selected>A</option>
-            </select>
-        </div>
-
-        <div class="button-row">
-            <button id="generate-btn" class="primary">Generate Graph</button>
-            <button id="start-btn" disabled>Start</button>
-            <button id="next-btn" disabled>Next Step →</button>
-            <button id="reset-btn" class="ghost">Reset</button>
-        </div>
-
-        <p id="error-message" class="error" role="alert"></p>
-        <p id="status" class="status">Generate a graph to begin.</p>
-    </section>
-
-    <section class="legend">
-        <span><i class="dot source-dot"></i> Source</span>
-        <span><i class="dot current-dot"></i> Current node</span>
-        <span><i class="dot visited-dot"></i> Visited / finalized</span>
-        <span><i class="dot path-dot"></i> Shortest path</span>
-    </section>
-
-    <section class="panel graph-panel">
-        <div class="section-heading">
-            <div>
-                <h2>Weighted Graph</h2>
-                <p>Numbers on edges represent weights.</p>
+                <small>One connection per line.</small>
             </div>
-            <span id="step-counter" class="badge">Step 0</span>
+
+            <aside class="format-guide" aria-label="Edge format guide">
+                <span class="format-label">EDGE FORMAT</span>
+                <code class="format-code">NODE-NODE:WEIGHT</code>
+                <ul>
+                    <li><code>A-B:4</code> connects A and B with cost 4.</li>
+                    <li>Edges work in both directions.</li>
+                    <li>Every edge needs a weight of 0 or more.</li>
+                </ul>
+            </aside>
+
         </div>
 
-        <div id="graph-container">
-            <svg id="graph-svg" role="img" aria-label="Weighted graph"></svg>
-        </div>
-    </section>
+        <div class="input-footer">
+            <p id="error-message" class="error-message" role="alert"></p>
 
-    <section class="panel">
-        <h2>Algorithm Progress</h2>
-        <p id="step-description">
-            Configure the graph and click Generate Graph.
-        </p>
-
-        <div class="metrics">
-            <div class="metric">
-                <span>Current node</span>
-                <strong id="current-node">—</strong>
-            </div>
-            <div class="metric">
-                <span>Current distance</span>
-                <strong id="current-distance">—</strong>
-            </div>
-            <div class="metric">
-                <span>Finalized nodes</span>
-                <strong id="visited-count">0</strong>
-            </div>
-        </div>
-    </section>
-
-    <section class="panel">
-        <h2>Shortest Distances</h2>
-        <div id="distance-list" class="distance-list">
-            Generate a graph to see distances.
-        </div>
-    </section>
-
-    <section class="panel">
-        <h2>Shortest Path</h2>
-        <div class="path-controls">
-            <div class="field">
-                <label for="target-input">Destination node</label>
-                <select id="target-input">
-                    <option value="F" selected>F</option>
-                </select>
-            </div>
-            <button id="path-btn" class="secondary" disabled>
-                Show Shortest Path
+            <button type="button" id="generate-btn" class="generate-btn">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Generate Graph
             </button>
         </div>
-        <p id="path-result" class="status">
-            Run the algorithm to find a path.
-        </p>
+
     </section>
 
-    <footer>ThinkSphere · Visual Lab</footer>
-</main>
-<script src="{% static 'visual_lab/dijkstra.js' %}"></script>
-</body>
-</html>
+    <!-- MAIN VISUALIZATION WORKSPACE (fits one desktop screen) -->
+    <div class="dj-layout" id="dj-workspace">
+
+        <!-- LEFT: STATE CARDS + GRAPH -->
+        <div class="dj-graph-column">
+
+            <div class="graph-section">
+
+                <!-- Compact live state -->
+                <div class="dj-info">
+
+                    <div class="info-card dist-card">
+                        <div class="info-header">
+                            <span class="info-icon dist-icon">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+                            </span>
+                            <h3>Distance</h3>
+                            <span class="info-note">from source</span>
+                        </div>
+                        <div id="distance" class="info-value" aria-live="polite">—</div>
+                    </div>
+
+                    <div class="info-card current-card">
+                        <div class="info-header">
+                            <span class="info-icon current-icon">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="8"/></svg>
+                            </span>
+                            <h3>Current Node</h3>
+                        </div>
+                        <div id="current-node" class="info-value current-value" aria-live="polite">—</div>
+                    </div>
+
+                    <div class="info-card visited-card">
+                        <div class="info-header">
+                            <span class="info-icon visited-icon">
+                                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                            </span>
+                            <h3>Visited</h3>
+                            <span class="info-note">finalized</span>
+                        </div>
+                        <div id="visited" class="info-value visited-value" aria-live="polite">—</div>
+                    </div>
+
+                </div>
+
+                <div class="graph-header">
+                    <h2>Graph Visualization</h2>
+
+                    <div class="graph-meta">
+                        <span id="node-count" class="meta-pill">0 Nodes</span>
+                        <span id="edge-count" class="meta-pill">0 Edges</span>
+                        <div id="graph-status" class="graph-status">Ready</div>
+                    </div>
+                </div>
+
+                <div id="graph-container">
+                    <div class="graph-placeholder">
+                        <div class="placeholder-icon">
+                            <svg class="icon icon-xl" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10"/><path d="m6.5 7.8 4.3 8.4"/><path d="m17.5 7.8-4.3 8.4"/></svg>
+                        </div>
+                        <p>Your graph will appear here</p>
+                        <span>Configure your nodes and weighted edges, then generate the graph.</span>
+                    </div>
+                </div>
+
+                <div class="graph-legend">
+                    <span class="legend-item"><i class="legend-swatch swatch-current"></i>Current</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-visited"></i>Visited (final)</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-tentative"></i>Tentative distance</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-updated"></i>Just updated</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-start"></i>Source</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-unvisited"></i>Unreached</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: ONE COMPACT CONTROL PANEL -->
+        <aside class="dj-detail-column">
+
+            <div class="dj-control-panel">
+
+                <div class="control-top">
+                    <div class="control-top-row">
+                        <strong class="panel-label">DESCRIPTION</strong>
+                        <span id="progress-text" class="progress-text">0/0 finalized</span>
+                    </div>
+
+                    <div class="progress-row">
+                        <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+                        <span id="progress-percent" class="progress-percent">0%</span>
+                    </div>
+                </div>
+
+                <section class="dj-description-card" aria-live="polite" aria-atomic="true">
+
+                    <h4 id="description-title">Your Dijkstra journey starts here</h4>
+
+                    <p id="step-description">
+                        Generate a graph, click Start Dijkstra, then press Next
+                        Step to see how the cheapest paths are found.
+                    </p>
+
+                    <div id="path-box" class="path-box" hidden></div>
+
+                    <div id="description-facts" class="description-facts"></div>
+
+                </section>
+
+                <div class="dj-controls">
+                    <button type="button" id="start-btn" class="start-btn">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                        Start Dijkstra
+                    </button>
+                    <button type="button" id="next-btn" class="next-btn">
+                        Next Step
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>
+                    </button>
+                    <button type="button" id="reset-btn" class="reset-btn">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Reset
+                    </button>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'visual_lab/dijkstra.js' %}?v=1"></script>
+{% endblock %}

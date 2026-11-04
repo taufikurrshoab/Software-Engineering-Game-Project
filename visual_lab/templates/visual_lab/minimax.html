@@ -1,120 +1,329 @@
-
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimax Visualizer | ThinkSphere</title>
-    <link rel="stylesheet" href="{% static 'visual_lab/minimax.css' %}">
-</head>
-<body>
-    <main class="minimax-page">
-        <header class="page-header">
-            <a class="back-link" href="{% url 'visual_lab:home' %}">
-                ← Back to Visual Lab
-            </a>
-            <p class="eyebrow">AI ALGORITHM VISUALIZER</p>
-            <h1>Minimax Algorithm</h1>
-            <p class="subtitle">
-                Explore how MAX and MIN players choose the best outcome
-                from a game tree.
-            </p>
-        </header>
 
-        <section class="control-panel">
-            <div class="field">
-                <label for="depth">Tree depth</label>
-                <select id="depth">
-                    <option value="1">Depth 1 (2 leaves)</option>
-                    <option value="2" selected>Depth 2 (4 leaves)</option>
-                    <option value="3">Depth 3 (8 leaves)</option>
-                    <option value="4">Depth 4 (16 leaves)</option>
-                </select>
-            </div>
+{% block title %}Minimax Visualizer | ThinkSphere{% endblock %}
 
-            <div class="field leaf-field">
-                <label for="leaf-values">Leaf values (comma-separated)</label>
-                <input
-                    id="leaf-values"
-                    type="text"
-                    value="3, 5, 2, 9"
-                    placeholder="Example: 3, 5, 2, 9"
-                >
-                <small id="leaf-hint">Enter 4 numbers for depth 2.</small>
-            </div>
+{% block content %}
+<link rel="stylesheet" href="{% static 'visual_lab/minimax.css' %}">
 
-            <div class="button-row">
-                <button id="generate-btn" class="btn btn-primary">
-                    Generate Tree
-                </button>
-                <button id="start-btn" class="btn btn-secondary" disabled>
-                    Start
-                </button>
-                <button id="next-btn" class="btn btn-secondary" disabled>
-                    Next Step →
-                </button>
-                <button id="reset-btn" class="btn btn-ghost">
-                    Reset
-                </button>
-            </div>
+<main class="minimax-page" id="minimaxPage">
 
-            <p id="error-message" class="error-message" role="alert"></p>
-        </section>
+  <!-- ============ PAGE INTRODUCTION ============ -->
+  <header class="mm-intro">
+    <p class="mm-eyebrow">AI ALGORITHM VISUALIZER</p>
+    <h1 class="mm-title">Minimax Algorithm</h1>
+    <p class="mm-subtitle">
+      Explore how MAX and MIN players choose the best guaranteed outcome from a game tree.
+    </p>
+  </header>
 
-        <section class="legend">
-            <span><i class="dot max-dot"></i> MAX node</span>
-            <span><i class="dot min-dot"></i> MIN node</span>
-            <span><i class="dot leaf-dot"></i> Leaf value</span>
-            <span><i class="dot active-dot"></i> Current step</span>
-        </section>
+  <!-- ============ SECTION 01: THEORY ============ -->
+  <section class="mm-section" id="mmTheory" aria-labelledby="mmTheoryHeading">
+    <div class="mm-section-head">
+      <span class="mm-section-number">01</span>
+      <div>
+        <p class="mm-section-label">THEORY</p>
+        <h2 class="mm-section-title" id="mmTheoryHeading">Understand Minimax first</h2>
+      </div>
+    </div>
 
-        <section class="tree-panel">
-            <div class="panel-heading">
-                <div>
-                    <h2>Game Tree</h2>
-                    <p>Root starts with MAX, then levels alternate.</p>
-                </div>
-                <span id="step-counter" class="step-counter">Step 0</span>
-            </div>
+    <div class="mm-topic-grid" id="topicGrid" role="tablist" aria-label="Minimax theory topics">
+      <button type="button" class="mm-topic is-active" role="tab" aria-selected="true" data-topic="what"><span class="mm-topic-no">01</span><span class="mm-topic-name">What is Minimax?</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="why"><span class="mm-topic-no">02</span><span class="mm-topic-name">Why game theory?</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="players"><span class="mm-topic-no">03</span><span class="mm-topic-name">MAX and MIN</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="tree"><span class="mm-topic-no">04</span><span class="mm-topic-name">Game tree</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="utility"><span class="mm-topic-no">05</span><span class="mm-topic-name">Utility values</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="max"><span class="mm-topic-no">06</span><span class="mm-topic-name">MAX picks highest</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="min"><span class="mm-topic-no">07</span><span class="mm-topic-name">MIN picks lowest</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="optimal"><span class="mm-topic-no">08</span><span class="mm-topic-name">Optimal move</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="complexity"><span class="mm-topic-no">09</span><span class="mm-topic-name">Complexity</span></button>
+      <button type="button" class="mm-topic" role="tab" aria-selected="false" data-topic="proscons"><span class="mm-topic-no">10</span><span class="mm-topic-name">Pros and limits</span></button>
+    </div>
 
-            <div id="tree-scroll" class="tree-scroll">
-                <svg id="tree-svg"
-                     role="img"
-                     aria-label="Minimax game tree"></svg>
-            </div>
+    <div class="mm-card mm-theory-panel" id="theoryPanel" aria-live="polite">
+      <div class="mm-theory-text">
+        <h3 id="theoryTitle"></h3>
+        <div id="theoryBody"></div>
+      </div>
+      <div class="mm-theory-visual" id="theoryVisual"></div>
+    </div>
+  </section>
 
-            <p id="graph-status" class="status-message">
-                Generate a tree to begin.
-            </p>
-        </section>
+  <!-- ============ SECTION 02: INTERACTIVE PSEUDOCODE ============ -->
+  <section class="mm-section" id="mmPseudocode" aria-labelledby="mmPseudoHeading">
+    <div class="mm-section-head">
+      <span class="mm-section-number">02</span>
+      <div>
+        <p class="mm-section-label">INTERACTIVE PSEUDOCODE</p>
+        <h2 class="mm-section-title" id="mmPseudoHeading">How Minimax Works</h2>
+      </div>
+    </div>
 
-        <section class="result-panel">
-            <h2>Algorithm Progress</h2>
-            <p id="step-description">
-                Set the leaf values, then click Generate Tree.
-            </p>
-            <div class="result-grid">
-                <div class="result-card">
-                    <span>Current node</span>
-                    <strong id="current-node">—</strong>
-                </div>
-                <div class="result-card">
-                    <span>Current value</span>
-                    <strong id="current-value">—</strong>
-                </div>
-                <div class="result-card">
-                    <span>Root Minimax value</span>
-                    <strong id="root-value">Not calculated</strong>
-                </div>
-            </div>
-        </section>
+    <div class="mm-pseudo-layout">
+      <div class="mm-card mm-code-panel">
+        <div class="mm-panel-bar">
+          <span class="mm-panel-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="mm-panel-title">minimax.pseudo</span>
+        </div>
+        <ol class="mm-code" id="pseudocodeList" aria-label="Minimax pseudocode. Select a line to see its explanation.">
+          <li><button type="button" class="mm-code-line" data-line="1" data-indent="0" data-title="Function signature" data-text="Minimax is recursive. It receives a game state (node), how many levels remain (depth) and whose turn it is (isMax). It returns the utility value that the player to move can guarantee from this state, assuming both players play perfectly."><span class="mm-line-no">1</span><span class="mm-line-code">Minimax(node, depth, isMax):</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="2" data-indent="1" data-title="Base case" data-text="The recursion must stop somewhere. A node is terminal when the game is over there (win, loss, draw) or the search has reached its depth limit. Without this check the function would never return."><span class="mm-line-no">2</span><span class="mm-line-code">if depth == 0 or node is terminal:</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="3" data-indent="2" data-title="Return the utility" data-text="At a terminal node there is nothing left to decide. We simply return its utility value, a number that says how good this outcome is for MAX. This is where real numbers first enter the computation."><span class="mm-line-no">3</span><span class="mm-line-code">return utility(node)</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="4" data-indent="1" data-title="MAX player's turn" data-text="If it is MAX's turn, this node is a MAX node. MAX wants the outcome with the highest utility, so the code below searches for the largest child value."><span class="mm-line-no">4</span><span class="mm-line-code">if isMax:</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="5" data-indent="2" data-title="Start from the worst case" data-text="best starts at negative Infinity, the worst possible value for MAX. Any real utility is larger, so the first child value always replaces it."><span class="mm-line-no">5</span><span class="mm-line-code">best = -Infinity</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="6" data-indent="2" data-title="Try every move" data-text="MAX considers every legal move, each leading to a child node. Minimax never skips a child here: it evaluates all of them, because any one could hide the best outcome."><span class="mm-line-no">6</span><span class="mm-line-code">for each child of node:</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="7" data-indent="3" data-title="Recurse as the opponent" data-text="We ask: what value results if play continues from this child? One level deeper it is the opponent's turn, so isMax flips to false. The call returns only after the whole subtree below the child has been evaluated, which is why the visualizer goes down first and returns values on the way back up."><span class="mm-line-no">7</span><span class="mm-line-code">value = Minimax(child, depth - 1, false)</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="8" data-indent="3" data-title="Keep the maximum" data-text="MAX keeps the largest value seen so far. If value is larger than best, this child becomes the preferred move. If not, the earlier choice stays."><span class="mm-line-no">8</span><span class="mm-line-code">best = max(best, value)</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="9" data-indent="2" data-title="Return MAX's value" data-text="After all children are checked, best is the highest utility MAX can force from this node. It is returned to the parent, which is a MIN node (or the caller if this is the root)."><span class="mm-line-no">9</span><span class="mm-line-code">return best</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="10" data-indent="1" data-title="MIN player's turn" data-text="Otherwise it is the opponent's turn and this is a MIN node. MIN wants the lowest utility, because a low value for MAX means a good result for MIN."><span class="mm-line-no">10</span><span class="mm-line-code">else:</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="11" data-indent="2" data-title="Start from the worst case for MIN" data-text="best starts at positive Infinity, the worst possible value for MIN. Any real utility is smaller, so the first child value always replaces it."><span class="mm-line-no">11</span><span class="mm-line-code">best = +Infinity</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="12" data-indent="2" data-title="Try every reply" data-text="MIN considers every legal reply. Each reply is a child node that is evaluated completely before the loop moves on."><span class="mm-line-no">12</span><span class="mm-line-code">for each child of node:</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="13" data-indent="3" data-title="Recurse as MAX" data-text="After MIN moves it is MAX's turn again, so isMax becomes true for the recursive call. The depth shrinks by one on every level."><span class="mm-line-no">13</span><span class="mm-line-code">value = Minimax(child, depth - 1, true)</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="14" data-indent="3" data-title="Keep the minimum" data-text="MIN keeps the smallest value seen so far. A smaller value means a worse outcome for MAX, which is exactly what MIN is trying to cause."><span class="mm-line-no">14</span><span class="mm-line-code">best = min(best, value)</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="15" data-indent="2" data-title="Return MIN's value" data-text="best is the lowest utility MIN can force from this node. It is returned to the MAX parent, which will compare it with its other children."><span class="mm-line-no">15</span><span class="mm-line-code">return best</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="16" data-indent="0" data-title="Choosing the actual move" data-text="Minimax(root) gives the value of the best outcome, but a game player needs a move. The move is found at the root, where we remember which child produced the best value."><span class="mm-line-no">16</span><span class="mm-line-code">BestMove(root):</span></button></li>
+          <li><button type="button" class="mm-code-line" data-line="17" data-indent="1" data-title="Pick the matching child" data-text="Choose the root child whose Minimax value equals the root value. Repeating the same choice at every level (MAX takes the highest child, MIN the lowest) traces the optimal path through the tree. If several children tie, the visualizer keeps the first one."><span class="mm-line-no">17</span><span class="mm-line-code">return child with value == Minimax(root)</span></button></li>
+        </ol>
+      </div>
 
-        <footer class="page-footer">
-            ThinkSphere · Visual Lab
-        </footer>
-    </main>
+      <aside class="mm-card mm-explain-panel" aria-live="polite">
+        <p class="mm-explain-label">Line explanation</p>
+        <h3 class="mm-explain-title" id="pseudoExplainTitle">Select a line of code</h3>
+        <p class="mm-explain-text" id="pseudoExplainText">
+          Click any numbered line to highlight it and read what it does. During the visualization, the lines that are currently running are highlighted in green.
+        </p>
+        <span class="mm-chip" id="pseudoLineChip">No line selected</span>
+      </aside>
+    </div>
+  </section>
 
-    <script src="{% static 'visual_lab/minimax.js' %}"></script>
-</body>
-</html>
+  <!-- ============ SECTION 03: GAME TREE CONFIGURATION ============ -->
+  <section class="mm-section" id="mmConfig" aria-labelledby="mmConfigHeading">
+    <div class="mm-section-head">
+      <span class="mm-section-number">03</span>
+      <div>
+        <p class="mm-section-label">GAME TREE CONFIGURATION</p>
+        <h2 class="mm-section-title" id="mmConfigHeading">Build your own game tree</h2>
+      </div>
+    </div>
+
+    <div class="mm-config-layout">
+      <form class="mm-card mm-config-form" id="treeConfigForm" novalidate autocomplete="off">
+        <div class="mm-field-row">
+          <div class="mm-field">
+            <label for="depthSelect">Depth (levels of moves)</label>
+            <select id="depthSelect">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+          <div class="mm-field">
+            <label for="branchSelect">Moves per node</label>
+            <select id="branchSelect">
+              <option value="2" selected>2 (binary)</option>
+              <option value="3">3 (ternary)</option>
+            </select>
+          </div>
+          <div class="mm-field">
+            <label for="rootPlayerSelect">Root player</label>
+            <select id="rootPlayerSelect">
+              <option value="MAX" selected>MAX moves first</option>
+              <option value="MIN">MIN moves first</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mm-field">
+          <label for="leafValues">Leaf utility values</label>
+          <textarea id="leafValues" rows="3" spellcheck="false" aria-describedby="leafHint">3, 5, 2, 9</textarea>
+          <p class="mm-field-help" id="leafHint"></p>
+        </div>
+
+        <div class="mm-example-row" role="group" aria-label="Example trees">
+          <span class="mm-example-label">Examples</span>
+          <button type="button" class="mm-btn mm-btn-ghost mm-btn-small" data-example="classic">Classic (depth 2)</button>
+          <button type="button" class="mm-btn mm-btn-ghost mm-btn-small" data-example="three">Depth 3</button>
+          <button type="button" class="mm-btn mm-btn-ghost mm-btn-small" data-example="ternary">Ternary, negatives</button>
+          <button type="button" class="mm-btn mm-btn-ghost mm-btn-small" data-example="minRoot">MIN at root</button>
+        </div>
+
+        <div class="mm-form-error" id="configError" role="alert" hidden></div>
+
+        <div class="mm-form-actions">
+          <button type="submit" class="mm-btn mm-btn-primary" id="generateBtn">Generate Tree</button>
+        </div>
+      </form>
+
+      <aside class="mm-card mm-plan-panel" aria-labelledby="levelPlanHeading">
+        <h3 class="mm-plan-title" id="levelPlanHeading">Level plan</h3>
+        <ul class="mm-level-plan" id="levelPlan"></ul>
+        <ul class="mm-plan-notes">
+          <li>Levels alternate between MAX and MIN, starting with the root player.</li>
+          <li>Enter leaf values from left to right. Negative, zero and decimal values are allowed.</li>
+          <li>Leaves are terminal states, so they hold utility values instead of moves.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 04: VISUALIZATION WORKSPACE ============ -->
+  <section class="mm-section" id="mmWorkspace" aria-labelledby="mmWorkspaceHeading">
+    <div class="mm-section-head">
+      <span class="mm-section-number">04</span>
+      <div>
+        <p class="mm-section-label">VISUALIZATION WORKSPACE</p>
+        <h2 class="mm-section-title" id="mmWorkspaceHeading">Watch Minimax search the tree</h2>
+      </div>
+    </div>
+
+    <div class="mm-workspace">
+
+      <div class="mm-workspace-left">
+        <div class="mm-state-grid">
+          <article class="mm-card mm-state-card">
+            <h3 class="mm-state-title">Current player</h3>
+            <p class="mm-state-value" id="stateCurrentPlayer" data-role="none">-</p>
+          </article>
+          <article class="mm-card mm-state-card">
+            <h3 class="mm-state-title">Current depth</h3>
+            <p class="mm-state-value" id="stateDepth">-</p>
+          </article>
+          <article class="mm-card mm-state-card">
+            <h3 class="mm-state-title">Current node</h3>
+            <p class="mm-state-value" id="stateNode">-</p>
+          </article>
+          <article class="mm-card mm-state-card">
+            <h3 class="mm-state-title">Current operation</h3>
+            <p class="mm-state-value mm-state-text" id="stateOperation">Not started</p>
+          </article>
+        </div>
+
+        <div class="mm-card mm-tree-card">
+          <div class="mm-tree-head">
+            <h3 class="mm-tree-title">Game Tree</h3>
+            <span class="mm-chip" id="stepCounter">Step 0</span>
+          </div>
+
+          <div class="mm-tree-scroll" id="treeScroll">
+            <svg id="treeSvg" class="mm-tree-svg" role="img" aria-label="Minimax game tree"></svg>
+          </div>
+
+          <ul class="mm-legend" aria-label="Tree legend">
+            <li><span class="mm-swatch mm-sw-max"></span>MAX node</li>
+            <li><span class="mm-swatch mm-sw-min"></span>MIN node</li>
+            <li><span class="mm-swatch mm-sw-leaf"></span>Leaf (utility)</li>
+            <li><span class="mm-swatch mm-sw-current"></span>Current node</li>
+            <li><span class="mm-swatch mm-sw-chosen"></span>Best child so far</li>
+            <li><span class="mm-swatch mm-sw-final"></span>Optimal path</li>
+          </ul>
+          <p class="mm-tree-status" id="treeStatus">Generate a tree to begin.</p>
+        </div>
+      </div>
+
+      <aside class="mm-workspace-right">
+        <div class="mm-card mm-progress-card">
+          <div class="mm-progress-head">
+            <span class="mm-progress-label">Progress</span>
+            <span class="mm-progress-value" id="progressText">0%</span>
+          </div>
+          <div class="mm-progress-track" id="progressBar" role="progressbar" aria-label="Algorithm progress"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="mm-progress-fill" id="progressFill"></div>
+          </div>
+          <p class="mm-progress-sub" id="progressSub">Step 0 of 0</p>
+        </div>
+
+        <div class="mm-card mm-description-card" id="descriptionCard">
+          <h3 class="mm-description-heading">DESCRIPTION</h3>
+          <div class="mm-description-body" aria-live="polite">
+            <p class="mm-description-lead" id="descriptionLead"></p>
+            <p class="mm-description-text" id="descriptionText"></p>
+            <ul class="mm-description-facts" id="descriptionFacts"></ul>
+          </div>
+        </div>
+
+        <div class="mm-card mm-controls-card">
+          <div class="mm-controls">
+            <button type="button" class="mm-btn mm-btn-primary mm-controls-wide" id="startBtn" disabled>Start</button>
+            <button type="button" class="mm-btn mm-btn-secondary" id="prevBtn" disabled>Previous Step</button>
+            <button type="button" class="mm-btn mm-btn-secondary" id="nextBtn" disabled>Next Step</button>
+            <button type="button" class="mm-btn mm-btn-secondary" id="autoBtn" disabled>Auto Play</button>
+            <button type="button" class="mm-btn mm-btn-ghost" id="resetBtn" disabled>Reset</button>
+          </div>
+          <label class="mm-speed" for="speedSelect">
+            <span>Auto Play speed</span>
+            <select id="speedSelect">
+              <option value="1400">Slow</option>
+              <option value="800" selected>Normal</option>
+              <option value="350">Fast</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mm-card mm-result-card" id="resultCard" hidden>
+          <h3 class="mm-result-title">Final result</h3>
+          <dl class="mm-result-list">
+            <div><dt>Optimal value</dt><dd id="resultValue">-</dd></div>
+            <div><dt>Optimal move</dt><dd id="resultMove">-</dd></div>
+            <div><dt>Selected path</dt><dd id="resultPath">-</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 05: APPLICATIONS ============ -->
+  <section class="mm-section" id="mmApplications" aria-labelledby="mmAppsHeading">
+    <div class="mm-section-head">
+      <span class="mm-section-number">05</span>
+      <div>
+        <p class="mm-section-label">APPLICATIONS</p>
+        <h2 class="mm-section-title" id="mmAppsHeading">Where Minimax is used</h2>
+      </div>
+    </div>
+
+    <div class="mm-apps-layout">
+      <div class="mm-card mm-apps-main">
+        <p class="mm-apps-intro">
+          Minimax suits any game with two players who take turns, where one player's gain is the other's loss and
+          every position is visible. Real programs rarely search to the end of the game, so they stop at a fixed depth and
+          score the position with an evaluation function instead of a final win or loss.
+        </p>
+        <div class="mm-apps-grid">
+          <article class="mm-app-item">
+            <h4>Chess</h4>
+            <p>Engines search many moves ahead and score positions by material, piece activity and king safety. The tree is huge, so Minimax is combined with alpha-beta pruning.</p>
+          </article>
+          <article class="mm-app-item">
+            <h4>Checkers</h4>
+            <p>Forced captures make the tree narrow enough to search deeply. Checkers has been fully solved with search methods that build on Minimax.</p>
+          </article>
+          <article class="mm-app-item">
+            <h4>Tic Tac Toe</h4>
+            <p>The game is small enough to search completely, so Minimax plays perfectly: the best an opponent can do against it is a draw.</p>
+          </article>
+          <article class="mm-app-item">
+            <h4>Adversarial decision-making</h4>
+            <p>Any situation with a rational opponent can be modeled this way, such as security planning, bidding, or choosing a strategy that limits the worst-case loss.</p>
+          </article>
+        </div>
+      </div>
+
+      <aside class="mm-card mm-apps-aside">
+        <h3 class="mm-apps-aside-title">Application of Minimax</h3>
+        <p class="mm-apps-aside-text">Explore how Minimax is used in intelligent game-playing systems.</p>
+        <!-- Existing ThinkSphere Tic Tac Toe URL (kept from the previous minimax page). Confirm it matches your routing. -->
+        <a class="mm-btn mm-btn-primary mm-apps-button" id="playTttLink" href="/games/tic-tac-toe/">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>
+          Play Tic Tac Toe
+        </a>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<script src="{% static 'visual_lab/minimax.js' %}"></script>
+{% endblock %}

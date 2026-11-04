@@ -1,7 +1,8 @@
+
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Student Platform | Track. Understand. Visualize. Play.{% endblock %}
+{% block title %}ThinkSphere | Track. Understand. Visualize. Play.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -13,21 +14,33 @@
     <!-- Hero -->
     <section class="home-hero">
         <div class="home-hero__glow" aria-hidden="true"></div>
-        <div class="home-container home-hero__inner">
 
+        <div class="home-container home-hero__inner">
             <div class="home-hero__content" data-reveal>
-                <span class="home-eyebrow">Student Platform</span>
+                <span class="home-eyebrow">ThinkSphere</span>
+
                 <h1 class="home-hero__title">
                     Track. Understand.<br>
                     <span class="home-gradient-text">Visualize. Play.</span>
                 </h1>
+
                 <p class="home-hero__text">
-                    A unified space for CSE students to Track their academic progress and Skills, Understand algorithms and data structures, Visualize how they work, and Play through challenges to sharpen problem-solving skills.
+                    A unified space for CSE students to track their academic
+                    progress and skills, understand algorithms and data
+                    structures, visualize how they work, and play through
+                    challenges to sharpen problem-solving skills.
                 </p>
+
                 <div class="home-hero__actions">
-                    <a href="#modules" class="home-btn home-btn--primary">Explore Platform</a>
-                    <a href="{% url 'dashboard' %}" class="home-btn home-btn--ghost">Go to Dashboard</a>
+                    <a href="#modules" class="home-btn home-btn--primary">
+                        Explore Platform
+                    </a>
+
+                    <a href="{% url 'dashboard' %}" class="home-btn home-btn--ghost">
+                        Go to Dashboard
+                    </a>
                 </div>
+
                 <ul class="home-hero__meta">
                     <li>Academic</li>
                     <li>Skills</li>
@@ -42,6 +55,7 @@
                         <i></i><i></i><i></i>
                         <span>student-platform / overview</span>
                     </div>
+
                     <div class="home-preview__body">
                         <ul class="home-preview__nav">
                             <li class="is-active"><b>▤</b> Academic</li>
@@ -49,35 +63,43 @@
                             <li><b>◈</b> Visual Lab</li>
                             <li><b>⬢</b> Play Game</li>
                         </ul>
+
                         <div class="home-preview__main">
                             <div class="home-preview__head">
                                 <strong>Your workspace</strong>
                                 <small>Spring semester</small>
                             </div>
+
                             <div class="home-preview__tiles">
                                 <div class="home-preview__tile home-preview__tile--academic">
                                     <small>Academic</small>
                                     <span class="home-preview__line"></span>
                                     <span class="home-preview__line home-preview__line--short"></span>
                                 </div>
+
                                 <div class="home-preview__tile home-preview__tile--skills">
                                     <small>Skills</small>
                                     <span class="home-preview__tag"></span>
                                     <span class="home-preview__tag home-preview__tag--short"></span>
                                 </div>
+
                                 <div class="home-preview__tile home-preview__tile--lab">
                                     <small>Visual Lab</small>
                                     <div class="home-preview__bars">
                                         <i></i><i></i><i></i><i></i><i></i><i></i>
                                     </div>
                                 </div>
+
                                 <div class="home-preview__tile home-preview__tile--practice">
                                     <small>Play Game</small>
                                     <div class="home-preview__grid">
-                                        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                                        <i></i><i></i><i></i>
+                                        <i></i><i></i><i></i>
+                                        <i></i><i></i><i></i>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="home-preview__progress">
                                 <span class="home-preview__progress-fill"></span>
                             </div>
@@ -93,101 +115,154 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </section>
 
     <!-- Modules -->
     <section class="home-section" id="modules">
         <div class="home-container">
+
             <header class="home-section__head" data-reveal>
                 <span class="home-eyebrow">Modules</span>
-                <h2 class="home-section__title">One platform, four connected spaces</h2>
+                <h2 class="home-section__title">
+                    One platform, four connected spaces
+                </h2>
                 <p class="home-section__text">
-                    Each module covers a different part of the CSE journey and
-                    they are designed to work together.
+                    Each module covers a different part of the CSE journey
+                    and they are designed to work together.
                 </p>
             </header>
 
             <div class="home-module-grid">
 
+                <!-- Academic Module -->
                 <article class="home-module-card home-module-card--academic" data-reveal>
                     <div class="home-module-card__visual" aria-hidden="true">
                         <span></span><span></span><span></span>
                     </div>
+
                     <div class="home-module-card__top">
                         <span class="home-module-card__icon" aria-hidden="true">▤</span>
-                        <span class="home-badge">Coming soon</span>
+                        <span class="home-badge home-badge--live">Available</span>
                     </div>
+
                     <h3>Academic</h3>
-                    <p>Courses, notes and study material organized in a clear, structured way.</p>
-                    {# TODO: replace href="#" with the Academic URL when the page exists #}
-                    <a href="#" class="home-module-card__link home-module-card__link--soon" aria-disabled="true">Not available yet</a>
+
+                    <p>
+                        Track your semester, manage assignments and deadlines,
+                        and organize your academic progress.
+                    </p>
+
+                    <a href="{% url 'academic:home' %}"
+                       class="home-module-card__link">
+                        Explore Academic →
+                    </a>
                 </article>
 
+                <!-- Skills Module -->
                 <article class="home-module-card home-module-card--skills" data-reveal>
                     <div class="home-module-card__visual" aria-hidden="true">
                         <span></span><span></span><span></span>
                     </div>
+
                     <div class="home-module-card__top">
                         <span class="home-module-card__icon" aria-hidden="true">⌘</span>
-                        <span class="home-badge">Coming soon</span>
+                        <span class="home-badge home-badge--live">Available</span>
                     </div>
+
                     <h3>Skills</h3>
-                    <p>Practical technical skills that go beyond the syllabus and into real projects.</p>
-                    {# TODO: replace href="#" with the Skills URL when the page exists #}
-                    <a href="#" class="home-module-card__link home-module-card__link--soon" aria-disabled="true">Not available yet</a>
+
+                    <p>
+                        Track your technical skills, monitor progress,
+                        and showcase your projects and technologies.
+                    </p>
+
+                    <a href="{% url 'skill:home' %}"
+                       class="home-module-card__link">
+                        Explore Skills →
+                    </a>
                 </article>
 
+                <!-- Visual Lab Module -->
                 <article class="home-module-card home-module-card--lab" data-reveal>
                     <div class="home-module-card__visual" aria-hidden="true">
                         <i></i><i></i><i></i><i></i><i></i>
                     </div>
+
                     <div class="home-module-card__top">
                         <span class="home-module-card__icon" aria-hidden="true">◈</span>
                         <span class="home-badge home-badge--live">Available</span>
                     </div>
+
                     <h3>Visual Lab</h3>
-                    <p>Step through algorithms and data structures with live visualizations.</p>
-                    <a href="{% url 'visual_lab:home' %}" class="home-module-card__link">Enter Visual Lab →</a>
+
+                    <p>
+                        Step through algorithms and data structures
+                        with live visualizations.
+                    </p>
+
+                    <a href="{% url 'visual_lab:home' %}"
+                       class="home-module-card__link">
+                        Enter Visual Lab →
+                    </a>
                 </article>
 
+                <!-- Mind Arena Module -->
                 <article class="home-module-card home-module-card--arena" data-reveal>
                     <div class="home-module-card__visual" aria-hidden="true">
                         <i></i><i></i><i></i><i></i>
                     </div>
+
                     <div class="home-module-card__top">
                         <span class="home-module-card__icon" aria-hidden="true">⬢</span>
                         <span class="home-badge home-badge--live">Available</span>
                     </div>
+
                     <h3>Play Game</h3>
-                    <p>Sharpen logic and problem solving through puzzles and strategy games.</p>
-                    <a href="{% url 'mind_arena:home' %}" class="home-module-card__link">Open Play Game →</a>
+
+                    <p>
+                        Sharpen logic and problem solving through
+                        puzzles and strategy games.
+                    </p>
+
+                    <a href="{% url 'mind_arena:home' %}"
+                       class="home-module-card__link">
+                        Open Play Game →
+                    </a>
                 </article>
 
             </div>
         </div>
     </section>
 
-    <!-- Showcase -->
+    <!-- Visual Lab Showcase -->
     <section class="home-section home-section--alt">
         <div class="home-container home-showcase">
 
             <div class="home-showcase__text" data-reveal>
                 <span class="home-eyebrow">Visual Lab</span>
-                <h2 class="home-section__title">See how an algorithm thinks.</h2>
+
+                <h2 class="home-section__title">
+                    See how an algorithm thinks.
+                </h2>
+
                 <p class="home-section__text">
                     Instead of memorizing pseudocode, follow each step as it
                     runs: which node is visited, what waits in the queue and
                     how the result builds up.
                 </p>
+
                 <ol class="home-steps">
                     <li class="is-done">Pick the start node</li>
                     <li class="is-done">Visit its neighbors</li>
                     <li class="is-current">Update the queue</li>
                     <li>Repeat until the queue is empty</li>
                 </ol>
-                <a href="{% url 'visual_lab:home' %}" class="home-btn home-btn--ghost">Open Visual Lab</a>
+
+                <a href="{% url 'visual_lab:home' %}"
+                   class="home-btn home-btn--ghost">
+                    Open Visual Lab
+                </a>
             </div>
 
             <div class="home-lab" data-reveal aria-hidden="true">
@@ -205,22 +280,33 @@
                     <line class="home-graph__edge" x1="250" y1="185" x2="315" y2="115" />
 
                     <g class="home-graph__node is-visited">
-                        <circle cx="55" cy="115" r="20" /><text x="55" y="120">A</text>
+                        <circle cx="55" cy="115" r="20" />
+                        <text x="55" y="120">A</text>
                     </g>
+
                     <g class="home-graph__node is-visited">
-                        <circle cx="150" cy="45" r="20" /><text x="150" y="50">B</text>
+                        <circle cx="150" cy="45" r="20" />
+                        <text x="150" y="50">B</text>
                     </g>
+
                     <g class="home-graph__node is-visited">
-                        <circle cx="150" cy="185" r="20" /><text x="150" y="190">C</text>
+                        <circle cx="150" cy="185" r="20" />
+                        <text x="150" y="190">C</text>
                     </g>
+
                     <g class="home-graph__node is-current">
-                        <circle cx="250" cy="45" r="20" /><text x="250" y="50">D</text>
+                        <circle cx="250" cy="45" r="20" />
+                        <text x="250" y="50">D</text>
                     </g>
+
                     <g class="home-graph__node is-queued">
-                        <circle cx="250" cy="185" r="20" /><text x="250" y="190">E</text>
+                        <circle cx="250" cy="185" r="20" />
+                        <text x="250" y="190">E</text>
                     </g>
+
                     <g class="home-graph__node">
-                        <circle cx="315" cy="115" r="20" /><text x="315" y="120">F</text>
+                        <circle cx="315" cy="115" r="20" />
+                        <text x="315" y="120">F</text>
                     </g>
                 </svg>
 
@@ -238,12 +324,15 @@
         </div>
     </section>
 
-    <!-- Flow -->
+    <!-- Platform Flow -->
     <section class="home-section">
         <div class="home-container">
+
             <header class="home-section__head" data-reveal>
                 <span class="home-eyebrow">How it fits together</span>
-                <h2 class="home-section__title">From understanding to mastery</h2>
+                <h2 class="home-section__title">
+                    From understanding to mastery
+                </h2>
             </header>
 
             <ol class="home-flow">
@@ -253,18 +342,21 @@
                     <p>Study concepts in an organized way.</p>
                     <small class="home-flow__tag">Academic</small>
                 </li>
+
                 <li class="home-flow__step" data-reveal>
                     <span class="home-flow__num">02</span>
                     <h3>Build</h3>
                     <p>Develop practical technical skills.</p>
                     <small class="home-flow__tag">Skills</small>
                 </li>
+
                 <li class="home-flow__step" data-reveal>
                     <span class="home-flow__num">03</span>
                     <h3>Visualize</h3>
                     <p>Watch algorithms run step by step.</p>
                     <small class="home-flow__tag">Visual Lab</small>
                 </li>
+
                 <li class="home-flow__step" data-reveal>
                     <span class="home-flow__num">04</span>
                     <h3>Practice</h3>
@@ -272,34 +364,49 @@
                     <small class="home-flow__tag">Play Game</small>
                 </li>
             </ol>
+
         </div>
     </section>
 
-    <!-- CTA -->
+    <!-- Call to Action -->
     <section class="home-section home-section--tight">
         <div class="home-container">
             <div class="home-cta" data-reveal>
+
                 <div class="home-cta__text">
                     <h2>Ready to explore?</h2>
                     <p>Open your dashboard and pick up where you left off.</p>
                 </div>
+
                 <div class="home-cta__actions">
-                    <a href="{% url 'dashboard' %}" class="home-btn home-btn--primary">Go to Dashboard</a>
-                    <a href="{% url 'visual_lab:home' %}" class="home-btn home-btn--ghost">Try Visual Lab</a>
+                    <a href="{% url 'dashboard' %}"
+                       class="home-btn home-btn--primary">
+                        Go to Dashboard
+                    </a>
+
+                    <a href="{% url 'visual_lab:home' %}"
+                       class="home-btn home-btn--ghost">
+                        Try Visual Lab
+                    </a>
                 </div>
+
             </div>
         </div>
     </section>
 
-    <!-- Footer (remove if base.html already has one) -->
+    <!-- Footer -->
     <footer class="home-footer">
         <div class="home-container home-footer__inner">
             <strong class="home-footer__brand">Student Platform</strong>
+
             <nav class="home-footer__links" aria-label="Footer">
                 <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'academic:home' %}">Academic</a>
+                <a href="{% url 'skill:home' %}">Skills</a>
                 <a href="{% url 'visual_lab:home' %}">Visual Lab</a>
                 <a href="{% url 'mind_arena:home' %}">Play Game</a>
             </nav>
+
             <small>© ThinkSphere</small>
         </div>
     </footer>

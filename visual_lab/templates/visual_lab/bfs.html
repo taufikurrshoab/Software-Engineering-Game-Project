@@ -5,379 +5,410 @@
 BFS Visualizer | Visual Lab
 {% endblock %}
 
-
 {% block extra_css %}
-
-<link
-    rel="stylesheet"
-    href="{% static 'visual_lab/bfs.css' %}"
->
-
+<link rel="stylesheet" href="{% static 'visual_lab/bfs.css' %}">
 {% endblock %}
-
-
 
 {% block content %}
 
 <section class="visualizer-page">
 
-
-    <!-- ==============================
-         PAGE HEADER
-    =============================== -->
-
+    <!-- PAGE HEADER -->
     <div class="visualizer-header">
-
-        <p class="eyebrow">
-            Algorithm Visualization
-        </p>
-
-        <h1>
-            BFS Visualizer
-        </h1>
-
+        <p class="eyebrow">Algorithm Visualization</p>
+        <h1>BFS Visualizer</h1>
         <p class="visualizer-description">
             Create your own graph and visualize
             Breadth-First Search step by step.
         </p>
-
     </div>
 
+    <!-- 01 / THEORY -->
+    <section class="bfs-quick-learn" aria-labelledby="bfs-quick-title">
 
+        <div class="bfs-learn-head">
+            <div>
+                <span class="learn-kicker">01 / THEORY</span>
+                <h2 id="bfs-quick-title">Theory</h2>
+                <p>
+                    Breadth-First Search (BFS) is a graph traversal algorithm
+                    that explores nodes level by level, starting from a selected node.
+                    It visits all nearby neighbours before moving to the next level.
+                    BFS uses a Queue data structure that follows FIFO (First In, First Out).
+                    It is also useful for finding the shortest path in an unweighted graph.
+                </p>
+            </div>
+            <span class="bfs-complexity">BFS · Queue · FIFO</span>
+        </div>
 
-    <!-- ==============================
-         MAIN BFS AREA
-    =============================== -->
+        <!-- Clickable concept cards -->
+        <div class="bfs-concept-row">
 
-    <div class="bfs-layout">
+            <button type="button" class="bfs-concept-card is-active"
+                    data-detail="Level by level: BFS visits every node 1 step from the start, then every node 2 steps away, and so on. This is why BFS finds the shortest path (fewest edges) in an unweighted graph.">
+                <span class="concept-icon concept-blue">01</span>
+                <span class="concept-text">
+                    <strong>Explore by level</strong>
+                    <small>Nearby nodes before far nodes.</small>
+                </span>
+            </button>
 
+            <button type="button" class="bfs-concept-card"
+                    data-detail="A queue is a waiting line. FIFO means First In, First Out: new neighbours join the back, and the node at the front is processed next. Earlier discoveries are always handled first.">
+                <span class="concept-icon concept-violet">02</span>
+                <span class="concept-text">
+                    <strong>Use a Queue</strong>
+                    <small>FIFO: first in, first out.</small>
+                </span>
+            </button>
 
-        <!-- =================================
-             LEFT SIDE
-        ================================== -->
+            <button type="button" class="bfs-concept-card"
+                    data-detail="A node is marked visited the moment it is discovered (when it enters the queue). Graphs can contain loops, so this stops BFS from adding the same node twice or running forever.">
+                <span class="concept-icon concept-green">03</span>
+                <span class="concept-text">
+                    <strong>Track Visited</strong>
+                    <small>Never add a node twice.</small>
+                </span>
+            </button>
 
-        <div class="bfs-left">
+        </div>
 
+        <p id="concept-detail" class="concept-detail" aria-live="polite">
+            Level by level: BFS visits every node 1 step from the start,
+            then every node 2 steps away, and so on. This is why BFS finds
+            the shortest path (fewest edges) in an unweighted graph.
+        </p>
 
-            <!-- =========================
-                 GRAPH INPUT
-            ========================== -->
+        <div class="bfs-demo-row">
 
-            <div class="bfs-input-panel">
-
-                <div class="panel-title">
-
-                    <span class="panel-icon">
-                        +
-                    </span>
-
-                    <h2>
-                        Graph Input
-                    </h2>
-
+            <!-- Mini FIFO demo -->
+            <div class="fifo-demo">
+                <div class="fifo-demo-top">
+                    <strong>Try FIFO</strong>
+                    <div class="fifo-demo-buttons">
+                        <button type="button" id="fifo-enqueue" class="mini-btn">+ Enqueue</button>
+                        <button type="button" id="fifo-dequeue" class="mini-btn mini-btn-ghost">− Dequeue</button>
+                    </div>
                 </div>
 
-
-                <!-- Nodes -->
-
-                <div class="input-group">
-
-                    <label for="nodes">
-                        Nodes
-                    </label>
-
-                    <input
-                        type="text"
-                        id="nodes"
-                        placeholder="A B C D E F"
-                        value="A B C D E F"
-                    >
-
-                    <small>
-                        Separate nodes with spaces
-                    </small>
-
+                <div class="fifo-lane">
+                    <span class="fifo-end">OUT ◀</span>
+                    <div id="fifo-items" class="fifo-items"></div>
+                    <span class="fifo-end">◀ IN</span>
                 </div>
 
+                <p id="fifo-message" class="fifo-message" aria-live="polite">
+                    Add a few items, then remove them. The first one in is the first one out.
+                </p>
+            </div>
 
+            <!-- Ripple / levels -->
+            <div class="bfs-level-demo">
+                <div class="level-demo-copy">
+                    <strong>Like ripples in water</strong>
+                    <span>Closest nodes first, then the next ring.</span>
+                </div>
 
-                <!-- Edges -->
+                <div class="level-track" aria-label="BFS visits level zero, then level one, then level two">
+                    <div class="level-step">
+                        <b>A</b>
+                        <small>Level 0</small>
+                    </div>
+                    <i></i>
+                    <div class="level-step level-step-blue">
+                        <b>B · C</b>
+                        <small>Level 1</small>
+                    </div>
+                    <i></i>
+                    <div class="level-step level-step-green">
+                        <b>D · E · F</b>
+                        <small>Level 2</small>
+                    </div>
+                </div>
+            </div>
 
-                <div class="input-group">
+        </div>
 
-                    <label for="edges">
-                        Edges
-                    </label>
+    </section>
 
-                    <textarea
-                        id="edges"
-                        rows="6"
-                        placeholder="A-B&#10;A-C&#10;B-D&#10;B-E&#10;C-F"
-                    >A-B
+    <!-- 02 / INTERACTIVE PSEUDOCODE -->
+    <section class="bfs-code-section" id="bfs-algorithm">
+
+        <div class="bfs-code-heading">
+            <div>
+                <span class="learn-kicker">02 / THE LOGIC</span>
+                <h2>How BFS works</h2>
+                <p>Click any line to see what it does.</p>
+            </div>
+            <span class="code-language">PSEUDOCODE</span>
+        </div>
+
+        <div class="bfs-code-card">
+
+            <div class="bfs-code-window">
+
+                <div class="code-window-top">
+                    <span class="code-dots"><i></i><i></i><i></i></span>
+                    <span>bfs(graph, start)</span>
+                    <span class="code-badge">CORE ALGORITHM</span>
+                </div>
+
+                <div class="bfs-code-lines">
+
+                    <button type="button" class="bfs-code-line is-selected"
+                            data-explain="The algorithm takes a graph and a starting node, then explores outward from that start.">
+                        <em>01</em>
+                        <code><b>BFS</b>(graph, start):</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Q holds the nodes waiting to be explored (first in, first out). The visited set remembers nodes already discovered so none is repeated.">
+                        <em>02</em>
+                        <code class="indent-1">create empty queue <b>Q</b> and <b>visited</b> set</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Begin at the start node: mark it visited and place it in the queue as the first item.">
+                        <em>03</em>
+                        <code class="indent-1">add start to visited; enqueue start into Q</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Repeat while some node is still waiting. When the queue runs out, every reachable node has been explored.">
+                        <em>04</em>
+                        <code class="indent-1"><span>while</span> Q is not empty:</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Take the node at the FRONT of the queue. This is the Current Node for this step.">
+                        <em>05</em>
+                        <code class="indent-2">current = dequeue Q</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Look at every node directly connected to the current node, one by one.">
+                        <em>06</em>
+                        <code class="indent-2"><span>for each</span> neighbor of current:</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Ignore neighbours that were already discovered. This prevents repeated visits and endless loops in graphs with cycles.">
+                        <em>07</em>
+                        <code class="indent-3"><span>if</span> neighbor is not visited:</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Mark it visited right now, before it enters the queue, so no other node can add it a second time.">
+                        <em>08</em>
+                        <code class="indent-4">add neighbor to visited</code>
+                    </button>
+
+                    <button type="button" class="bfs-code-line"
+                            data-explain="Add it to the BACK of the queue. It will be explored after everything that is already waiting.">
+                        <em>09</em>
+                        <code class="indent-4">enqueue neighbor into Q</code>
+                    </button>
+
+                </div>
+            </div>
+
+            <aside class="bfs-code-explain">
+                <span class="explain-label">LINE EXPLANATION</span>
+                <div class="explain-pulse">↳</div>
+
+                <p id="bfs-line-explanation" aria-live="polite">
+                    The algorithm takes a graph and a starting node, then
+                    explores outward from that start.
+                </p>
+
+                <div class="fifo-mini">
+                    <span>QUEUE RULE</span>
+                    <strong>FIFO</strong>
+                    <small>First In, First Out</small>
+                </div>
+            </aside>
+
+        </div>
+
+        <div class="bfs-code-foot">
+            <span><b>Key idea:</b> mark a node visited when it enters the queue.</span>
+            <a href="#visualizer">Now try it ↓</a>
+        </div>
+
+    </section>
+
+    <!-- 03 / HANDS-ON -->
+    <div class="learn-heading" id="visualizer">
+        <p class="learn-kicker">03 / HANDS-ON</p>
+        <h2>Run BFS yourself</h2>
+    </div>
+
+    <!-- GRAPH CONFIGURATION -->
+    <section class="bfs-input-panel">
+
+        <div class="input-grid">
+
+            <div class="input-group">
+                <label for="nodes">Nodes</label>
+                <input type="text" id="nodes"
+                       placeholder="A B C D E F"
+                       value="A B C D E F">
+                <small>Separate nodes using spaces.</small>
+            </div>
+
+            <div class="input-group">
+                <label for="start-node">Starting Node</label>
+                <input type="text" id="start-node"
+                       placeholder="A" value="A" maxlength="1">
+                <small>Where BFS begins.</small>
+            </div>
+
+            <button type="button" id="generate-btn" class="generate-btn">
+                <span aria-hidden="true"></span> Generate Graph
+            </button>
+
+        </div>
+
+        <div class="input-group input-group-edges">
+            <label for="edges">Edges</label>
+            <textarea id="edges" rows="4"
+                      placeholder="A-B&#10;A-C&#10;B-D&#10;B-E">A-B
 A-C
 B-D
 B-E
 C-F</textarea>
-
-                    <small>
-                        Write one edge per line
-                    </small>
-
-                </div>
-
-
-
-                <!-- Start Node -->
-
-                <div class="input-group">
-
-                    <label for="start-node">
-                        Start Node
-                    </label>
-
-                    <input
-                        type="text"
-                        id="start-node"
-                        placeholder="A"
-                        value="A"
-                        maxlength="1"
-                    >
-
-                </div>
-
-
-
-                <!-- Generate -->
-
-                <button
-                    type="button"
-                    id="generate-btn"
-                    class="generate-btn"
-                >
-                    Generate Graph
-                </button>
-
-
-                <!-- Error -->
-
-                <p
-                    id="error-message"
-                    class="error-message"
-                ></p>
-
-            </div>
-
-
-
-            <!-- =================================
-                 BFS CONTROLS
-            ================================== -->
-
-            <div class="bfs-controls">
-
-                <button
-                    type="button"
-                    id="start-btn"
-                    class="start-btn"
-                >
-                    ▶ Start BFS
-                </button>
-
-
-                <button
-                    type="button"
-                    id="next-btn"
-                    class="next-btn"
-                >
-                    ▷ Next Step
-                </button>
-
-
-                <button
-                    type="button"
-                    id="reset-btn"
-                    class="reset-btn"
-                >
-                    ↻ Reset
-                </button>
-
-            </div>
-
-
-
-            <!-- =================================
-                 BFS INFORMATION
-            ================================== -->
-
-            <div class="bfs-info">
-
-
-                <!-- Queue -->
-
-                <div class="info-card queue-card">
-
-                    <div class="info-header">
-
-                        <span class="info-icon queue-icon">
-                            Q
-                        </span>
-
-                        <h3>
-                            Queue
-                        </h3>
-
-                    </div>
-
-                    <div
-                        id="queue"
-                        class="info-value"
-                    >
-                        []
-                    </div>
-
-                </div>
-
-
-
-                <!-- Current Node -->
-
-                <div class="info-card current-card">
-
-                    <div class="info-header">
-
-                        <span class="info-icon current-icon">
-                            •
-                        </span>
-
-                        <h3>
-                            Current Node
-                        </h3>
-
-                    </div>
-
-                    <div
-                        id="current-node"
-                        class="info-value"
-                    >
-                        -
-                    </div>
-
-                </div>
-
-
-
-                <!-- Visited -->
-
-                <div class="info-card visited-card">
-
-                    <div class="info-header">
-
-                        <span class="info-icon visited-icon">
-                            ✓
-                        </span>
-
-                        <h3>
-                            Visited
-                        </h3>
-
-                    </div>
-
-                    <div
-                        id="visited"
-                        class="info-value"
-                    >
-                        []
-                    </div>
-
-                </div>
-
-
-            </div>
-
-
+            <small>One connection per line. Example: A-B</small>
         </div>
 
+        <p id="error-message" class="error-message" role="alert"></p>
 
+    </section>
 
-        <!-- =================================
-             RIGHT SIDE - GRAPH
-        ================================== -->
+    <!-- MAIN VISUALIZATION WORKSPACE (fits one desktop screen) -->
+    <div class="bfs-layout" id="bfs-workspace">
 
-        <div class="bfs-right">
-
+        <!-- LEFT: STATE CARDS + GRAPH -->
+        <div class="bfs-graph-column">
 
             <div class="graph-section">
 
+                <!-- Compact live state -->
+                <div class="bfs-info">
+
+                    <div class="info-card queue-card">
+                        <div class="info-header">
+                            <span class="info-icon queue-icon">Q</span>
+                            <h3>Queue</h3>
+                            <span class="info-note">front → back</span>
+                        </div>
+                        <div id="queue" class="info-value queue-value" aria-live="polite">—</div>
+                    </div>
+
+                    <div class="info-card current-card">
+                        <div class="info-header">
+                            <span class="info-icon current-icon">●</span>
+                            <h3>Current Node</h3>
+                        </div>
+                        <div id="current-node" class="info-value current-value" aria-live="polite">—</div>
+                    </div>
+
+                    <div class="info-card visited-card">
+                        <div class="info-header">
+                            <span class="info-icon visited-icon">✓</span>
+                            <h3>Visited</h3>
+                            <span class="info-note">in order</span>
+                        </div>
+                        <div id="visited" class="info-value visited-value" aria-live="polite">—</div>
+                    </div>
+
+                </div>
 
                 <div class="graph-header">
+                    <h2>Graph Visualization</h2>
 
-                    <div>
-
-                        <p class="graph-label">
-                            VISUALIZATION
-                        </p>
-
-                        <h2>
-                            Generated Graph
-                        </h2>
-
+                    <div class="graph-meta">
+                        <span id="node-count" class="meta-pill">0 Nodes</span>
+                        <span id="edge-count" class="meta-pill">0 Edges</span>
+                        <div id="graph-status" class="graph-status">Ready</div>
                     </div>
-
-
-                    <div
-                        id="graph-status"
-                        class="graph-status"
-                    >
-                        Ready
-                    </div>
-
                 </div>
-
-
-
-                <!-- Graph -->
 
                 <div id="graph-container">
-
                     <div class="graph-placeholder">
-
-                        <div class="placeholder-icon">
-                            ◎
-                        </div>
-
-                        <p>
-                            Your graph will appear here
-                        </p>
-
-                        <span>
-                            Enter nodes and edges, then
-                            click Generate Graph.
-                        </span>
-
+                        <div class="placeholder-icon">◎</div>
+                        <p>Your graph will appear here</p>
+                        <span>Configure your nodes and edges, then generate the graph.</span>
                     </div>
-
                 </div>
 
+                <div class="graph-legend">
+                    <span class="legend-item"><i class="legend-swatch swatch-current"></i>Current</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-queue"></i>Queued</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-visited"></i>Visited</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-start"></i>Start node</span>
+                    <span class="legend-item"><i class="legend-swatch swatch-unvisited"></i>Unvisited</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: ONE COMPACT CONTROL PANEL -->
+        <aside class="bfs-detail-column">
+
+            <div class="bfs-control-panel">
+
+                <div class="control-top">
+                    <div class="control-top-row">
+                        <div>
+                            <span class="description-kicker">BFS CONTROL</span>
+                            <strong class="step-number">DESCRIPTION</strong>
+                        </div>
+                        <span id="progress-text" class="progress-text">0/0 discovered</span>
+                    </div>
+
+                    <div class="progress-row">
+                        <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+                        <span id="progress-percent" class="progress-percent">0%</span>
+                    </div>
+                </div>
+
+                <section class="bfs-description-card" aria-live="polite" aria-atomic="true">
+
+                    <div class="description-card-heading">
+                        <span class="description-icon">✦</span>
+                        <div>
+                            <span class="description-kicker">LIVE EXPLANATION</span>
+                            <h3>What is happening?</h3>
+                        </div>
+                    </div>
+
+                    <h4 id="description-title">Your BFS journey starts here</h4>
+
+                    <p id="step-description">
+                        Generate a graph, click Start BFS, then press Next Step
+                        to watch BFS explore the graph level by level.
+                    </p>
+
+                    <div id="description-facts" class="description-facts"></div>
+
+                </section>
+
+                <div class="bfs-controls">
+                    <button type="button" id="start-btn" class="start-btn">▶ Start BFS</button>
+                    <button type="button" id="next-btn" class="next-btn">Next Step ▷</button>
+                    <button type="button" id="reset-btn" class="reset-btn">↻ Reset</button>
+                </div>
 
             </div>
 
-
-        </div>
-
+        </aside>
 
     </div>
-
 
 </section>
 
 {% endblock %}
 
-
-
 {% block extra_js %}
-
-<script
-    src="{% static 'visual_lab/bfs.js' %}"
-></script>
-
+<script src="{% static 'visual_lab/bfs.js' %}"></script>
 {% endblock %}

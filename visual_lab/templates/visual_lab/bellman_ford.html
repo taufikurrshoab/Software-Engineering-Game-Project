@@ -1,131 +1,666 @@
-
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bellman-Ford Visualizer | ThinkSphere</title>
-    <link rel="stylesheet" href="{% static 'visual_lab/bellman_ford.css' %}">
-</head>
-<body>
-<main class="page">
-    <header class="header">
-        <a class="back-link" href="{% url 'visual_lab:home' %}">
-            ← Back to Visual Lab
-        </a>
-        <p class="eyebrow">GRAPH ALGORITHM VISUALIZER</p>
-        <h1>Bellman–Ford <span>Algorithm</span></h1>
-        <p class="subtitle">
-            Explore edge relaxation, shortest distances, and
-            negative-weight cycle detection step by step.
+
+{% block title %}Bellman-Ford Visualizer | ThinkSphere{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'visual_lab/bellman_ford.css' %}">
+
+<main class="bellman-ford-page" id="bellmanFordPage">
+
+  <!-- ============ PAGE INTRODUCTION ============ -->
+  <header class="bf-intro">
+    <p class="bf-eyebrow">ALGORITHM VISUALIZATION</p>
+    <h1 class="bf-title">Bellman-Ford Visualizer</h1>
+    <p class="bf-subtitle">
+      Bellman-Ford finds the shortest paths from a single source, even when edges have negative weights,
+      and it can detect negative-weight cycles that make shortest paths undefined.
+    </p>
+  </header>
+
+  <!-- ============ SECTION 01: THEORY ============ -->
+  <section class="bf-section" id="bfTheory" aria-labelledby="bfTheoryHeading">
+    <div class="bf-section-head">
+      <span class="bf-section-number">01</span>
+      <div>
+        <p class="bf-section-label">THEORY</p>
+        <h2 class="bf-section-title" id="bfTheoryHeading">Understand the idea first</h2>
+      </div>
+    </div>
+
+    <div class="bf-card bf-theory-intro">
+      <p>
+        Bellman-Ford works by <strong>edge relaxation</strong>. It starts by assuming every node except the source
+        is unreachable (distance Infinity), then scans every edge in the graph again and again. Each time an edge
+        <code>u &rarr; v</code> offers a shorter route to <code>v</code> than the one currently known, the distance
+        of <code>v</code> is improved. A shortest path uses at most V - 1 edges, so V - 1 full passes are enough.
+        One extra scan tells us whether a negative cycle is still improving distances.
+      </p>
+    </div>
+
+    <div class="bf-concept-grid" role="tablist" aria-label="Core concepts">
+      <button type="button" class="bf-concept-card is-active" role="tab" id="conceptTab-weighted"
+              data-concept="weighted" aria-selected="true" aria-controls="conceptPanel-weighted">
+        <span class="bf-concept-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/>
+            <path d="M7.5 6h9M6.5 8l4 8M17.5 8l-4 8"/>
+          </svg>
+        </span>
+        <span class="bf-concept-name">Weighted Graph</span>
+        <span class="bf-concept-hint">Nodes, directed edges and weights</span>
+      </button>
+
+      <button type="button" class="bf-concept-card" role="tab" id="conceptTab-relaxation"
+              data-concept="relaxation" aria-selected="false" aria-controls="conceptPanel-relaxation">
+        <span class="bf-concept-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/>
+          </svg>
+        </span>
+        <span class="bf-concept-name">Edge Relaxation</span>
+        <span class="bf-concept-hint">Improving a distance through an edge</span>
+      </button>
+
+      <button type="button" class="bf-concept-card" role="tab" id="conceptTab-cycle"
+              data-concept="cycle" aria-selected="false" aria-controls="conceptPanel-cycle">
+        <span class="bf-concept-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v4h-4"/>
+          </svg>
+        </span>
+        <span class="bf-concept-name">Negative Cycle Detection</span>
+        <span class="bf-concept-hint">When distances never stop shrinking</span>
+      </button>
+    </div>
+
+    <div class="bf-card bf-concept-panel" id="conceptExplanation" aria-live="polite">
+
+      <!-- Concept 1: Weighted Graph -->
+      <div class="bf-concept-content" id="conceptPanel-weighted" data-concept-panel="weighted" role="tabpanel" aria-labelledby="conceptTab-weighted">
+        <div class="bf-concept-text">
+          <h3>Weighted Graph</h3>
+          <p>
+            A graph is a set of nodes (vertices) connected by edges. In a weighted graph every edge carries a number
+            called its weight, such as distance, cost or time. In Bellman-Ford the graph is <strong>directed</strong>:
+            an edge <code>A &rarr; B</code> can only be travelled from A to B.
+          </p>
+          <p>
+            Weights may be positive, zero or negative. A negative weight can model a refund, a discount or an energy gain,
+            which is why Dijkstra's algorithm cannot be used here but Bellman-Ford can.
+          </p>
+        </div>
+        <div class="bf-demo" aria-label="Weighted directed graph example">
+          <svg class="bf-demo-svg" viewBox="0 0 320 150" role="img" aria-label="Three nodes A, B and C with directed weighted edges">
+            <defs>
+              <marker id="demoArrowA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" class="bf-demo-arrow"/>
+              </marker>
+            </defs>
+            <line x1="62" y1="75" x2="148" y2="75" class="bf-demo-edge" marker-end="url(#demoArrowA)"/>
+            <line x1="188" y1="75" x2="258" y2="75" class="bf-demo-edge bf-demo-edge-neg" marker-end="url(#demoArrowA)"/>
+            <text x="105" y="65" class="bf-demo-weight" text-anchor="middle">4</text>
+            <text x="223" y="65" class="bf-demo-weight bf-demo-weight-neg" text-anchor="middle">-2</text>
+            <circle cx="40" cy="75" r="22" class="bf-demo-node bf-demo-node-source"/><text x="40" y="80" text-anchor="middle" class="bf-demo-label">A</text>
+            <circle cx="168" cy="75" r="22" class="bf-demo-node"/><text x="168" y="80" text-anchor="middle" class="bf-demo-label">B</text>
+            <circle cx="280" cy="75" r="22" class="bf-demo-node"/><text x="280" y="80" text-anchor="middle" class="bf-demo-label">C</text>
+          </svg>
+          <p class="bf-demo-caption">A &rarr; B costs 4. B &rarr; C costs -2, so the route A &rarr; B &rarr; C costs 2.</p>
+        </div>
+      </div>
+
+      <!-- Concept 2: Edge Relaxation -->
+      <div class="bf-concept-content" id="conceptPanel-relaxation" data-concept-panel="relaxation" role="tabpanel" aria-labelledby="conceptTab-relaxation" hidden>
+        <div class="bf-concept-text">
+          <h3>Edge Relaxation</h3>
+          <p>
+            Relaxing an edge <code>(u, v, w)</code> asks one question: <em>is going through u a shorter way to reach v?</em>
+            If <code>dist[u] + w &lt; dist[v]</code>, then <code>dist[v]</code> is replaced by <code>dist[u] + w</code>
+            and <code>prev[v]</code> is set to <code>u</code>.
+          </p>
+          <p>
+            If <code>dist[u]</code> is still Infinity, u has not been reached yet, so the edge is skipped.
+          </p>
+        </div>
+        <div class="bf-demo" id="relaxDemo">
+          <div class="bf-demo-controls">
+            <label class="bf-demo-field">dist[u]
+              <input type="number" id="relaxDistU" value="3" step="1" aria-label="Distance of u">
+            </label>
+            <label class="bf-demo-field">weight w
+              <input type="number" id="relaxWeight" value="4" step="1" aria-label="Edge weight">
+            </label>
+            <label class="bf-demo-field">dist[v]
+              <input type="number" id="relaxDistV" value="10" step="1" aria-label="Current distance of v">
+            </label>
+          </div>
+          <div class="bf-demo-equation" id="relaxEquation" aria-live="polite">
+            <span class="bf-demo-line">3 + 4 = 7</span>
+            <span class="bf-demo-line">7 &lt; 10 is true</span>
+          </div>
+          <p class="bf-demo-result" id="relaxResult">Relaxation succeeds: dist[v] becomes 7 and prev[v] becomes u.</p>
+          <div class="bf-demo-actions">
+            <button type="button" class="bf-btn bf-btn-ghost bf-btn-small" id="relaxDemoRun">Apply relaxation</button>
+            <button type="button" class="bf-btn bf-btn-ghost bf-btn-small" id="relaxDemoReset">Reset example</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Concept 3: Negative Cycle Detection -->
+      <div class="bf-concept-content" id="conceptPanel-cycle" data-concept-panel="cycle" role="tabpanel" aria-labelledby="conceptTab-cycle" hidden>
+        <div class="bf-concept-text">
+          <h3>Negative Cycle Detection</h3>
+          <p>
+            A negative cycle is a loop of edges whose weights add up to less than zero. Each trip around the loop makes
+            the total cost smaller, so there is no true shortest path to any node it can reach.
+          </p>
+          <p>
+            After V - 1 passes, all shortest distances should be final. If one more scan can still relax an edge,
+            a reachable negative cycle exists. Cycles that cannot be reached from the source are ignored.
+          </p>
+          <p>
+            In an undirected graph, a single negative edge already forms a negative cycle, because it can be
+            walked back and forth in both directions.
+          </p>
+        </div>
+        <div class="bf-demo" id="cycleDemo">
+          <svg class="bf-demo-svg" viewBox="0 0 320 170" role="img" aria-label="A triangle of nodes A, B and C forming a negative cycle">
+            <defs>
+              <marker id="demoArrowB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" class="bf-demo-arrow"/>
+              </marker>
+            </defs>
+            <line x1="62" y1="52" x2="248" y2="52" class="bf-demo-edge" marker-end="url(#demoArrowB)"/>
+            <line x1="256" y1="68" x2="188" y2="132" class="bf-demo-edge" marker-end="url(#demoArrowB)"/>
+            <line x1="152" y1="132" x2="86" y2="68" class="bf-demo-edge bf-demo-edge-neg" marker-end="url(#demoArrowB)"/>
+            <text x="155" y="42" class="bf-demo-weight" text-anchor="middle">2</text>
+            <text x="238" y="108" class="bf-demo-weight" text-anchor="middle">1</text>
+            <text x="100" y="108" class="bf-demo-weight bf-demo-weight-neg" text-anchor="middle">-5</text>
+            <circle cx="40" cy="52" r="22" class="bf-demo-node bf-demo-node-source"/><text x="40" y="57" text-anchor="middle" class="bf-demo-label">A</text>
+            <circle cx="270" cy="52" r="22" class="bf-demo-node"/><text x="270" y="57" text-anchor="middle" class="bf-demo-label">B</text>
+            <circle cx="170" cy="140" r="22" class="bf-demo-node"/><text x="170" y="145" text-anchor="middle" class="bf-demo-label">C</text>
+          </svg>
+          <p class="bf-demo-caption">
+            The loop A &rarr; B &rarr; C &rarr; A costs 2 + 1 - 5 = -2. Every lap lowers all distances on it by 2.
+          </p>
+          <div class="bf-demo-actions">
+            <button type="button" class="bf-btn bf-btn-ghost bf-btn-small" id="cycleDemoRun">Run one more lap</button>
+            <button type="button" class="bf-btn bf-btn-ghost bf-btn-small" id="cycleDemoReset">Reset example</button>
+          </div>
+          <p class="bf-demo-result" id="cycleResult" aria-live="polite">Total cost of the cycle so far: 0 laps, cost 0.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bf-complexity-grid">
+      <article class="bf-card bf-complexity-card">
+        <p class="bf-complexity-label">Time Complexity</p>
+        <p class="bf-complexity-value">O(V &times; E)</p>
+        <p class="bf-complexity-note">Up to V - 1 passes, and each pass scans all E edges.</p>
+      </article>
+      <article class="bf-card bf-complexity-card">
+        <p class="bf-complexity-label">Space Complexity</p>
+        <p class="bf-complexity-value">O(V + E)</p>
+        <p class="bf-complexity-note">Distance and predecessor arrays take O(V); the edge list takes O(E).</p>
+      </article>
+      <article class="bf-card bf-complexity-card bf-legend-card">
+        <p class="bf-complexity-label">What V and E mean</p>
+        <dl class="bf-definition-list">
+          <div><dt>V</dt><dd>Number of vertices (nodes) in the graph.</dd></div>
+          <div><dt>E</dt><dd>Number of directed edges in the graph.</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ SECTION 02: INTERACTIVE PSEUDOCODE ============ -->
+  <section class="bf-section" id="bfPseudocode" aria-labelledby="bfPseudoHeading">
+    <div class="bf-section-head">
+      <span class="bf-section-number">02</span>
+      <div>
+        <p class="bf-section-label">INTERACTIVE PSEUDOCODE</p>
+        <h2 class="bf-section-title" id="bfPseudoHeading">How Bellman-Ford Works</h2>
+      </div>
+    </div>
+
+    <div class="bf-pseudo-layout">
+      <div class="bf-card bf-code-panel">
+        <div class="bf-panel-bar">
+          <span class="bf-panel-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="bf-panel-title">bellman_ford.pseudo</span>
+        </div>
+        <ol class="bf-code" id="pseudocodeList" aria-label="Bellman-Ford pseudocode. Select a line to see its explanation.">
+          <li>
+            <button type="button" class="bf-code-line" data-line="1" data-indent="0"
+              data-title="Function signature"
+              data-text="The function receives the graph (a list of directed, weighted edges) and the source node. It returns the shortest distance to each node, the predecessor of each node, and whether a negative cycle was found.">
+              <span class="bf-line-no">1</span><span class="bf-line-code">BellmanFord(graph, source):</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="2" data-indent="1"
+              data-title="Initialize every vertex"
+              data-text="We loop over every vertex once. Nothing is known about the graph yet, so each vertex gets the same starting values in the next two lines.">
+              <span class="bf-line-no">2</span><span class="bf-line-code">for each vertex v:</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="3" data-indent="2"
+              data-title="Distance starts at Infinity"
+              data-text="Infinity means 'not reached yet'. Any real path found later will be shorter than Infinity, so the first successful relaxation always replaces it.">
+              <span class="bf-line-no">3</span><span class="bf-line-code">dist[v] = Infinity</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="4" data-indent="2"
+              data-title="Predecessor starts empty"
+              data-text="prev[v] remembers which node we came from on the best known path to v. It starts as null because no path exists yet. It is used at the end to rebuild the actual paths.">
+              <span class="bf-line-no">4</span><span class="bf-line-code">prev[v] = null</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="5" data-indent="1"
+              data-title="Set the source distance"
+              data-text="The distance from the source to itself is 0. This is the only finite distance at the start, and every other distance will be derived from it.">
+              <span class="bf-line-no">5</span><span class="bf-line-code">dist[source] = 0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="6" data-indent="1"
+              data-title="At most V - 1 passes"
+              data-text="A shortest path without cycles visits each vertex at most once, so it has at most V - 1 edges. Pass k guarantees correct distances for every node whose shortest path uses k edges or fewer. After V - 1 passes, all shortest distances are final (if no negative cycle exists).">
+              <span class="bf-line-no">6</span><span class="bf-line-code">repeat V - 1 times:</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="7" data-indent="2"
+              data-title="Track whether anything changed"
+              data-text="At the start of each pass we assume nothing will change. If any edge improves a distance during the pass, this flag becomes true. It lets us stop early.">
+              <span class="bf-line-no">7</span><span class="bf-line-code">updated = false</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="8" data-indent="2"
+              data-title="Scan every edge"
+              data-text="Each pass visits all E edges in the order they were entered. Every edge is considered exactly once per pass, whether or not it was useful before.">
+              <span class="bf-line-no">8</span><span class="bf-line-code">for each edge (u, v, w):</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="9" data-indent="3"
+              data-title="The relaxation test"
+              data-text="Two conditions are checked. First, dist[u] must not be Infinity, otherwise u has not been reached and its distance cannot be used. Second, dist[u] + w must be smaller than dist[v], meaning that going through u improves the route to v. Edges whose source is unreachable are skipped.">
+              <span class="bf-line-no">9</span><span class="bf-line-code">if dist[u] != Infinity and dist[u] + w &lt; dist[v]:</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="10" data-indent="4"
+              data-title="Update the distance"
+              data-text="The better route is accepted: the new distance to v is dist[u] + w. This is the relaxation itself. With a negative w, the new distance can even be lower than dist[u].">
+              <span class="bf-line-no">10</span><span class="bf-line-code">dist[v] = dist[u] + w</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="11" data-indent="4"
+              data-title="Remember the predecessor"
+              data-text="We record that the best known way to reach v is through u. Following prev pointers backwards from any node later gives the shortest path from the source.">
+              <span class="bf-line-no">11</span><span class="bf-line-code">prev[v] = u</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="12" data-indent="4"
+              data-title="Mark that this pass changed something"
+              data-text="Because at least one distance improved, another pass might still find further improvements, so the algorithm must not stop yet.">
+              <span class="bf-line-no">12</span><span class="bf-line-code">updated = true</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="13" data-indent="2"
+              data-title="Early stopping check"
+              data-text="If a whole pass finished without a single update, the distances cannot change in any later pass either. Nothing new will be discovered by repeating the same scan.">
+              <span class="bf-line-no">13</span><span class="bf-line-code">if updated == false:</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="14" data-indent="3"
+              data-title="Stop early"
+              data-text="We leave the pass loop immediately. This saves work and often makes Bellman-Ford finish well before V - 1 passes on real inputs.">
+              <span class="bf-line-no">14</span><span class="bf-line-code">break</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="15" data-indent="1"
+              data-title="One extra scan"
+              data-text="After the passes are done, we scan all edges one more time. This scan does not update anything; it only checks whether an improvement is still possible.">
+              <span class="bf-line-no">15</span><span class="bf-line-code">for each edge (u, v, w):</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="16" data-indent="2"
+              data-title="Is an edge still relaxable?"
+              data-text="If an edge can still be relaxed after V - 1 passes, then distances keep improving, which is only possible when a negative cycle is reachable from the source. Edges with an unreachable source are ignored, so unreachable cycles are never reported.">
+              <span class="bf-line-no">16</span><span class="bf-line-code">if dist[u] != Infinity and dist[u] + w &lt; dist[v]:</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="17" data-indent="3"
+              data-title="Report the negative cycle"
+              data-text="A reachable negative cycle means that shortest paths are undefined for every node that can be reached from the cycle: you could always loop once more to get a smaller total cost.">
+              <span class="bf-line-no">17</span><span class="bf-line-code">report negative cycle</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="bf-code-line" data-line="18" data-indent="1"
+              data-title="Return the result"
+              data-text="If no negative cycle was found, dist holds the shortest distance to every node and prev lets us rebuild each path. Nodes that stayed at Infinity are unreachable from the source.">
+              <span class="bf-line-no">18</span><span class="bf-line-code">return distances and paths</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+
+      <aside class="bf-card bf-explain-panel" aria-live="polite">
+        <p class="bf-explain-label">Line explanation</p>
+        <h3 class="bf-explain-title" id="pseudoExplainTitle">Select a line of code</h3>
+        <p class="bf-explain-text" id="pseudoExplainText">
+          Click any numbered line on the left to highlight it and read what it does and why it is needed.
         </p>
-    </header>
+        <div class="bf-explain-meta">
+          <span class="bf-chip" id="pseudoLineChip">No line selected</span>
+        </div>
+      </aside>
+    </div>
+  </section>
 
-    <section class="panel">
-        <h2>Graph Configuration</h2>
+  <!-- ============ SECTION 03: GRAPH CONFIGURATION ============ -->
+  <section class="bf-section" id="bfConfig" aria-labelledby="bfConfigHeading">
+    <div class="bf-section-head">
+      <span class="bf-section-number">03</span>
+      <div>
+        <p class="bf-section-label">GRAPH CONFIGURATION</p>
+        <h2 class="bf-section-title" id="bfConfigHeading">Run Bellman-Ford yourself</h2>
+      </div>
+    </div>
 
-        <div class="field">
-            <label for="nodes-input">Nodes (space or comma separated)</label>
-            <input id="nodes-input" value="A B C D E">
+    <div class="bf-config-layout">
+      <form class="bf-card bf-config-form" id="graphConfigForm" novalidate autocomplete="off">
+        <div class="bf-field-row">
+          <div class="bf-field">
+            <label for="nodesInput">Nodes</label>
+            <input type="text" id="nodesInput" name="nodes" value="A B C D E F"
+                   placeholder="A B C D E F" spellcheck="false" aria-describedby="nodesHelp">
+            <p class="bf-field-help" id="nodesHelp">Separate node names with spaces or commas. Names are case-sensitive.</p>
+          </div>
+          <div class="bf-field">
+            <label for="startNodeInput">Starting Node</label>
+            <input type="text" id="startNodeInput" name="start" value="A"
+                   placeholder="A" spellcheck="false" aria-describedby="startHelp">
+            <p class="bf-field-help" id="startHelp">Must be one of the nodes listed.</p>
+          </div>
         </div>
 
-        <div class="field">
-            <label for="edges-input">Directed weighted edges</label>
-            <textarea id="edges-input" rows="6">A->B:6
-A->C:7
-B->C:8
-B->D:5
-B->E:-4
-C->D:-3
-C->E:9
-D->B:-2
-E->A:2
-E->D:7</textarea>
-            <small>Format: A-&gt;B:4 means a directed edge from A to B with weight 4. Negative weights are allowed.</small>
+        <div class="bf-field">
+          <label for="edgesInput">Weighted Edges</label>
+          <textarea id="edgesInput" name="edges" rows="9" spellcheck="false" aria-describedby="edgesHelp">A-B:4
+A-C:2
+B-C:1
+B-D:5
+C-D:8
+C-E:10
+D-E:2
+E-F:3</textarea>
+          <p class="bf-field-help" id="edgesHelp">One edge per line. Negative and zero weights are allowed.</p>
         </div>
 
-        <div class="field">
-            <label for="source-input">Source node</label>
-            <select id="source-input">
-                <option value="A" selected>A</option>
-            </select>
+        <div class="bf-toggle-row">
+          <label class="bf-switch" for="undirectedToggle">
+            <input type="checkbox" id="undirectedToggle" name="undirected" aria-describedby="undirectedHelp">
+            <span class="bf-switch-track" aria-hidden="true"><span class="bf-switch-thumb"></span></span>
+            <span class="bf-switch-text">Treat edges as undirected</span>
+          </label>
+          <p class="bf-field-help" id="undirectedHelp">
+            Off by default (directed graph). If turned on, every edge can be travelled in both directions, so
+            any negative edge forms a negative cycle: A-B:-2 can be walked A to B and back to A for a total of -4.
+          </p>
         </div>
 
-        <div class="button-row">
-            <button id="generate-btn" class="primary">Generate Graph</button>
-            <button id="start-btn" disabled>Start</button>
-            <button id="next-btn" disabled>Next Step →</button>
-            <button id="reset-btn" class="ghost">Reset</button>
+        <div class="bf-form-error" id="configError" role="alert" hidden>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>
+          </svg>
+          <div>
+            <p class="bf-form-error-title" id="configErrorTitle">Please fix the following</p>
+            <ul class="bf-form-error-list" id="configErrorList"></ul>
+          </div>
         </div>
 
-        <p id="error-message" class="error" role="alert"></p>
-        <p id="status" class="status">Generate a graph to begin.</p>
-    </section>
+        <div class="bf-form-actions">
+          <button type="submit" class="bf-btn bf-btn-primary" id="generateGraphBtn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="9" cy="18" r="2.5"/><path d="M8.3 7l7.4.6M7.4 8.3l1 7.4"/>
+            </svg>
+            Generate Graph
+          </button>
+          <button type="button" class="bf-btn bf-btn-ghost" id="loadExampleBtn">Load example</button>
+          <button type="button" class="bf-btn bf-btn-ghost" id="loadNegativeExampleBtn">Load negative-cycle example</button>
+        </div>
+      </form>
 
-    <section class="legend">
-        <span><i class="dot source-dot"></i> Source</span>
-        <span><i class="dot current-dot"></i> Current edge</span>
-        <span><i class="dot updated-dot"></i> Distance updated</span>
-        <span><i class="dot cycle-dot"></i> Negative cycle</span>
-    </section>
+      <aside class="bf-card bf-format-panel" aria-labelledby="edgeFormatHeading">
+        <h3 class="bf-format-title" id="edgeFormatHeading">Edge format</h3>
+        <p class="bf-format-pattern"><code>SOURCE-DESTINATION:WEIGHT</code></p>
+        <div class="bf-format-example">
+          <code>A-B:-2</code>
+          <svg class="bf-format-arrow" viewBox="0 0 120 40" aria-hidden="true">
+            <defs>
+              <marker id="formatArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" class="bf-demo-arrow"/>
+              </marker>
+            </defs>
+            <circle cx="16" cy="20" r="12" class="bf-demo-node bf-demo-node-source"/>
+            <circle cx="104" cy="20" r="12" class="bf-demo-node"/>
+            <line x1="30" y1="20" x2="88" y2="20" class="bf-demo-edge bf-demo-edge-neg" marker-end="url(#formatArrow)"/>
+          </svg>
+          <p>A directed edge from <strong>A</strong> to <strong>B</strong> with weight <strong>-2</strong>.</p>
+        </div>
+        <ul class="bf-format-rules">
+          <li>Direction goes from the first node to the second. B-A is a different edge from A-B.</li>
+          <li>Weights can be positive, zero, negative or decimal, for example <code>C-D:-1.5</code>.</li>
+          <li>Every node used in an edge must appear in the Nodes field.</li>
+          <li>Self-loops (A-A:3) are allowed. A negative self-loop is a negative cycle.</li>
+          <li>Blank lines are ignored. Lines starting with <code>#</code> are treated as comments.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
 
-    <section class="panel">
-        <div class="section-heading">
-            <div>
-                <h2>Directed Weighted Graph</h2>
-                <p>Arrows show edge direction; labels show weights.</p>
+  <!-- ============ SECTION 04: VISUALIZATION WORKSPACE ============ -->
+  <section class="bf-section" id="bfWorkspace" aria-labelledby="bfWorkspaceHeading">
+    <div class="bf-section-head">
+      <span class="bf-section-number">04</span>
+      <div>
+        <p class="bf-section-label">VISUALIZATION WORKSPACE</p>
+        <h2 class="bf-section-title" id="bfWorkspaceHeading">Watch the edges relax</h2>
+      </div>
+    </div>
+
+    <div class="bf-workspace">
+
+      <!-- LEFT COLUMN: state cards + graph -->
+      <div class="bf-workspace-left">
+
+        <div class="bf-state-grid">
+          <article class="bf-card bf-state-card bf-state-distance" id="distanceCard">
+            <header class="bf-state-head">
+              <span class="bf-state-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 6h16M4 12h10M4 18h6"/>
+                </svg>
+              </span>
+              <h3 class="bf-state-title">Distance</h3>
+            </header>
+            <div class="bf-distance-list" id="distanceList" aria-live="polite">
+              <p class="bf-state-empty">Generate a graph to see distances.</p>
             </div>
-            <span id="step-counter" class="badge">Pass 0 · Edge 0</span>
-        </div>
-        <div id="graph-container">
-            <svg id="graph-svg" role="img" aria-label="Directed weighted graph"></svg>
-        </div>
-    </section>
+          </article>
 
-    <section class="panel">
-        <h2>Current Step</h2>
-        <p id="step-description">Generate a graph, then press Start.</p>
-
-        <div class="metrics">
-            <div class="metric">
-                <span>Current edge</span>
-                <strong id="current-edge">—</strong>
+          <article class="bf-card bf-state-card bf-state-edge" id="currentEdgeCard">
+            <header class="bf-state-head">
+              <span class="bf-state-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 12h15M14 7l5 5-5 5"/>
+                </svg>
+              </span>
+              <h3 class="bf-state-title">Current Edge</h3>
+            </header>
+            <div class="bf-edge-readout" id="currentEdgeReadout" aria-live="polite">
+              <div class="bf-edge-row"><span class="bf-edge-key">Source</span><span class="bf-edge-val" id="currentEdgeSource">-</span></div>
+              <div class="bf-edge-row"><span class="bf-edge-key">Destination</span><span class="bf-edge-val" id="currentEdgeTarget">-</span></div>
+              <div class="bf-edge-row"><span class="bf-edge-key">Weight</span><span class="bf-edge-val" id="currentEdgeWeight">-</span></div>
+              <div class="bf-edge-row"><span class="bf-edge-key">Result</span><span class="bf-edge-val bf-edge-result" id="currentEdgeResult" data-state="idle">Waiting</span></div>
             </div>
-            <div class="metric">
-                <span>Candidate distance</span>
-                <strong id="candidate-distance">—</strong>
+          </article>
+
+          <article class="bf-card bf-state-card bf-state-pass" id="passCard">
+            <header class="bf-state-head">
+              <span class="bf-state-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 4v4h-4"/>
+                </svg>
+              </span>
+              <h3 class="bf-state-title">Pass</h3>
+            </header>
+            <div class="bf-pass-readout" aria-live="polite">
+              <p class="bf-pass-main"><span id="passCurrent">0</span><span class="bf-pass-sep"> / </span><span id="passMax">0</span></p>
+              <p class="bf-pass-note" id="passNote">Maximum passes: V - 1</p>
+              <p class="bf-pass-note" id="passEdgeCounter">Edge 0 of 0 in this pass</p>
+              <p class="bf-pass-note" id="passUpdateCounter">Updates this pass: 0</p>
             </div>
-            <div class="metric">
-                <span>Successful relaxations</span>
-                <strong id="relax-count">0</strong>
+          </article>
+        </div>
+
+        <div class="bf-card bf-graph-card">
+          <div class="bf-graph-head">
+            <h3 class="bf-graph-title">Graph</h3>
+            <span class="bf-chip" id="graphModeChip">Directed</span>
+          </div>
+
+          <div class="bf-graph-stage" id="graphStage">
+            <svg id="graphSvg" class="bf-graph-svg" viewBox="0 0 700 440" preserveAspectRatio="xMidYMid meet"
+                 role="img" aria-label="Directed weighted graph visualization">
+              <defs>
+                <marker id="arrowNormal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0 0L10 5L0 10z" class="bf-arrow bf-arrow-normal"/>
+                </marker>
+                <marker id="arrowCurrent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0 0L10 5L0 10z" class="bf-arrow bf-arrow-current"/>
+                </marker>
+                <marker id="arrowUpdated" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0 0L10 5L0 10z" class="bf-arrow bf-arrow-updated"/>
+                </marker>
+                <marker id="arrowPath" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0 0L10 5L0 10z" class="bf-arrow bf-arrow-path"/>
+                </marker>
+                <marker id="arrowCycle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0 0L10 5L0 10z" class="bf-arrow bf-arrow-cycle"/>
+                </marker>
+              </defs>
+              <g id="graphEdgesLayer"></g>
+              <g id="graphEdgeLabelsLayer"></g>
+              <g id="graphNodesLayer"></g>
+            </svg>
+            <p class="bf-graph-placeholder" id="graphPlaceholder">
+              Enter nodes and edges above, then select Generate Graph.
+            </p>
+          </div>
+
+          <ul class="bf-legend" id="graphLegend" aria-label="Graph legend">
+            <li><span class="bf-legend-swatch bf-swatch-source"></span>Source</li>
+            <li><span class="bf-legend-swatch bf-swatch-current"></span>Current Edge</li>
+            <li><span class="bf-legend-swatch bf-swatch-updated"></span>Updated Node</li>
+            <li><span class="bf-legend-swatch bf-swatch-normal"></span>Normal Node</li>
+            <li><span class="bf-legend-swatch bf-swatch-path"></span>Final Shortest Path</li>
+            <li><span class="bf-legend-swatch bf-swatch-cycle"></span>Negative Cycle</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: description, progress, controls -->
+      <aside class="bf-workspace-right">
+        <div class="bf-card bf-description-card" id="descriptionCard">
+          <h3 class="bf-description-heading" id="descriptionHeading">DESCRIPTION</h3>
+          <div class="bf-description-body" id="descriptionBody" aria-live="polite">
+            <p class="bf-description-lead" id="descriptionLead">Ready to start.</p>
+            <p class="bf-description-text" id="descriptionText">
+              Generate a graph, then select Start Bellman-Ford. Each step will explain which edge is being checked
+              and whether its distance can be improved.
+            </p>
+            <ul class="bf-description-facts" id="descriptionFacts"></ul>
+          </div>
+        </div>
+
+        <div class="bf-card bf-progress-card">
+          <div class="bf-progress-head">
+            <span class="bf-progress-label">Progress</span>
+            <span class="bf-progress-value" id="progressText">0%</span>
+          </div>
+          <div class="bf-progress-track" role="progressbar" aria-label="Algorithm progress"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+            <div class="bf-progress-fill" id="progressFill"></div>
+          </div>
+          <p class="bf-progress-sub" id="progressSub">Step 0 of 0 planned operations</p>
+        </div>
+
+        <div class="bf-card bf-controls-card">
+          <div class="bf-controls">
+            <button type="button" class="bf-btn bf-btn-primary" id="startBtn" disabled>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>
+              Start Bellman-Ford
+            </button>
+            <button type="button" class="bf-btn bf-btn-secondary" id="nextBtn" disabled>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l8 7-8 7M16 5v14"/></svg>
+              Next Step
+            </button>
+            <button type="button" class="bf-btn bf-btn-ghost" id="resetBtn" disabled>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4h4"/></svg>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Final result panel, revealed when the algorithm completes -->
+        <div class="bf-card bf-result-card" id="resultCard" hidden>
+          <div class="bf-result-banner" id="resultBanner" data-state="success">
+            <p class="bf-result-banner-title" id="resultBannerTitle">Algorithm complete</p>
+            <p class="bf-result-banner-text" id="resultBannerText"></p>
+          </div>
+
+          <div class="bf-result-block">
+            <h4 class="bf-result-heading">Final distances</h4>
+            <div class="bf-table-wrap">
+              <table class="bf-result-table" id="resultTable">
+                <thead>
+                  <tr><th scope="col">Node</th><th scope="col">Distance</th><th scope="col">Shortest path</th><th scope="col">Status</th></tr>
+                </thead>
+                <tbody id="resultTableBody"></tbody>
+              </table>
             </div>
-        </div>
-    </section>
+          </div>
 
-    <section class="panel">
-        <h2>Distance Table</h2>
-        <div id="distance-list" class="distance-list">
-            Generate a graph to see distances.
+          <div class="bf-result-block" id="cycleReport" hidden>
+            <h4 class="bf-result-heading">Negative cycle</h4>
+            <p class="bf-result-cycle-path" id="cycleReportPath"></p>
+            <p class="bf-result-note" id="cycleReportNote">
+              Shortest paths are undefined for every node that can be reached from this cycle, because each lap
+              around it lowers the total cost.
+            </p>
+          </div>
         </div>
-    </section>
+      </aside>
+    </div>
+  </section>
 
-    <section class="panel">
-        <h2>Shortest Path</h2>
-        <div class="field">
-            <label for="target-input">Destination node</label>
-            <select id="target-input">
-                <option value="E" selected>E</option>
-            </select>
-        </div>
-        <button id="path-btn" disabled>Show Shortest Path</button>
-        <p id="path-result" class="status">
-            Complete the algorithm to find a path.
-        </p>
-    </section>
-
-    <footer>ThinkSphere · Visual Lab</footer>
 </main>
+
 <script src="{% static 'visual_lab/bellman_ford.js' %}"></script>
-</body>
-</html>
+{% endblock %}

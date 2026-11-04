@@ -1,456 +1,118 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Visual Lab | Student Platform{% endblock %}
+{% block title %}Visual Lab | ThinkSphere{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'visual_lab/home.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="visual-lab-page">
+{% comment %}
+  Confirmed URL names: visual_lab:bfs, dfs, dijkstra, bellman_ford, minimax, puzzle8.
+  visual_lab:astar is a guess. If that name does not exist, the A* node falls back to
+  visual_lab:puzzle8 (the 8-puzzle visualizer, which runs A*). Replace with the real A* route if you have one.
+{% endcomment %}
+{% url 'visual_lab:astar' as u_astar %}
+{% if not u_astar %}{% url 'visual_lab:puzzle8' as u_astar %}{% endif %}
 
-    <!-- Hero -->
-    <section class="visual-lab-hero">
-        <div class="visual-lab-hero__glow" aria-hidden="true"></div>
-        <div class="visual-lab-container visual-lab-hero__inner">
+<div class="vlt" id="vlt-root">
 
-            <div class="visual-lab-hero-content" data-reveal>
-                <span class="visual-lab-eyebrow">Algorithm Visualization Lab</span>
-                <h1 class="visual-lab-hero__title">
-                    Understand Algorithms<br>
-                    <span class="visual-lab-gradient-text">Visually.</span>
-                </h1>
-                <p class="visual-lab-hero__text">
-                    Explore algorithms step by step, experiment with inputs,
-                    and see how algorithms actually make decisions.
-                </p>
-                <div class="visual-lab-hero__actions">
-                    <a href="{% url 'visual_lab:bfs' %}" class="visual-lab-btn visual-lab-btn--primary">Try Breadth-First Search</a>
-                    <a href="#library" class="visual-lab-btn visual-lab-btn--ghost">Browse algorithms</a>
-                </div>
-                <ul class="visual-lab-hero__flow" aria-label="Learning flow">
-                    <li>Learn</li>
-                    <li>Visualize</li>
-                    <li>Experiment</li>
-                    <li>Understand</li>
-                </ul>
-            </div>
+    <!-- Tree stage: tree builds on load, a selected node travels down into the bay -->
+    <section class="vlt-stage" id="vlt-stage" aria-labelledby="vlt-title">
+        <header class="vlt-head" id="vlt-head">
+            {% if user.is_authenticated %}<p class="vlt-hello">Welcome back, {{ user.username }}</p>{% endif %}
+            <h1 class="vlt-title" id="vlt-title">Visual Lab</h1>
+            <p class="vlt-hint">Select any node to explore its algorithm.</p>
+        </header>
 
-            <div class="visual-lab-visual" data-reveal aria-hidden="true">
-                <div class="visual-lab-demo" data-bfs-demo data-start="A">
-                    <div class="visual-lab-demo__bar">
-                        <i></i><i></i><i></i>
-                        <span>bfs.run()</span>
-                        <small data-demo-step>Step 1</small>
-                    </div>
+        <div class="vlt-treewrap">
+            <svg class="vlt-tree" id="vlt-tree" role="group" aria-label="Algorithm tree. Each node is an algorithm you can select."></svg>
+        </div>
 
-                    <svg class="visual-lab-graph" viewBox="0 0 360 250" focusable="false">
-                        <line class="visual-lab-graph__edge" data-edge="A-B" x1="180" y1="40" x2="100" y2="120" />
-                        <line class="visual-lab-graph__edge" data-edge="A-C" x1="180" y1="40" x2="260" y2="120" />
-                        <line class="visual-lab-graph__edge" data-edge="B-D" x1="100" y1="120" x2="55" y2="205" />
-                        <line class="visual-lab-graph__edge" data-edge="B-E" x1="100" y1="120" x2="145" y2="205" />
-                        <line class="visual-lab-graph__edge" data-edge="C-F" x1="260" y1="120" x2="260" y2="205" />
+        <svg class="vlt-trail" aria-hidden="true"><path id="vlt-trailp" pathLength="1" d=""></path></svg>
 
-                        <g class="visual-lab-graph__node" data-node="A"><circle cx="180" cy="40" r="20" /><text x="180" y="45">A</text></g>
-                        <g class="visual-lab-graph__node" data-node="B"><circle cx="100" cy="120" r="20" /><text x="100" y="125">B</text></g>
-                        <g class="visual-lab-graph__node" data-node="C"><circle cx="260" cy="120" r="20" /><text x="260" y="125">C</text></g>
-                        <g class="visual-lab-graph__node" data-node="D"><circle cx="55" cy="205" r="20" /><text x="55" y="210">D</text></g>
-                        <g class="visual-lab-graph__node" data-node="E"><circle cx="145" cy="205" r="20" /><text x="145" y="210">E</text></g>
-                        <g class="visual-lab-graph__node" data-node="F"><circle cx="260" cy="205" r="20" /><text x="260" y="210">F</text></g>
-                    </svg>
-
-                    <div class="visual-lab-demo__state">
-                        <div><small>Queue</small><code data-demo-queue>[ A ]</code></div>
-                        <div><small>Visited</small><code data-demo-visited>none</code></div>
-                    </div>
-                    <div class="visual-lab-demo__progress"><span></span></div>
-                </div>
-            </div>
-
+        <div class="vlt-bay" id="vlt-bay">
+            <div class="vlt-socket" id="vlt-socket"><span>Your selection lands here</span></div>
+            <div class="vlt-detail" id="vlt-detail" aria-live="polite"></div>
         </div>
     </section>
 
-    <!-- Stats -->
-    <section class="visual-lab-stats-wrap" aria-label="Lab overview">
-        <div class="visual-lab-container">
-            <ul class="visual-lab-stats" data-reveal>
-                <li class="visual-lab-stat">
-                    <strong data-stat="total">05</strong>
-                    <span>Algorithms</span>
-                </li>
-                <li class="visual-lab-stat">
-                    <strong data-stat="available">01</strong>
-                    <span>Available</span>
-                </li>
-                <li class="visual-lab-stat">
-                    <strong data-stat="soon">04</strong>
-                    <span>Coming soon</span>
-                </li>
-                <li class="visual-lab-stat visual-lab-stat--text">
-                    <strong>More</strong>
-                    <span>Added regularly</span>
-                </li>
-            </ul>
-        </div>
-    </section>
+    <!-- Tree data (read by home.js). Descriptions are the list text. -->
+    <ul id="vlt-data" hidden>
+        <li data-id="bfs" data-branch="traversal" data-short="BFS" data-name="Breadth-First Search" data-url="{% url 'visual_lab:bfs' %}" data-facts="Uses a queue|Fewest steps when costs are equal">Visit nodes level by level using a queue and a visited set.</li>
+        <li data-id="dfs" data-branch="traversal" data-short="DFS" data-name="Depth-First Search" data-url="{% url 'visual_lab:dfs' %}" data-facts="Uses a stack|Explores one branch at a time">Go as deep as possible along each branch before backtracking.</li>
+        <li data-id="dijkstra" data-branch="path" data-short="Dijkstra" data-name="Dijkstra’s Algorithm" data-url="{% url 'visual_lab:dijkstra' %}" data-facts="Uses a priority queue|Needs non-negative weights">Find the shortest path in a weighted graph, one settled node at a time.</li>
+        <li data-id="bellman_ford" data-branch="path" data-short="Bellman-Ford" data-name="Bellman-Ford" data-url="{% url 'visual_lab:bellman_ford' %}" data-facts="Relaxes every edge|Allows negative weights">Handle negative edge weights and detect negative-weight cycles.</li>
+        <li data-id="astar" data-branch="path" data-short="A*" data-name="A* Search" data-url="{{ u_astar }}" data-facts="Uses a priority queue|Guided by a heuristic">Reach the goal faster by adding a heuristic estimate to the cost so far.</li>
+        <li data-id="minimax" data-branch="play" data-short="Minimax" data-name="Minimax" data-url="{% url 'visual_lab:minimax' %}" data-facts="Searches a game tree|Two competing players">See how an AI picks the best move by looking ahead through a game tree.</li>
+    </ul>
 
-    <!-- Featured -->
-    <section class="visual-lab-section">
-        <div class="visual-lab-container">
-            <article class="visual-lab-featured" data-reveal>
-                <div class="visual-lab-featured__body">
-                    <div class="visual-lab-featured__meta">
-                        <span class="visual-lab-card__mark">B</span>
-                        <span class="visual-lab-tag">Graph</span>
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                    </div>
-                    <h2 class="visual-lab-featured__title">Breadth-First Search</h2>
-                    <p class="visual-lab-featured__text">
-                        Explore graph traversal step by step using queues and visited nodes.
-                    </p>
-                    <div class="visual-lab-featured__state" aria-hidden="true">
-                        <div><small>Queue</small><code data-demo-queue>[ A ]</code></div>
-                        <div><small>Visited</small><code data-demo-visited>none</code></div>
-                    </div>
-                    <a href="{% url 'visual_lab:bfs' %}" class="visual-lab-btn visual-lab-btn--primary visual-lab-featured__link">
-                        Explore <span class="visual-lab-arrow" aria-hidden="true">→</span>
-                    </a>
-                </div>
-
-                <div class="visual-lab-featured__preview" data-bfs-demo data-start="A" aria-hidden="true">
-                    <svg class="visual-lab-graph" viewBox="0 0 360 250" focusable="false">
-                        <line class="visual-lab-graph__edge" data-edge="A-B" x1="180" y1="40" x2="100" y2="120" />
-                        <line class="visual-lab-graph__edge" data-edge="A-C" x1="180" y1="40" x2="260" y2="120" />
-                        <line class="visual-lab-graph__edge" data-edge="B-D" x1="100" y1="120" x2="55" y2="205" />
-                        <line class="visual-lab-graph__edge" data-edge="B-E" x1="100" y1="120" x2="145" y2="205" />
-                        <line class="visual-lab-graph__edge" data-edge="C-F" x1="260" y1="120" x2="260" y2="205" />
-
-                        <g class="visual-lab-graph__node" data-node="A"><circle cx="180" cy="40" r="20" /><text x="180" y="45">A</text></g>
-                        <g class="visual-lab-graph__node" data-node="B"><circle cx="100" cy="120" r="20" /><text x="100" y="125">B</text></g>
-                        <g class="visual-lab-graph__node" data-node="C"><circle cx="260" cy="120" r="20" /><text x="260" y="125">C</text></g>
-                        <g class="visual-lab-graph__node" data-node="D"><circle cx="55" cy="205" r="20" /><text x="55" y="210">D</text></g>
-                        <g class="visual-lab-graph__node" data-node="E"><circle cx="145" cy="205" r="20" /><text x="145" y="210">E</text></g>
-                        <g class="visual-lab-graph__node" data-node="F"><circle cx="260" cy="205" r="20" /><text x="260" y="210">F</text></g>
-                    </svg>
-                </div>
-            </article>
-        </div>
-    </section>
-
-    <!-- Algorithm Library -->
-    <section class="visual-lab-section visual-lab-section--alt" id="library">
-        <div class="visual-lab-container">
-
-            <header class="visual-lab-section__head" data-reveal>
-                <span class="visual-lab-eyebrow">Algorithm Library</span>
-                <h2 class="visual-lab-section__title">Pick an algorithm to explore</h2>
-                <p class="visual-lab-section__text">
-                    One algorithm is playable today. The rest are on the way, so you can see what the lab will cover.
-                </p>
+    <!-- Guided demo: concept, pseudocode, starting data, then play -->
+    <section class="vlt-section" id="vlt-demo" aria-labelledby="vlt-demo-h">
+        <div class="vlt-wrap">
+            <header class="vlt-dhead">
+                <h2 id="vlt-demo-h">Watch an algorithm make its decisions</h2>
+                <p>Follow the same four steps for every algorithm, from the idea to a live run.</p>
             </header>
 
-            <!-- Filters -->
-            <div class="visual-lab-toolbar" data-reveal>
-                <div class="visual-lab-filter" role="group" aria-label="Filter by category">
-                    <button type="button" class="visual-lab-filter__btn is-active" data-filter="all" aria-pressed="true">All</button>
-                    <button type="button" class="visual-lab-filter__btn" data-filter="graph" aria-pressed="false">Graph</button>
-                    <button type="button" class="visual-lab-filter__btn" data-filter="pathfinding" aria-pressed="false">Pathfinding</button>
-                    <button type="button" class="visual-lab-filter__btn" data-filter="game" aria-pressed="false">Game AI</button>
-                    <button type="button" class="visual-lab-filter__btn" data-filter="puzzle" aria-pressed="false">Puzzle</button>
+            <div class="vlt-learn" data-learn>
+                <ol class="vlt-flow" data-flow aria-label="Learning steps">
+                    <li style="--i:0" class="is-active"><button type="button" data-stage="0" aria-pressed="true"><b>Understand the concept</b><span>Get the idea in one sentence.</span></button></li>
+                    <li style="--i:1"><button type="button" data-stage="1" aria-pressed="false"><b>Read the pseudocode</b><span>See the steps in plain code.</span></button></li>
+                    <li style="--i:2"><button type="button" data-stage="2" aria-pressed="false"><b>Set the starting data</b><span>Look at the input before it runs.</span></button></li>
+                    <li style="--i:3"><button type="button" data-stage="3" aria-pressed="false"><b>Play the algorithm</b><span>Step through every decision.</span></button></li>
+                    <li style="--i:4"><button type="button" data-stage="4" aria-pressed="false"><b>Play it as a game</b><span>Use the algorithm in a real game.</span></button></li>
+                </ol>
+
+                <div class="vlt-box" data-box data-stage="0"
+                     data-url-bfs="{% url 'visual_lab:bfs' %}" data-url-dfs="{% url 'visual_lab:dfs' %}"
+                     data-url-dijkstra="{% url 'visual_lab:dijkstra' %}" data-url-minimax="{% url 'visual_lab:minimax' %}">
+                    <div class="vlt-bar">
+                        <div class="vlt-seg" data-in="0 1 2 3" role="group" aria-label="Choose the algorithm to watch">
+                            <button type="button" class="is-active" data-pick="bfs" aria-pressed="true">Breadth-first</button>
+                            <button type="button" data-pick="dfs" aria-pressed="false">Depth-first</button>
+                            <button type="button" data-pick="dijkstra" aria-pressed="false">Dijkstra</button>
+                            <button type="button" data-pick="minimax" aria-pressed="false">Minimax</button>
+                        </div>
+                        <span class="vlt-stepno" data-stepno data-in="3">Step 1</span>
+                    </div>
+
+                    <div class="vlt-concept" data-in="0" data-concept></div>
+                    <pre class="vlt-code" data-in="1 3" data-code aria-label="Pseudocode"></pre>
+
+                    <div data-in="2 3">
+                        <svg class="vlt-g" data-g viewBox="0 0 600 320" role="img" aria-label="Algorithm demo diagram"></svg>
+                        <ul class="vlt-legend" aria-label="Key">
+                            <li><i class="vlt-dot vlt-dot--cur"></i>Current</li>
+                            <li><i class="vlt-dot vlt-dot--done"></i>Visited or decided</li>
+                            <li><i class="vlt-dot vlt-dot--wait"></i>Waiting its turn</li>
+                        </ul>
+                    </div>
+
+                    <div class="vlt-data2" data-in="2 3">
+                        <div><span data-lab1></span><ul class="vlt-slots" data-l1></ul></div>
+                        <div><span data-lab2></span><ul class="vlt-slots" data-l2></ul></div>
+                    </div>
+
+                    <p class="vlt-narr" data-in="2 3" data-narr aria-live="polite"></p>
+
+                    <div class="vlt-ctrls" data-in="3">
+                        <button type="button" class="vlt-btn vlt-btn--ghost vlt-btn--sm" data-prev>Previous</button>
+                        <button type="button" class="vlt-btn vlt-btn--primary vlt-btn--sm" data-play>Pause</button>
+                        <button type="button" class="vlt-btn vlt-btn--ghost vlt-btn--sm" data-next>Next</button>
+                        <button type="button" class="vlt-btn vlt-btn--ghost vlt-btn--sm" data-restart>Restart</button>
+                    </div>
+                    <div class="vlt-games" data-in="4" hidden>
+                        <h3>Play it as a game</h3>
+                        <p>The same ideas drive real games on ThinkSphere. Play one and watch the algorithm decide.</p>
+                        <div class="vlt-gcards">
+                            <a class="vlt-gcard" href="/games/tic-tac-toe/" data-for="minimax"><b>Tic-Tac-Toe</b><span>Minimax looks ahead through every future board to choose the computer’s move.</span><i>Play now</i></a>
+                            <a class="vlt-gcard" href="/games/8-puzzle/" data-for="astar"><b>8 Puzzle</b><span>A* ranks boards by the moves made so far plus the estimated moves left.</span><i>Play now</i></a>
+                        </div>
+                    </div>
+                    <a class="vlt-open" data-open data-in="3" href="{% url 'visual_lab:bfs' %}">Open the full visualizer</a>
                 </div>
-
-                <div class="visual-lab-search">
-                    <label for="visual-lab-search-input" class="visual-lab-sr-only">Search algorithms</label>
-                    <span class="visual-lab-search__icon" aria-hidden="true">⌕</span>
-                    <input type="search" id="visual-lab-search-input" class="visual-lab-search__input"
-                           placeholder="Search algorithms..." autocomplete="off" data-search-input>
-                </div>
-            </div>
-
-            <p class="visual-lab-count" aria-live="polite">
-                Showing <span data-result-count>5</span> algorithms
-            </p>
-
-            <div class="visual-lab-grid" data-grid>
-
-                <!-- BFS -->
-                <article class="visual-lab-card is-available" data-card data-category="graph" data-status="available"
-                         data-search="bfs breadth-first search graph traversal queue visited">
-                    <div class="visual-lab-card__preview" aria-hidden="true">
-                        <svg class="visual-lab-pv" viewBox="0 0 200 110" focusable="false">
-                            <line class="visual-lab-pv-edge is-step-2" x1="100" y1="20" x2="55" y2="60" />
-                            <line class="visual-lab-pv-edge is-step-3" x1="100" y1="20" x2="145" y2="60" />
-                            <line class="visual-lab-pv-edge is-step-4" x1="55" y1="60" x2="30" y2="95" />
-                            <line class="visual-lab-pv-edge is-step-5" x1="55" y1="60" x2="80" y2="95" />
-                            <line class="visual-lab-pv-edge is-step-6" x1="145" y1="60" x2="160" y2="95" />
-                            <circle class="visual-lab-pv-node is-step-1" cx="100" cy="20" r="8" />
-                            <circle class="visual-lab-pv-node is-step-2" cx="55" cy="60" r="8" />
-                            <circle class="visual-lab-pv-node is-step-3" cx="145" cy="60" r="8" />
-                            <circle class="visual-lab-pv-node is-step-4" cx="30" cy="95" r="8" />
-                            <circle class="visual-lab-pv-node is-step-5" cx="80" cy="95" r="8" />
-                            <circle class="visual-lab-pv-node is-step-6" cx="160" cy="95" r="8" />
-                        </svg>
-                    </div>
-                    <div class="visual-lab-card__body">
-                        <div class="visual-lab-card__meta">
-                            <span class="visual-lab-card__mark">B</span>
-                            <span class="visual-lab-tag">Graph</span>
-                        </div>
-                        <h3>Breadth-First Search</h3>
-                        <p>Visit nodes level by level using a queue and a visited set.</p>
-                    </div>
-                    <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                        <a href="{% url 'visual_lab:bfs' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
-                    </div>
-                </article>
-
-                <!-- DFS -->
-                <article class="visual-lab-card" data-card data-category="graph" data-status="soon"
-                         data-search="dfs depth-first search graph traversal stack recursion">
-                    <div class="visual-lab-card__preview" aria-hidden="true">
-                        <svg class="visual-lab-pv" viewBox="0 0 200 110" focusable="false">
-                            <line class="visual-lab-pv-edge is-step-2" x1="100" y1="20" x2="55" y2="60" />
-                            <line class="visual-lab-pv-edge is-step-3" x1="55" y1="60" x2="30" y2="95" />
-                            <line class="visual-lab-pv-edge is-step-4" x1="55" y1="60" x2="80" y2="95" />
-                            <line class="visual-lab-pv-edge is-step-5" x1="100" y1="20" x2="145" y2="60" />
-                            <line class="visual-lab-pv-edge is-step-6" x1="145" y1="60" x2="160" y2="95" />
-                            <circle class="visual-lab-pv-node is-step-1" cx="100" cy="20" r="8" />
-                            <circle class="visual-lab-pv-node is-step-2" cx="55" cy="60" r="8" />
-                            <circle class="visual-lab-pv-node is-step-3" cx="30" cy="95" r="8" />
-                            <circle class="visual-lab-pv-node is-step-4" cx="80" cy="95" r="8" />
-                            <circle class="visual-lab-pv-node is-step-5" cx="145" cy="60" r="8" />
-                            <circle class="visual-lab-pv-node is-step-6" cx="160" cy="95" r="8" />
-                        </svg>
-                    </div>
-                    <div class="visual-lab-card__body">
-                        <div class="visual-lab-card__meta">
-                            <span class="visual-lab-card__mark">D</span>
-                            <span class="visual-lab-tag">Graph</span>
-                        </div>
-                        <h3>Depth-First Search</h3>
-                        <p>Go as deep as possible along each branch before backtracking.</p>
-                    </div>
-                    <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                        <a href="{% url 'visual_lab:dfs' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
-                    </div>
-                </article>
-
-                <!-- Minimax -->
-                <article class="visual-lab-card" data-card data-category="game" data-status="soon"
-                         data-search="minimax game ai adversarial search tree tic tac toe">
-                    <div class="visual-lab-card__preview" aria-hidden="true">
-                        <svg class="visual-lab-pv" viewBox="0 0 200 110" focusable="false">
-                            <line class="visual-lab-pv-edge" x1="100" y1="18" x2="145" y2="56" />
-                            <line class="visual-lab-pv-edge" x1="55" y1="56" x2="120" y2="96" />
-                            <line class="visual-lab-pv-edge" x1="145" y1="56" x2="170" y2="96" />
-                            <line class="visual-lab-pv-edge" x1="145" y1="56" x2="120" y2="96" />
-                            <line class="visual-lab-pv-edge is-step-1" x1="55" y1="56" x2="30" y2="96" />
-                            <line class="visual-lab-pv-edge" x1="55" y1="56" x2="80" y2="96" />
-                            <line class="visual-lab-pv-edge is-step-2" x1="100" y1="18" x2="55" y2="56" />
-                            <rect class="visual-lab-pv-leaf is-step-1" x="19" y="88" width="22" height="16" rx="4" />
-                            <rect class="visual-lab-pv-leaf" x="69" y="88" width="22" height="16" rx="4" />
-                            <rect class="visual-lab-pv-leaf" x="109" y="88" width="22" height="16" rx="4" />
-                            <rect class="visual-lab-pv-leaf" x="159" y="88" width="22" height="16" rx="4" />
-                            <circle class="visual-lab-pv-node" cx="145" cy="56" r="11" />
-                            <circle class="visual-lab-pv-node is-step-2" cx="55" cy="56" r="11" />
-                            <circle class="visual-lab-pv-node is-step-3" cx="100" cy="18" r="11" />
-                            <text class="visual-lab-pv-label" x="30" y="99">3</text>
-                            <text class="visual-lab-pv-label" x="80" y="99">5</text>
-                            <text class="visual-lab-pv-label" x="120" y="99">2</text>
-                            <text class="visual-lab-pv-label" x="170" y="99">9</text>
-                            <text class="visual-lab-pv-label" x="55" y="59">MIN</text>
-                            <text class="visual-lab-pv-label" x="145" y="59">MIN</text>
-                            <text class="visual-lab-pv-label" x="100" y="21">MAX</text>
-                        </svg>
-                    </div>
-                    <div class="visual-lab-card__body">
-                        <div class="visual-lab-card__meta">
-                            <span class="visual-lab-card__mark">M</span>
-                            <span class="visual-lab-tag">Game AI</span>
-                        </div>
-                        <h3>Minimax</h3>
-                        <p>See how an AI picks the best move by looking ahead through a game tree.</p>
-                    </div>
-                    <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                        <a href="{% url 'visual_lab:minimax' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
-                    </div>
-                </article>
-
-                <!-- 8 Puzzle -->
-                <article class="visual-lab-card" data-card data-category="puzzle pathfinding" data-status="soon"
-                         data-search="8 puzzle eight a* a star astar heuristic search puzzle pathfinding sliding tiles">
-                    <div class="visual-lab-card__preview" aria-hidden="true">
-                        <div class="visual-lab-pv-puzzle">
-                            <span>1</span><span>2</span><span>3</span>
-                            <span>4</span><span class="is-blank"></span><span>6</span>
-                            <span>7</span><span class="is-moving">5</span><span>8</span>
-                        </div>
-                    </div>
-                    <div class="visual-lab-card__body">
-                        <div class="visual-lab-card__meta">
-                            <span class="visual-lab-card__mark">8</span>
-                            <span class="visual-lab-tag">Puzzle / Pathfinding</span>
-                        </div>
-                        <h3>8 Puzzle / A*</h3>
-                        <p>Solve sliding tiles with heuristic search and compare the cost of each path.</p>
-                    </div>
-                    <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                        <a href="{% url 'visual_lab:puzzle8' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
-                    </div>
-                </article>
-
-                <!-- Dijkstra -->
-                <article class="visual-lab-card" data-card data-category="pathfinding" data-status="soon"
-                         data-search="dijkstra shortest path weighted graph pathfinding priority queue">
-                    <div class="visual-lab-card__preview" aria-hidden="true">
-                        <svg class="visual-lab-pv" viewBox="0 0 200 110" focusable="false">
-                            <line class="visual-lab-pv-edge" x1="22" y1="55" x2="80" y2="20" />
-                            <line class="visual-lab-pv-edge is-step-2" x1="22" y1="55" x2="80" y2="92" />
-                            <line class="visual-lab-pv-edge" x1="80" y1="20" x2="178" y2="55" />
-                            <line class="visual-lab-pv-edge is-step-3" x1="80" y1="92" x2="178" y2="55" />
-                            <text class="visual-lab-pv-weight" x="42" y="33">2</text>
-                            <text class="visual-lab-pv-weight" x="42" y="84">3</text>
-                            <text class="visual-lab-pv-weight" x="132" y="32">5</text>
-                            <text class="visual-lab-pv-weight" x="132" y="84">1</text>
-                            <circle class="visual-lab-pv-node is-step-1" cx="22" cy="55" r="10" />
-                            <circle class="visual-lab-pv-node" cx="80" cy="20" r="10" />
-                            <circle class="visual-lab-pv-node is-step-2" cx="80" cy="92" r="10" />
-                            <circle class="visual-lab-pv-node is-step-3" cx="178" cy="55" r="10" />
-                            <text class="visual-lab-pv-label" x="22" y="58">S</text>
-                            <text class="visual-lab-pv-label" x="80" y="23">A</text>
-                            <text class="visual-lab-pv-label" x="80" y="95">B</text>
-                            <text class="visual-lab-pv-label" x="178" y="58">T</text>
-                        </svg>
-                    </div>
-                    <div class="visual-lab-card__body">
-                        <div class="visual-lab-card__meta">
-                            <span class="visual-lab-card__mark">Dj</span>
-                            <span class="visual-lab-tag">Pathfinding</span>
-                        </div>
-                        <h3>Dijkstra</h3>
-                        <p>Find the shortest path in a weighted graph, one settled node at a time.</p>
-                    </div>
-                    <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                        <a href="{% url 'visual_lab:dijkstra' %}" class="visual-lab-card__link">Explore <span class="visual-lab-arrow" aria-hidden="true">→</span></a>
-                    </div>
-                </article>
-
-
-                <!-- Bellman-Ford -->
-                <article class="visual-lab-card" data-card data-category="pathfinding" data-status="available"
-                        data-search="bellman-ford shortest path negative weight graph negative cycle">
-
-                    <div class="visual-lab-card__preview" aria-hidden="true">
-                        <svg class="visual-lab-pv" viewBox="0 0 200 110" focusable="false">
-                            <line class="visual-lab-pv-edge" x1="22" y1="55" x2="80" y2="20" />
-                            <line class="visual-lab-pv-edge is-step-2" x1="22" y1="55" x2="80" y2="92" />
-                            <line class="visual-lab-pv-edge is-step-3" x1="80" y1="20" x2="178" y2="55" />
-                            <line class="visual-lab-pv-edge" x1="80" y1="92" x2="178" y2="55" />
-
-                            <text class="visual-lab-pv-weight" x="42" y="33">4</text>
-                            <text class="visual-lab-pv-weight" x="42" y="84">2</text>
-                            <text class="visual-lab-pv-weight" x="132" y="32">-3</text>
-                            <text class="visual-lab-pv-weight" x="132" y="84">5</text>
-
-                            <circle class="visual-lab-pv-node is-step-1" cx="22" cy="55" r="10" />
-                            <circle class="visual-lab-pv-node is-step-2" cx="80" cy="20" r="10" />
-                            <circle class="visual-lab-pv-node" cx="80" cy="92" r="10" />
-                            <circle class="visual-lab-pv-node is-step-3" cx="178" cy="55" r="10" />
-
-                            <text class="visual-lab-pv-label" x="22" y="58">S</text>
-                            <text class="visual-lab-pv-label" x="80" y="23">A</text>
-                            <text class="visual-lab-pv-label" x="80" y="95">B</text>
-                            <text class="visual-lab-pv-label" x="178" y="58">T</text>
-                        </svg>
-                    </div>
-
-                    <div class="visual-lab-card__body">
-                        <div class="visual-lab-card__meta">
-                            <span class="visual-lab-card__mark">BF</span>
-                            <span class="visual-lab-tag">Pathfinding</span>
-                        </div>
-
-                        <h3>Bellman-Ford</h3>
-                        <p>Find shortest paths with negative edge weights and detect negative-weight cycles.</p>
-                    </div>
-
-                    <div class="visual-lab-card__foot">
-                        <span class="visual-lab-status visual-lab-status--available">Available</span>
-                        <a href="{% url 'visual_lab:bellman_ford' %}" class="visual-lab-card__link">
-                            Explore <span class="visual-lab-arrow" aria-hidden="true">→</span>
-                        </a>
-                    </div>
-                </article>
-
-
-                <!-- More placeholder -->
-                <article class="visual-lab-card visual-lab-card--more" data-more>
-                    <span class="visual-lab-card__plus" aria-hidden="true">+</span>
-                    <h3>More algorithms</h3>
-                    <p>Sorting, searching and other graph and AI algorithms will be added over time.</p>
-                </article>
-
-            </div>
-
-            <!-- Empty state -->
-            <div class="visual-lab-empty" data-empty hidden>
-                <span class="visual-lab-empty__icon" aria-hidden="true">⌕</span>
-                <h3>No algorithms found</h3>
-                <p>Try a different keyword or choose another category.</p>
-                <button type="button" class="visual-lab-btn visual-lab-btn--ghost" data-reset>Clear filters</button>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section class="visual-lab-section">
-        <div class="visual-lab-container">
-            <header class="visual-lab-section__head" data-reveal>
-                <span class="visual-lab-eyebrow">How it works</span>
-                <h2 class="visual-lab-section__title">From idea to understanding</h2>
-            </header>
-
-            <ol class="visual-lab-steps">
-                <li class="visual-lab-step" data-reveal>
-                    <span class="visual-lab-step__num">01</span>
-                    <h3>Choose an algorithm</h3>
-                    <p>Pick from the library by category or search.</p>
-                </li>
-                <li class="visual-lab-step" data-reveal>
-                    <span class="visual-lab-step__num">02</span>
-                    <h3>Create or configure input</h3>
-                    <p>Build a graph or set up the starting state.</p>
-                </li>
-                <li class="visual-lab-step" data-reveal>
-                    <span class="visual-lab-step__num">03</span>
-                    <h3>Run the algorithm</h3>
-                    <p>Start it and let it work through your input.</p>
-                </li>
-                <li class="visual-lab-step" data-reveal>
-                    <span class="visual-lab-step__num">04</span>
-                    <h3>Observe every step</h3>
-                    <p>Follow each decision as the state changes.</p>
-                </li>
-            </ol>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="visual-lab-section visual-lab-section--tight">
-        <div class="visual-lab-container">
-            <div class="visual-lab-cta" data-reveal>
-                <div class="visual-lab-cta__text">
-                    <h2>Ready to explore?</h2>
-                    <p>Choose an algorithm and see how it works step by step.</p>
-                </div>
-                <a href="{% url 'visual_lab:bfs' %}" class="visual-lab-btn visual-lab-btn--primary">Explore BFS</a>
             </div>
         </div>
     </section>

@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
     // =====================================================
     // ELEMENTS
     // =====================================================
@@ -22,6 +21,144 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessage = document.getElementById("error-message");
     const graphStatus = document.getElementById("graph-status");
 
+    const nodeCount = document.getElementById("node-count");
+    const edgeCount = document.getElementById("edge-count");
+
+    const stepNumber = document.getElementById("step-number");
+
+    const descriptionTitle = document.getElementById("description-title");
+    const stepDescription = document.getElementById("step-description");
+    const descriptionFacts = document.getElementById("description-facts");
+
+    const progressBar = document.getElementById("progress-bar");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressText = document.getElementById("progress-text");
+
+    // Scroll target after Generate Graph: the visualization workspace.
+    const visualizerSection = document.getElementById("bfs-workspace");
+
+    // =====================================================
+    // THEORY: CLICKABLE CONCEPT CARDS
+    // =====================================================
+
+    const conceptCards = document.querySelectorAll(".bfs-concept-card");
+    const conceptDetail = document.getElementById("concept-detail");
+
+    conceptCards.forEach(card => {
+        card.addEventListener("click", () => {
+            conceptCards.forEach(item => item.classList.remove("is-active"));
+
+            card.classList.add("is-active");
+
+            if (conceptDetail) {
+                conceptDetail.textContent = card.dataset.detail || "";
+            }
+        });
+    });
+
+    // =====================================================
+    // THEORY: MINI FIFO DEMO
+    // =====================================================
+
+    const fifoEnqueueBtn = document.getElementById("fifo-enqueue");
+    const fifoDequeueBtn = document.getElementById("fifo-dequeue");
+    const fifoItemsEl = document.getElementById("fifo-items");
+    const fifoMessage = document.getElementById("fifo-message");
+
+    const FIFO_MAX = 6;
+
+    let fifoItems = [];
+    let fifoCounter = 0;
+
+    function renderFifo() {
+        if (!fifoItemsEl) return;
+
+        fifoItemsEl.replaceChildren();
+
+        if (fifoItems.length === 0) {
+            const empty = document.createElement("span");
+
+            empty.className = "empty-text";
+            empty.textContent = "Queue is empty";
+
+            fifoItemsEl.appendChild(empty);
+            return;
+        }
+
+        fifoItems.forEach((label, index) => {
+            const chip = makeChip(label, "chip queue-chip");
+
+            if (index === 0) {
+                chip.classList.add("is-front");
+                chip.appendChild(makeTag("FRONT"));
+            }
+
+            fifoItemsEl.appendChild(chip);
+        });
+    }
+
+    function fifoEnqueue() {
+        if (fifoItems.length >= FIFO_MAX) {
+            if (fifoMessage) {
+                fifoMessage.textContent =
+                    "The demo queue is full. Try Dequeue to remove the front item.";
+            }
+            return;
+        }
+
+        const label = String.fromCharCode(65 + (fifoCounter % 26));
+
+        fifoCounter++;
+        fifoItems.push(label);
+
+        if (fifoMessage) {
+            fifoMessage.textContent =
+                `${label} joined the BACK of the queue.`;
+        }
+
+        renderFifo();
+    }
+
+    function fifoDequeue() {
+        if (fifoItems.length === 0) {
+            if (fifoMessage) {
+                fifoMessage.textContent =
+                    "Nothing to remove yet. Press Enqueue first.";
+            }
+            return;
+        }
+
+        const removed = fifoItems.shift();
+
+        if (fifoMessage) {
+            fifoMessage.textContent =
+                `${removed} left from the FRONT: it was the first one in, so it is the first one out.`;
+        }
+
+        renderFifo();
+    }
+
+    if (fifoEnqueueBtn) fifoEnqueueBtn.addEventListener("click", fifoEnqueue);
+    if (fifoDequeueBtn) fifoDequeueBtn.addEventListener("click", fifoDequeue);
+
+    // =====================================================
+    // PSEUDOCODE LINE EXPLANATION
+    // =====================================================
+
+    const codeLines = document.querySelectorAll(".bfs-code-line");
+    const lineExplanation = document.getElementById("bfs-line-explanation");
+
+    codeLines.forEach(line => {
+        line.addEventListener("click", () => {
+            codeLines.forEach(item => item.classList.remove("is-selected"));
+
+            line.classList.add("is-selected");
+
+            if (lineExplanation) {
+                lineExplanation.textContent = line.dataset.explain || "";
+            }
+        });
+    });
 
     // =====================================================
     // BFS DATA
@@ -39,704 +176,653 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let bfsStarted = false;
     let bfsFinished = false;
-
+    let stepCount = 0;
 
     // =====================================================
-    // GRAPH GENERATION
+    // DESCRIPTION HELPER
+    // facts = [{ label, value, tone }]  (tone: current | queue | visited)
+    // =====================================================
+
+    function showDescription(title, message, facts = []) {
+        if (descriptionTitle) {
+            descriptionTitle.textContent = title;
+        }
+
+        if (stepDescription) {
+            stepDescription.textContent = message;
+        }
+
+        if (descriptionFacts) {
+            descriptionFacts.replaceChildren();
+
+            facts.forEach(fact => {
+                const row = document.createElement("div");
+                row.className = `fact-row fact-${fact.tone || "queue"}`;
+
+                const label = document.createElement("span");
+                label.className = "fact-label";
+                label.textContent = fact.label;
+
+                const value = document.createElement("strong");
+                value.className = "fact-value";
+                value.textContent = fact.value;
+
+                row.appendChild(label);
+                row.appendChild(value);
+                descriptionFacts.appendChild(row);
+            });
+        }
+    }
+
+    function formatQueue() {
+        return `[${queue.join(", ")}]`;
+    }
+
+    // =====================================================
+    // STATUS HELPER
+    // =====================================================
+
+    function setStatus(message, type = "ready") {
+        if (!graphStatus) return;
+
+        graphStatus.textContent = message;
+
+        const styles = {
+            ready: {
+                color: "#a9c9ff",
+                background: "#1b3151",
+                border: "#36527c"
+            },
+            active: {
+                color: "#c8b5ff",
+                background: "#382d61",
+                border: "#7655b9"
+            },
+            complete: {
+                color: "#6be2bd",
+                background: "#104538",
+                border: "#176e5b"
+            }
+        };
+
+        const style = styles[type] || styles.ready;
+
+        graphStatus.style.color = style.color;
+        graphStatus.style.background = style.background;
+        graphStatus.style.borderColor = style.border;
+    }
+
+    // =====================================================
+    // GENERATE GRAPH
     // =====================================================
 
     function generateGraph() {
-
         clearError();
 
-        const nodeText = nodesInput.value.trim();
-        const edgeText = edgesInput.value.trim();
-        const startText = startInput.value.trim().toUpperCase();
-
-
-        // -----------------------------
-        // Validate nodes
-        // -----------------------------
+        const nodeText = nodesInput?.value.trim() || "";
+        const edgeText = edgesInput?.value.trim() || "";
+        const startText = (startInput?.value || "").trim().toUpperCase();
 
         if (!nodeText) {
-            showError("Please enter nodes.");
-            return;
-        }
-
-
-        nodes = nodeText
-            .split(/[\s,]+/)
-            .map(node => node.trim().toUpperCase())
-            .filter(node => node !== "");
-
-
-        // Remove duplicate nodes
-
-        nodes = [...new Set(nodes)];
-
-
-        if (nodes.length === 0) {
             showError("Please enter at least one node.");
             return;
         }
 
+        const newNodes = nodeText
+            .split(/[\s,]+/)
+            .map(node => node.trim().toUpperCase())
+            .filter(Boolean);
 
-        // -----------------------------
-        // Start node
-        // -----------------------------
+        const uniqueNodes = [...new Set(newNodes)];
 
-        startNode = startText;
-
-
-        if (!startNode) {
-            showError("Please enter a start node.");
+        if (uniqueNodes.length === 0) {
+            showError("Please enter valid nodes.");
             return;
         }
 
-
-        if (!nodes.includes(startNode)) {
-            showError(
-                `Start node "${startNode}" does not exist in the graph.`
-            );
+        if (!startText) {
+            showError("Please enter a starting node.");
             return;
         }
 
+        if (!uniqueNodes.includes(startText)) {
+            showError(`Starting node "${startText}" does not exist.`);
+            return;
+        }
 
-        // -----------------------------
-        // Create adjacency list
-        // -----------------------------
+        // Parse edges into temporary variables first, so invalid input
+        // never leaves the visualizer in a half-updated state.
+        const newAdjacency = {};
 
-        adjacency = {};
-
-        nodes.forEach(node => {
-            adjacency[node] = [];
+        uniqueNodes.forEach(node => {
+            newAdjacency[node] = [];
         });
 
-
-        edges = [];
-
-
-        // -----------------------------
-        // Parse edges
-        // -----------------------------
+        const newEdges = [];
 
         if (edgeText) {
-
-            const edgeLines = edgeText
+            const lines = edgeText
                 .split("\n")
                 .map(line => line.trim())
-                .filter(line => line !== "");
+                .filter(Boolean);
 
-
-            for (const line of edgeLines) {
-
+            for (const line of lines) {
                 let parts;
 
-
-                // Supports:
-                // A-B
-                // A B
-
                 if (line.includes("-")) {
-
-                    parts = line
-                        .split("-")
-                        .map(x => x.trim().toUpperCase());
-
+                    parts = line.split("-").map(x => x.trim().toUpperCase());
                 } else {
-
-                    parts = line
-                        .split(/\s+/)
-                        .map(x => x.trim().toUpperCase());
-
+                    parts = line.split(/\s+/).map(x => x.trim().toUpperCase());
                 }
 
-
-                if (parts.length !== 2) {
-                    showError(
-                        `Invalid edge: "${line}". Use A-B format.`
-                    );
+                if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                    showError(`Invalid edge "${line}". Use A-B format.`);
                     return;
                 }
-
 
                 const [from, to] = parts;
 
-
-                if (!nodes.includes(from) || !nodes.includes(to)) {
-
-                    showError(
-                        `Edge "${line}" contains a node that does not exist.`
-                    );
-
+                if (!uniqueNodes.includes(from) || !uniqueNodes.includes(to)) {
+                    showError(`Edge "${line}" contains an unknown node.`);
                     return;
                 }
-
 
                 if (from === to) {
                     continue;
                 }
 
-
-                // Avoid duplicate edges
-
-                const alreadyExists = edges.some(edge =>
+                const duplicate = newEdges.some(edge =>
                     (edge.from === from && edge.to === to) ||
                     (edge.from === to && edge.to === from)
                 );
 
-
-                if (alreadyExists) {
+                if (duplicate) {
                     continue;
                 }
 
-
-                edges.push({
-                    from: from,
-                    to: to
-                });
-
+                newEdges.push({ from, to });
 
                 // Undirected graph
-
-                adjacency[from].push(to);
-                adjacency[to].push(from);
+                newAdjacency[from].push(to);
+                newAdjacency[to].push(from);
             }
         }
 
+        // Input is valid: commit it.
+        nodes = uniqueNodes;
+        edges = newEdges;
+        adjacency = newAdjacency;
+        startNode = startText;
 
-        // Sort neighbors for predictable BFS
+        // Keep neighbour order predictable.
+        nodes.forEach(node => adjacency[node].sort());
 
-        nodes.forEach(node => {
-            adjacency[node].sort();
-        });
+        resetState();
 
+        renderGraph();
 
-        // -----------------------------
-        // Reset BFS
-        // -----------------------------
+        if (nodeCount) {
+            nodeCount.textContent = `${nodes.length} Nodes`;
+        }
 
+        if (edgeCount) {
+            edgeCount.textContent = `${edges.length} Edges`;
+        }
+
+        setStatus("Graph Ready", "ready");
+
+        showDescription(
+            "Graph generated",
+            `${nodes.length} nodes and ${edges.length} edges. BFS will start from ${startNode}. Press Start BFS to begin.`,
+            [{ label: "Start node", value: startNode, tone: "visited" }]
+        );
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
+
+        if (startBtn) startBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = true;
+
+        // Scroll only after Generate Graph.
+        // Start BFS, Next Step and Reset never change the page scroll.
+        if (visualizerSection) {
+            requestAnimationFrame(() => {
+                visualizerSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            });
+        }
+    }
+
+    // =====================================================
+    // RESET BFS DATA
+    // =====================================================
+
+    function resetState() {
         queue = [];
         visited = [];
         currentNode = null;
 
         bfsStarted = false;
         bfsFinished = false;
-
-
-        updateInformation();
-
-
-        // -----------------------------
-        // Draw graph
-        // -----------------------------
-
-        renderGraph();
-
-
-        graphStatus.textContent = "Graph Ready";
-
-        graphStatus.style.color = "#4ade80";
-
-        graphStatus.style.borderColor =
-            "rgba(34, 197, 94, 0.25)";
-
-        graphStatus.style.background =
-            "rgba(34, 197, 94, 0.1)";
+        stepCount = 0;
     }
-
 
     // =====================================================
     // RENDER GRAPH
     // =====================================================
 
     function renderGraph() {
+        if (!graphContainer) return;
 
         graphContainer.innerHTML = "";
-
 
         if (nodes.length === 0) {
             return;
         }
 
-
-        const width = graphContainer.clientWidth || 600;
-        const height = graphContainer.clientHeight || 600;
-
+        const width = graphContainer.clientWidth || 700;
+        const height = graphContainer.clientHeight || 400;
 
         const centerX = width / 2;
         const centerY = height / 2;
 
+        const nodeRadius = nodes.length > 12 ? 21 : 26;
 
-        // Radius changes according to number of nodes
-
-        const radius = Math.min(
-            width,
-            height
-        ) * 0.32;
-
+        // Keep every node fully inside the container.
+        const radius = Math.max(
+            40,
+            Math.min(width, height) / 2 - nodeRadius - 22
+        );
 
         const positions = {};
 
-
-        // -----------------------------
-        // Calculate node positions
-        // -----------------------------
-
         nodes.forEach((node, index) => {
-
             const angle =
-                (2 * Math.PI * index / nodes.length)
-                - Math.PI / 2;
+                (2 * Math.PI * index / nodes.length) - Math.PI / 2;
 
+            // A single node is centered.
+            const r = nodes.length === 1 ? 0 : radius;
 
             positions[node] = {
-
-                x: centerX + radius * Math.cos(angle),
-
-                y: centerY + radius * Math.sin(angle)
+                x: centerX + r * Math.cos(angle),
+                y: centerY + r * Math.sin(angle)
             };
         });
 
-
-        // -----------------------------
-        // SVG
-        // -----------------------------
-
         const svgNS = "http://www.w3.org/2000/svg";
 
-        const svg = document.createElementNS(
-            svgNS,
-            "svg"
-        );
+        const svg = document.createElementNS(svgNS, "svg");
 
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", "BFS graph visualization");
 
-        svg.setAttribute(
-            "viewBox",
-            `0 0 ${width} ${height}`
-        );
-
-
-        svg.setAttribute(
-            "preserveAspectRatio",
-            "xMidYMid meet"
-        );
-
-
-        // =================================================
-        // EDGES
-        // =================================================
-
+        // Draw edges first, so they stay behind the nodes.
         edges.forEach(edge => {
+            const line = document.createElementNS(svgNS, "line");
 
-            const line = document.createElementNS(
-                svgNS,
-                "line"
-            );
-
-
-            line.setAttribute(
-                "x1",
-                positions[edge.from].x
-            );
-
-            line.setAttribute(
-                "y1",
-                positions[edge.from].y
-            );
-
-            line.setAttribute(
-                "x2",
-                positions[edge.to].x
-            );
-
-            line.setAttribute(
-                "y2",
-                positions[edge.to].y
-            );
-
+            line.setAttribute("x1", positions[edge.from].x);
+            line.setAttribute("y1", positions[edge.from].y);
+            line.setAttribute("x2", positions[edge.to].x);
+            line.setAttribute("y2", positions[edge.to].y);
 
             line.classList.add("graph-edge");
-
 
             line.dataset.from = edge.from;
             line.dataset.to = edge.to;
 
-
             svg.appendChild(line);
         });
 
-
-        // =================================================
-        // NODES
-        // =================================================
-
+        // Draw circular nodes.
         nodes.forEach(node => {
-
-            const group = document.createElementNS(
-                svgNS,
-                "g"
-            );
-
+            const group = document.createElementNS(svgNS, "g");
 
             group.classList.add("graph-node-group");
-
             group.dataset.node = node;
 
+            const circle = document.createElementNS(svgNS, "circle");
 
-            // Circle
-
-            const circle = document.createElementNS(
-                svgNS,
-                "circle"
-            );
-
-
-            circle.setAttribute(
-                "cx",
-                positions[node].x
-            );
-
-            circle.setAttribute(
-                "cy",
-                positions[node].y
-            );
-
-            circle.setAttribute(
-                "r",
-                "30"
-            );
-
+            circle.setAttribute("cx", positions[node].x);
+            circle.setAttribute("cy", positions[node].y);
+            circle.setAttribute("r", nodeRadius);
 
             circle.classList.add("graph-node");
-
-
             circle.dataset.node = node;
 
+            const text = document.createElementNS(svgNS, "text");
 
-            // Text
-
-            const text = document.createElementNS(
-                svgNS,
-                "text"
-            );
-
-
-            text.setAttribute(
-                "x",
-                positions[node].x
-            );
-
-            text.setAttribute(
-                "y",
-                positions[node].y
-            );
-
-
+            text.setAttribute("x", positions[node].x);
+            text.setAttribute("y", positions[node].y);
+            text.classList.add("graph-node-text");
             text.textContent = node;
-
-
-            text.classList.add(
-                "graph-node-text"
-            );
-
 
             group.appendChild(circle);
             group.appendChild(text);
 
+            // Small label that keeps the start node easy to identify.
+            if (node === startNode) {
+                const label = document.createElementNS(svgNS, "text");
+
+                label.setAttribute("x", positions[node].x);
+                label.setAttribute("y", positions[node].y + nodeRadius + 13);
+                label.classList.add("graph-start-label");
+                label.textContent = "START";
+
+                group.appendChild(label);
+            }
 
             svg.appendChild(group);
         });
 
-
         graphContainer.appendChild(svg);
-
-
-        // Mark start node
 
         updateGraphVisuals();
     }
-
 
     // =====================================================
     // START BFS
     // =====================================================
 
     function startBFS() {
-
         clearError();
 
-
         if (nodes.length === 0) {
-            showError(
-                "Generate the graph first."
-            );
-
+            showError("Generate a graph first.");
             return;
         }
 
+        resetState();
 
-        // -----------------------------
-        // Initialize BFS
-        // -----------------------------
-
+        // Initialize Queue and Visited.
         queue = [startNode];
-
         visited = [startNode];
-
-        currentNode = null;
 
         bfsStarted = true;
 
-        bfsFinished = false;
-
-
         updateInformation();
-
         updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
 
+        setStatus(`BFS Started from ${startNode}`, "active");
 
-        graphStatus.textContent =
-            `BFS Started from ${startNode}`;
-
-
-        graphStatus.style.color = "#60a5fa";
-
-        graphStatus.style.borderColor =
-            "rgba(96, 165, 250, 0.25)";
-
-        graphStatus.style.background =
-            "rgba(37, 99, 235, 0.12)";
-
-
-        // Start button animation
-
-        startBtn.classList.add(
-            "button-active"
+        showDescription(
+            "Step 0 · Initialize",
+            `${startNode} is added to the queue and marked visited. Next Step will take it from the front.`,
+            [
+                { label: "Queue", value: formatQueue(), tone: "queue" },
+                { label: "Visited", value: `[${visited.join(", ")}]`, tone: "visited" }
+            ]
         );
 
-
-        setTimeout(() => {
-
-            startBtn.classList.remove(
-                "button-active"
-            );
-
-        }, 300);
+        if (startBtn) startBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = false;
     }
-
 
     // =====================================================
     // NEXT BFS STEP
     // =====================================================
 
     function nextStep() {
-
         clearError();
 
-
         if (!bfsStarted) {
-
-            showError(
-                "Click Start BFS first."
-            );
-
+            showError("Click Start BFS first.");
             return;
         }
-
 
         if (bfsFinished) {
-
             return;
         }
-
-
-        // -----------------------------
-        // BFS finished
-        // -----------------------------
 
         if (queue.length === 0) {
-
-            bfsFinished = true;
-
-            currentNode = null;
-
-            updateInformation();
-
-            updateGraphVisuals();
-
-
-            graphStatus.textContent =
-                "BFS Completed";
-
-            graphStatus.style.color =
-                "#4ade80";
-
-            graphStatus.style.borderColor =
-                "rgba(34, 197, 94, 0.25)";
-
-            graphStatus.style.background =
-                "rgba(34, 197, 94, 0.1)";
-
-
+            finishBFS();
             return;
         }
 
-
-        // -----------------------------
-        // Remove first node
-        // -----------------------------
-
+        // Remove the first node from Queue.
         currentNode = queue.shift();
 
+        stepCount++;
 
-        // -----------------------------
-        // Find unvisited neighbors
-        // -----------------------------
-
-        const neighbors =
-            adjacency[currentNode] || [];
-
+        // Find unvisited neighbours.
+        const neighbors = adjacency[currentNode] || [];
+        const newlyDiscovered = [];
 
         neighbors.forEach(neighbor => {
-
             if (!visited.includes(neighbor)) {
-
+                // Mark visited immediately to avoid duplicates.
                 visited.push(neighbor);
 
+                // Add to the back of Queue.
                 queue.push(neighbor);
+
+                newlyDiscovered.push(neighbor);
             }
         });
 
-
-        // -----------------------------
-        // Update UI
-        // -----------------------------
-
         updateInformation();
-
         updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
 
+        const done = queue.length === 0;
 
-        graphStatus.textContent =
-            `Visiting ${currentNode}`;
+        if (done) {
+            bfsFinished = true;
 
+            if (nextBtn) nextBtn.disabled = true;
 
-        graphStatus.style.color =
-            "#facc15";
-
-        graphStatus.style.borderColor =
-            "rgba(250, 204, 21, 0.25)";
-
-        graphStatus.style.background =
-            "rgba(250, 204, 21, 0.1)";
-
-
-        // -----------------------------
-        // Current node pulse
-        // -----------------------------
-
-        const currentElement =
-            document.querySelector(
-                `.graph-node[data-node="${currentNode}"]`
-            );
-
-
-        if (currentElement) {
-
-            currentElement.classList.add(
-                "node-pulse"
-            );
-
-
-            setTimeout(() => {
-
-                currentElement.classList.remove(
-                    "node-pulse"
-                );
-
-            }, 700);
+            setStatus("BFS Completed", "complete");
+        } else {
+            setStatus(`Processing ${currentNode}`, "active");
         }
+
+        // Short, beginner-friendly explanation of exactly this step.
+        let message;
+
+        if (newlyDiscovered.length > 0) {
+            message =
+                `${currentNode} left the front of the queue. ` +
+                `Its new neighbours (${newlyDiscovered.join(", ")}) were marked visited and added to the back.`;
+        } else {
+            message =
+                `${currentNode} left the front of the queue. ` +
+                `All its neighbours were already visited, so nothing new was added.`;
+        }
+
+        if (done) {
+            message += " The queue is empty, so BFS is complete.";
+        }
+
+        showDescription(
+            done
+                ? `Step ${stepCount} · Complete`
+                : `Step ${stepCount} · Visit ${currentNode}`,
+            message,
+            [
+                { label: "Current", value: currentNode, tone: "current" },
+                {
+                    label: "Discovered",
+                    value: newlyDiscovered.length ? newlyDiscovered.join(", ") : "none",
+                    tone: "visited"
+                },
+                { label: "Queue now", value: formatQueue(), tone: "queue" }
+            ]
+        );
     }
 
+    // =====================================================
+    // FINISH BFS
+    // =====================================================
+
+    function finishBFS() {
+        bfsFinished = true;
+        currentNode = null;
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+
+        setStatus("BFS Completed", "complete");
+
+        showDescription(
+            "BFS complete",
+            `The queue is empty. BFS has explored every node reachable from ${startNode}.`,
+            [{ label: "Visited", value: `[${visited.join(", ")}]`, tone: "visited" }]
+        );
+
+        if (nextBtn) nextBtn.disabled = true;
+    }
 
     // =====================================================
-    // RESET
+    // RESET BUTTON
     // =====================================================
 
     function resetBFS() {
+        if (nodes.length === 0) {
+            showError("Generate a graph first.");
+            return;
+        }
 
-        queue = [];
-
-        visited = [];
-
-        currentNode = null;
-
-        bfsStarted = false;
-
-        bfsFinished = false;
-
+        resetState();
 
         updateInformation();
-
         updateGraphVisuals();
+        updateProgress();
+        updateStepCounter();
 
+        setStatus("Ready", "ready");
 
-        graphStatus.textContent =
-            "Ready";
+        showDescription(
+            "BFS reset",
+            `Traversal cleared. Press Start BFS to begin again from ${startNode}.`,
+            [{ label: "Start node", value: startNode, tone: "visited" }]
+        );
 
-        graphStatus.style.color =
-            "#4ade80";
-
-        graphStatus.style.borderColor =
-            "rgba(34, 197, 94, 0.25)";
-
-        graphStatus.style.background =
-            "rgba(34, 197, 94, 0.1)";
-
+        if (startBtn) startBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = true;
 
         clearError();
     }
 
+    // =====================================================
+    // CHIP HELPERS
+    // =====================================================
+
+    function makeChip(label, className) {
+        const chip = document.createElement("span");
+
+        chip.className = className;
+        chip.textContent = label;
+
+        return chip;
+    }
+
+    function makeTag(text) {
+        const tag = document.createElement("small");
+
+        tag.className = "chip-tag";
+        tag.textContent = text;
+
+        return tag;
+    }
+
+    function showEmpty(container, message) {
+        if (!container) return;
+
+        const span = document.createElement("span");
+
+        span.className = "empty-text";
+        span.textContent = message;
+
+        container.appendChild(span);
+    }
 
     // =====================================================
-    // UPDATE INFORMATION
+    // UPDATE QUEUE / CURRENT / VISITED
     // =====================================================
 
     function updateInformation() {
+        // ---------------- QUEUE ----------------
 
-        queueDisplay.textContent =
-            `[${queue.join(", ")}]`;
+        if (queueDisplay) {
+            queueDisplay.replaceChildren();
 
+            if (queue.length === 0) {
+                showEmpty(
+                    queueDisplay,
+                    bfsStarted ? "Queue is empty" : "Press Start BFS"
+                );
+            } else {
+                queue.forEach((node, index) => {
+                    const chip = makeChip(
+                        node,
+                        index === 0
+                            ? "chip queue-chip is-front"
+                            : "chip queue-chip"
+                    );
 
-        currentDisplay.textContent =
-            currentNode || "-";
+                    if (index === 0) {
+                        chip.appendChild(makeTag("FRONT"));
+                    }
 
+                    queueDisplay.appendChild(chip);
+                });
+            }
+        }
 
-        visitedDisplay.textContent =
-            `[${visited.join(", ")}]`;
+        // ---------------- CURRENT NODE ----------------
+
+        if (currentDisplay) {
+            currentDisplay.replaceChildren();
+
+            if (currentNode) {
+                currentDisplay.appendChild(
+                    makeChip(currentNode, "chip current-chip")
+                );
+            } else {
+                showEmpty(currentDisplay, "No node yet");
+            }
+        }
+
+        // ---------------- VISITED ----------------
+
+        if (visitedDisplay) {
+            visitedDisplay.replaceChildren();
+
+            if (visited.length === 0) {
+                showEmpty(visitedDisplay, "None yet");
+            } else {
+                visited.forEach((node, index) => {
+                    const chip = makeChip(node, "chip visited-chip");
+
+                    const order = document.createElement("sup");
+                    order.className = "chip-order";
+                    order.textContent = index + 1;
+
+                    chip.appendChild(order);
+                    visitedDisplay.appendChild(chip);
+                });
+            }
+        }
     }
 
-
     // =====================================================
-    // UPDATE GRAPH VISUALS
+    // UPDATE GRAPH NODE COLORS
     // =====================================================
 
     function updateGraphVisuals() {
-
-        const graphNodes =
-            document.querySelectorAll(
-                ".graph-node"
-            );
-
+        const graphNodes = document.querySelectorAll(".graph-node");
 
         graphNodes.forEach(circle => {
-
-            const node =
-                circle.dataset.node;
-
-
-            // Remove old states
+            const node = circle.dataset.node;
 
             circle.classList.remove(
                 "node-start",
@@ -745,72 +831,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 "node-queued"
             );
 
-
-            // -----------------------------
-            // Start
-            // -----------------------------
-
+            // Start node (distinct amber ring, set in CSS)
             if (node === startNode) {
-
-                circle.classList.add(
-                    "node-start"
-                );
+                circle.classList.add("node-start");
             }
 
-
-            // -----------------------------
-            // Visited
-            // -----------------------------
-
+            // Visited nodes
             if (visited.includes(node)) {
-
-                circle.classList.add(
-                    "node-visited"
-                );
+                circle.classList.add("node-visited");
             }
 
-
-            // -----------------------------
-            // Queue
-            // -----------------------------
-
+            // Queue nodes
             if (queue.includes(node)) {
-
-                circle.classList.add(
-                    "node-queued"
-                );
+                circle.classList.add("node-queued");
             }
 
-
-            // -----------------------------
-            // Current
-            // -----------------------------
-
+            // Current node gets the highest priority.
             if (node === currentNode) {
-
-                circle.classList.add(
-                    "node-current"
-                );
+                circle.classList.add("node-current");
             }
         });
 
-
-        // -----------------------------
-        // Highlight current edges
-        // -----------------------------
-
-        const graphEdges =
-            document.querySelectorAll(
-                ".graph-edge"
-            );
-
+        // Highlight edges connected to Current Node.
+        const graphEdges = document.querySelectorAll(".graph-edge");
 
         graphEdges.forEach(edge => {
-
-            edge.classList.remove(
-                "edge-active"
-            );
-
+            edge.classList.remove("edge-active");
 
             if (
                 currentNode &&
@@ -819,64 +865,109 @@ document.addEventListener("DOMContentLoaded", () => {
                     edge.dataset.to === currentNode
                 )
             ) {
-
-                edge.classList.add(
-                    "edge-active"
-                );
+                edge.classList.add("edge-active");
             }
         });
     }
 
+    // =====================================================
+    // UPDATE PROGRESS
+    // =====================================================
+
+    function updateProgress() {
+        const total = nodes.length;
+        const discovered = visited.length;
+
+        const percent = total > 0
+            ? Math.round((discovered / total) * 100)
+            : 0;
+
+        if (progressBar) {
+            progressBar.style.width = `${percent}%`;
+        }
+
+        if (progressPercent) {
+            progressPercent.textContent = `${percent}%`;
+        }
+
+        if (progressText) {
+            progressText.textContent = `${discovered}/${total} discovered`;
+        }
+    }
 
     // =====================================================
-    // ERROR
+    // UPDATE STEP COUNTER
+    // =====================================================
+
+    function updateStepCounter() {
+        if (stepNumber) {
+            stepNumber.textContent = `STEP ${stepCount}`;
+        }
+    }
+
+    // =====================================================
+    // ERROR HANDLING
     // =====================================================
 
     function showError(message) {
-
-        errorMessage.textContent =
-            message;
+        if (errorMessage) {
+            errorMessage.textContent = message;
+        }
     }
-
 
     function clearError() {
-
-        errorMessage.textContent = "";
+        if (errorMessage) {
+            errorMessage.textContent = "";
+        }
     }
 
-
     // =====================================================
-    // EVENTS
-    // =====================================================
-
-    generateBtn.addEventListener(
-        "click",
-        generateGraph
-    );
-
-
-    startBtn.addEventListener(
-        "click",
-        startBFS
-    );
-
-
-    nextBtn.addEventListener(
-        "click",
-        nextStep
-    );
-
-
-    resetBtn.addEventListener(
-        "click",
-        resetBFS
-    );
-
-
-    // =====================================================
-    // INITIAL GRAPH
+    // BUTTON EVENTS
     // =====================================================
 
-    generateGraph();
+    if (generateBtn) {
+        generateBtn.addEventListener("click", generateGraph);
+    }
+
+    if (startBtn) {
+        startBtn.addEventListener("click", startBFS);
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener("click", nextStep);
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener("click", resetBFS);
+    }
+
+    // Re-draw the graph if the window size changes (no scrolling involved).
+    let resizeTimer = null;
+
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(() => {
+            if (nodes.length > 0) {
+                renderGraph();
+            }
+        }, 150);
+    });
+
+    // =====================================================
+    // INITIAL STATE
+    // =====================================================
+
+    // Generate Graph is user-triggered, so the page never
+    // scrolls on its own when it loads.
+    renderFifo();
+    updateInformation();
+    updateProgress();
+    updateStepCounter();
+
+    if (startBtn) startBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+
+    setStatus("Ready", "ready");
 
 });

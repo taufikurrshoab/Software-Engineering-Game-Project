@@ -1,597 +1,1416 @@
+document.addEventListener("DOMContentLoaded", () => {
+    // =====================================================
+    // ELEMENTS
+    // =====================================================
 
-const nodesInput = document.getElementById("nodes-input");
-const edgesInput = document.getElementById("edges-input");
-const sourceInput = document.getElementById("source-input");
-const targetInput = document.getElementById("target-input");
+    const nodesInput = document.getElementById("nodes");
+    const edgesInput = document.getElementById("edges");
+    const startInput = document.getElementById("start-node");
 
-const generateBtn = document.getElementById("generate-btn");
-const startBtn = document.getElementById("start-btn");
-const nextBtn = document.getElementById("next-btn");
-const resetBtn = document.getElementById("reset-btn");
-const pathBtn = document.getElementById("path-btn");
+    const generateBtn = document.getElementById("generate-btn");
+    const startBtn = document.getElementById("start-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const resetBtn = document.getElementById("reset-btn");
 
-const graphSvg = document.getElementById("graph-svg");
-const errorElement = document.getElementById("error-message");
-const statusElement = document.getElementById("status");
-const stepCounter = document.getElementById("step-counter");
-const stepDescription = document.getElementById("step-description");
-const currentNodeElement = document.getElementById("current-node");
-const currentDistanceElement = document.getElementById("current-distance");
-const visitedCountElement = document.getElementById("visited-count");
-const distanceList = document.getElementById("distance-list");
-const pathResult = document.getElementById("path-result");
+    const graphContainer = document.getElementById("graph-container");
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-const INF = Infinity;
+    const distanceDisplay = document.getElementById("distance");
+    const currentDisplay = document.getElementById("current-node");
+    const visitedDisplay = document.getElementById("visited");
 
-let nodes = [];
-let edges = [];
-let adjacency = new Map();
-let distances = {};
-let previous = {};
-let visited = new Set();
-let currentNode = null;
-let sourceNode = null;
-let step = 0;
-let generated = false;
-let started = false;
-let finished = false;
-let shortestPath = [];
-let shortestPathEdges = new Set();
+    const errorMessage = document.getElementById("error-message");
+    const graphStatus = document.getElementById("graph-status");
 
-function svgElement(tag, attrs = {}) {
-    const element = document.createElementNS(SVG_NS, tag);
+    const nodeCount = document.getElementById("node-count");
+    const edgeCount = document.getElementById("edge-count");
 
-    Object.entries(attrs).forEach(([key, value]) => {
-        element.setAttribute(key, String(value));
+    const descriptionTitle = document.getElementById("description-title");
+    const stepDescription = document.getElementById("step-description");
+    const pathBox = document.getElementById("path-box");
+    const descriptionFacts = document.getElementById("description-facts");
+
+    const progressBar = document.getElementById("progress-bar");
+    const progressPercent = document.getElementById("progress-percent");
+    const progressText = document.getElementById("progress-text");
+
+    // Scroll target after Generate Graph: the visualization workspace.
+    const visualizerSection = document.getElementById("dj-workspace");
+
+    // =====================================================
+    // THEORY: CLICKABLE CONCEPT CARDS
+    // =====================================================
+
+    const conceptCards = document.querySelectorAll(".dj-concept-card");
+    const conceptDetail = document.getElementById("concept-detail");
+
+    conceptCards.forEach(card => {
+        card.addEventListener("click", () => {
+            conceptCards.forEach(item => item.classList.remove("is-active"));
+
+            card.classList.add("is-active");
+
+            if (conceptDetail) {
+                conceptDetail.textContent = card.dataset.detail || "";
+            }
+        });
     });
 
-    return element;
-}
+    // =====================================================
+    // THEORY: MINI PRIORITY QUEUE DEMO
+    // =====================================================
 
-function showError(message) {
-    errorElement.textContent = message;
-}
+    const pqAddBtn = document.getElementById("pq-add");
+    const pqPopBtn = document.getElementById("pq-pop");
+    const pqItemsEl = document.getElementById("pq-items");
+    const pqMessage = document.getElementById("pq-message");
 
-function clearError() {
-    errorElement.textContent = "";
-}
+    const PQ_MAX = 6;
 
-function parseGraph() {
-    const rawNodes = nodesInput.value
-        .trim()
-        .split(/[\s,]+/)
-        .filter(Boolean);
+    let pqDemo = [];      // kept sorted by cost, smallest first
+    let pqCounter = 0;
 
-    if (rawNodes.length < 2) {
-        throw new Error("Please enter at least 2 nodes.");
-    }
+    function renderPqDemo() {
+        if (!pqItemsEl) return;
 
-    if (rawNodes.length > 20) {
-        throw new Error("For this visualizer, use at most 20 nodes.");
-    }
+        pqItemsEl.replaceChildren();
 
-    if (new Set(rawNodes).size !== rawNodes.length) {
-        throw new Error("Node names must be unique.");
-    }
+        if (pqDemo.length === 0) {
+            const empty = document.createElement("span");
 
-    if (rawNodes.some(n => !/^[A-Za-z0-9]+$/.test(n))) {
-        throw new Error("Use simple node names, such as A, B, C or N1.");
-    }
+            empty.className = "empty-text";
+            empty.textContent = "Priority queue is empty";
 
-    const nodeSet = new Set(rawNodes);
-    const parsedEdges = [];
-    const edgeKeys = new Set();
+            pqItemsEl.appendChild(empty);
+            return;
+        }
 
-    const lines = edgesInput.value
-        .split(/\n/)
-        .map(line => line.trim())
-        .filter(Boolean);
-
-    if (!lines.length) {
-        throw new Error("Please enter at least one edge.");
-    }
-
-    for (const line of lines) {
-        const match = line.match(
-            /^([A-Za-z0-9]+)\s*-\s*([A-Za-z0-9]+)\s*:\s*(\d+(?:\.\d+)?)$/
-        );
-
-        if (!match) {
-            throw new Error(
-                `Invalid edge "${line}". Use format A-B:4.`
+        pqDemo.forEach((item, index) => {
+            const chip = makeChip(
+                `${item.label} : ${item.cost}`,
+                index === 0 ? "chip pq-chip is-min" : "chip pq-chip"
             );
-        }
 
-        const [, from, to, rawWeight] = match;
-        const weight = Number(rawWeight);
+            if (index === 0) {
+                chip.appendChild(makeTag("MIN"));
+            }
 
-        if (!nodeSet.has(from) || !nodeSet.has(to)) {
-            throw new Error(
-                `Edge ${from}-${to} uses a node not listed above.`
-            );
-        }
-
-        if (from === to) {
-            throw new Error("Self-loops are not supported.");
-        }
-
-        if (!Number.isFinite(weight) || weight < 0) {
-            throw new Error("Edge weights must be non-negative.");
-        }
-
-        const pair = [from, to].sort().join("|");
-
-        if (edgeKeys.has(pair)) {
-            throw new Error(
-                `Duplicate edge between ${from} and ${to}.`
-            );
-        }
-
-        edgeKeys.add(pair);
-        parsedEdges.push({ from, to, weight });
+            pqItemsEl.appendChild(chip);
+        });
     }
 
-    return { nodes: rawNodes, edges: parsedEdges };
-}
+    function pqAdd() {
+        if (pqDemo.length >= PQ_MAX) {
+            if (pqMessage) {
+                pqMessage.textContent =
+                    "The demo queue is full. Try Pop smallest.";
+            }
+            return;
+        }
 
-function updateSelectOptions() {
-    const oldSource = sourceInput.value;
-    const oldTarget = targetInput.value;
+        const label = String.fromCharCode(65 + (pqCounter % 26));
+        const cost = 1 + Math.floor(Math.random() * 9);
 
-    sourceInput.replaceChildren();
-    targetInput.replaceChildren();
+        pqCounter++;
 
-    nodes.forEach(node => {
-        const sourceOption = document.createElement("option");
-        sourceOption.value = node;
-        sourceOption.textContent = node;
-        sourceInput.appendChild(sourceOption);
+        pqDemo.push({ label, cost });
 
-        const targetOption = document.createElement("option");
-        targetOption.value = node;
-        targetOption.textContent = node;
-        targetInput.appendChild(targetOption);
+        // Keep the smallest cost at the front (ties: older item first).
+        pqDemo.sort((a, b) => a.cost - b.cost);
+
+        if (pqMessage) {
+            pqMessage.textContent =
+                `${label} was added with cost ${cost}. The queue stays ordered by cost.`;
+        }
+
+        renderPqDemo();
+    }
+
+    function pqPop() {
+        if (pqDemo.length === 0) {
+            if (pqMessage) {
+                pqMessage.textContent = "Nothing to pop yet. Add an item first.";
+            }
+            return;
+        }
+
+        const removed = pqDemo.shift();
+
+        if (pqMessage) {
+            pqMessage.textContent =
+                `${removed.label} (cost ${removed.cost}) left first because it has the smallest cost.`;
+        }
+
+        renderPqDemo();
+    }
+
+    if (pqAddBtn) pqAddBtn.addEventListener("click", pqAdd);
+    if (pqPopBtn) pqPopBtn.addEventListener("click", pqPop);
+
+    // =====================================================
+    // PSEUDOCODE LINE EXPLANATION
+    // =====================================================
+
+    const codeLines = document.querySelectorAll(".dj-code-line");
+    const lineExplanation = document.getElementById("dj-line-explanation");
+
+    codeLines.forEach(line => {
+        line.addEventListener("click", () => {
+            codeLines.forEach(item => item.classList.remove("is-selected"));
+
+            line.classList.add("is-selected");
+
+            if (lineExplanation) {
+                lineExplanation.textContent = line.dataset.explain || "";
+            }
+        });
     });
 
-    sourceInput.value = nodes.includes(oldSource)
-        ? oldSource
-        : nodes[0];
+    // =====================================================
+    // BINARY MIN-HEAP (the priority queue used by Dijkstra)
+    // Ordered by distance, ties broken by node name.
+    // =====================================================
 
-    targetInput.value = nodes.includes(oldTarget)
-        ? oldTarget
-        : nodes[nodes.length - 1];
-}
+    class MinHeap {
+        constructor() {
+            this.items = [];
+        }
 
-function initializeAlgorithm() {
-    distances = {};
-    previous = {};
-    visited = new Set();
-    currentNode = null;
-    step = 0;
-    started = false;
-    finished = false;
-    shortestPath = [];
-    shortestPathEdges = new Set();
+        get size() {
+            return this.items.length;
+        }
 
-    nodes.forEach(node => {
-        distances[node] = INF;
-        previous[node] = null;
-    });
+        less(a, b) {
+            return a.dist < b.dist || (a.dist === b.dist && a.node < b.node);
+        }
 
-    sourceNode = sourceInput.value;
-    distances[sourceNode] = 0;
+        push(item) {
+            const items = this.items;
 
-    currentNodeElement.textContent = "—";
-    currentDistanceElement.textContent = "—";
-    visitedCountElement.textContent = "0";
-    stepCounter.textContent = "Step 0";
+            items.push(item);
 
-    stepDescription.textContent =
-        "Click Start to begin Dijkstra's algorithm.";
+            let i = items.length - 1;
 
-    statusElement.textContent =
-        `Source node: ${sourceNode}. Initial distance is 0.`;
+            while (i > 0) {
+                const parentIndex = (i - 1) >> 1;
 
-    pathResult.textContent =
-        "Run the algorithm, then choose a destination.";
+                if (!this.less(items[i], items[parentIndex])) break;
 
-    pathBtn.disabled = true;
-    nextBtn.disabled = true;
-    startBtn.disabled = !generated;
+                [items[i], items[parentIndex]] = [items[parentIndex], items[i]];
+                i = parentIndex;
+            }
+        }
 
-    renderGraph();
-    renderDistances();
-}
+        pop() {
+            const items = this.items;
 
-function generateGraph() {
-    clearError();
+            if (items.length === 0) return null;
 
-    try {
-        const graph = parseGraph();
+            const top = items[0];
+            const last = items.pop();
 
-        nodes = graph.nodes;
-        edges = graph.edges;
+            if (items.length > 0) {
+                items[0] = last;
 
-        adjacency = new Map(
-            nodes.map(node => [node, []])
-        );
+                let i = 0;
 
-        edges.forEach(edge => {
-            adjacency.get(edge.from).push({
-                node: edge.to,
-                weight: edge.weight
+                while (true) {
+                    const left = 2 * i + 1;
+                    const right = 2 * i + 2;
+                    let smallest = i;
+
+                    if (left < items.length && this.less(items[left], items[smallest])) {
+                        smallest = left;
+                    }
+
+                    if (right < items.length && this.less(items[right], items[smallest])) {
+                        smallest = right;
+                    }
+
+                    if (smallest === i) break;
+
+                    [items[i], items[smallest]] = [items[smallest], items[i]];
+                    i = smallest;
+                }
+            }
+
+            return top;
+        }
+    }
+
+    // =====================================================
+    // DIJKSTRA DATA
+    // =====================================================
+
+    let nodes = [];
+    let edges = [];            // { from, to, weight }
+    let adjacency = {};        // node -> [{ node, weight }]
+    let weightOf = {};         // "A|B" (sorted) -> weight
+
+    let startNode = "";
+
+    let dist = {};             // node -> shortest known distance
+    let prev = {};             // node -> previous node on the best path
+    let visited = [];          // finalized nodes, in order
+    let heap = new MinHeap();
+
+    let currentNode = null;
+    let pending = [];          // neighbours of currentNode still to relax
+    let lastUpdated = null;    // node whose distance changed in the latest step
+    let activeEdge = null;     // edge used in the latest step
+    let highlightPath = [];    // path drawn on the graph
+
+    let algoStarted = false;
+    let algoFinished = false;
+
+    // =====================================================
+    // SMALL HELPERS
+    // =====================================================
+
+    function edgeKey(a, b) {
+        return a < b ? `${a}|${b}` : `${b}|${a}`;
+    }
+
+    // Avoid floating point noise such as 0.30000000000000004.
+    function clean(value) {
+        return Number.isFinite(value) ? parseFloat(value.toFixed(6)) : value;
+    }
+
+    // Long form for sentences, short form for compact chips.
+    function fmt(value) {
+        return value === Infinity ? "Infinity" : String(clean(value));
+    }
+
+    function fmtShort(value) {
+        return value === Infinity ? "∞" : String(clean(value));
+    }
+
+    // Path from the source to a node, following prev links.
+    function pathTo(node) {
+        const path = [];
+        let cursor = node;
+        let guard = 0;
+
+        while (cursor !== null && cursor !== undefined && guard <= nodes.length) {
+            path.unshift(cursor);
+            cursor = prev[cursor];
+            guard++;
+        }
+
+        return path;
+    }
+
+    function pathText(path) {
+        return path.join(" → ");
+    }
+
+    // =====================================================
+    // DESCRIPTION RENDERING
+    // opts: { title, message, pathLabel, path, cost, facts, result }
+    // =====================================================
+
+    function showDescription(opts) {
+        if (descriptionTitle) {
+            descriptionTitle.textContent = opts.title;
+        }
+
+        if (stepDescription) {
+            stepDescription.textContent = opts.message;
+        }
+
+        // ---- Path box: current path and total cost ----
+        if (pathBox) {
+            pathBox.replaceChildren();
+
+            if (opts.path && opts.path.length > 0) {
+                pathBox.hidden = false;
+
+                const label = document.createElement("span");
+                label.className = "path-label";
+                label.textContent = opts.pathLabel || "Current path";
+                pathBox.appendChild(label);
+
+                const row = document.createElement("div");
+                row.className = "path-row";
+
+                opts.path.forEach((node, index) => {
+                    if (index > 0) {
+                        const arrow = document.createElement("span");
+                        arrow.className = "path-arrow";
+                        arrow.textContent = "→";
+                        row.appendChild(arrow);
+                    }
+
+                    const chip = document.createElement("span");
+                    chip.className = "path-chip";
+                    chip.textContent = node;
+                    row.appendChild(chip);
+                });
+
+                pathBox.appendChild(row);
+
+                if (opts.cost !== undefined) {
+                    const cost = document.createElement("span");
+                    cost.className = "path-cost";
+                    cost.textContent = `Total cost: ${fmt(opts.cost)}`;
+                    pathBox.appendChild(cost);
+                }
+            } else {
+                pathBox.hidden = true;
+            }
+        }
+
+        // ---- Fact rows ----
+        if (descriptionFacts) {
+            descriptionFacts.replaceChildren();
+
+            (opts.facts || []).forEach(fact => {
+                descriptionFacts.appendChild(makeFactRow(fact));
             });
 
-            adjacency.get(edge.to).push({
-                node: edge.from,
-                weight: edge.weight
-            });
-        });
+            if (opts.result) {
+                const banner = document.createElement("div");
 
-        generated = true;
-        updateSelectOptions();
-        initializeAlgorithm();
+                banner.className = `result-banner result-${opts.result.tone}`;
 
-        statusElement.textContent =
-            `Graph generated: ${nodes.length} nodes, ${edges.length} edges.`;
+                const label = document.createElement("span");
+                label.textContent = "Result";
 
-        startBtn.disabled = false;
-    } catch (error) {
-        showError(error.message);
-    }
-}
+                const value = document.createElement("strong");
+                value.textContent = opts.result.text;
 
-function positionNodes() {
-    const width = Math.max(650, nodes.length * 105);
-    const height = 420;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(width * 0.39, height * 0.36);
-
-    const positions = {};
-
-    nodes.forEach((node, index) => {
-        const angle = -Math.PI / 2 +
-            (2 * Math.PI * index / nodes.length);
-
-        positions[node] = {
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle)
-        };
-    });
-
-    graphSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    graphSvg.setAttribute("width", width);
-    graphSvg.setAttribute("height", height);
-
-    return positions;
-}
-
-function renderGraph() {
-    graphSvg.replaceChildren();
-
-    if (!nodes.length) {
-        graphSvg.setAttribute("viewBox", "0 0 650 420");
-        graphSvg.setAttribute("width", "650");
-        graphSvg.setAttribute("height", "420");
-        return;
+                banner.appendChild(label);
+                banner.appendChild(value);
+                descriptionFacts.appendChild(banner);
+            }
+        }
     }
 
-    const positions = positionNodes();
+    function makeFactRow(fact) {
+        const row = document.createElement(fact.onClick ? "button" : "div");
 
-    // Draw weighted edges first.
-    edges.forEach(edge => {
-        const a = positions[edge.from];
-        const b = positions[edge.to];
+        row.className = `fact-row fact-${fact.tone || "info"}`;
 
-        const pair1 = `${edge.from}|${edge.to}`;
-        const pair2 = `${edge.to}|${edge.from}`;
-
-        const line = svgElement("line", {
-            x1: a.x,
-            y1: a.y,
-            x2: b.x,
-            y2: b.y,
-            class: shortestPathEdges.has(pair1) ||
-                   shortestPathEdges.has(pair2)
-                ? "edge path-edge"
-                : "edge"
-        });
-
-        graphSvg.appendChild(line);
-
-        const midX = (a.x + b.x) / 2;
-        const midY = (a.y + b.y) / 2;
-
-        const labelBg = svgElement("rect", {
-            x: midX - 15,
-            y: midY - 11,
-            width: 30,
-            height: 22,
-            rx: 7,
-            class: "edge-label-bg"
-        });
-
-        const label = svgElement("text", {
-            x: midX,
-            y: midY,
-            class: "edge-label"
-        });
-
-        label.textContent = edge.weight;
-
-        graphSvg.append(labelBg, label);
-    });
-
-    // Draw nodes and their current tentative distances.
-    nodes.forEach(node => {
-        const pos = positions[node];
-
-        let nodeClass = "node normal";
-
-        if (node === sourceNode) nodeClass = "node source";
-        if (visited.has(node)) nodeClass = "node visited";
-        if (node === currentNode && !finished) {
-            nodeClass = "node current";
-        }
-        if (shortestPath.includes(node)) {
-            nodeClass = "node path-node";
-        }
-        if (node === sourceNode && shortestPath.length === 1) {
-            nodeClass = "node path-node";
+        if (fact.onClick) {
+            row.type = "button";
+            row.classList.add("is-clickable");
+            row.addEventListener("click", fact.onClick);
         }
 
-        const circle = svgElement("circle", {
-            cx: pos.x,
-            cy: pos.y,
-            r: 29,
-            class: nodeClass
-        });
-
-        const label = svgElement("text", {
-            x: pos.x,
-            y: pos.y - 2,
-            class: "node-label"
-        });
-
-        label.textContent = node;
-
-        const distance = svgElement("text", {
-            x: pos.x,
-            y: pos.y + 45,
-            class: "node-distance"
-        });
-
-        distance.textContent = Number.isFinite(distances[node])
-            ? `d = ${distances[node]}`
-            : "d = ∞";
-
-        graphSvg.append(circle, label, distance);
-    });
-}
-
-function renderDistances() {
-    distanceList.replaceChildren();
-
-    nodes.forEach(node => {
-        const item = document.createElement("div");
-
-        item.className = "distance-item";
-
-        if (node === currentNode) item.classList.add("current");
-        if (visited.has(node)) item.classList.add("final");
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = `Node ${node}`;
+        const label = document.createElement("span");
+        label.className = "fact-label";
+        label.textContent = fact.label;
 
         const value = document.createElement("strong");
-        value.textContent = Number.isFinite(distances[node])
-            ? String(distances[node])
-            : "∞";
+        value.className = "fact-value";
+        value.textContent = fact.value;
 
-        const note = document.createElement("small");
-        note.textContent = visited.has(node)
-            ? "Finalized"
-            : node === currentNode
-                ? "Current"
-                : "Tentative";
+        row.appendChild(label);
+        row.appendChild(value);
 
-        item.append(name, value, note);
-        distanceList.appendChild(item);
-    });
-}
-
-function startAlgorithm() {
-    clearError();
-
-    if (!generated) {
-        showError("Generate a graph first.");
-        return;
+        return row;
     }
 
-    initializeAlgorithm();
-    started = true;
-    startBtn.disabled = true;
-    nextBtn.disabled = false;
+    // =====================================================
+    // STATUS HELPER
+    // =====================================================
 
-    statusElement.textContent =
-        `Dijkstra started from ${sourceNode}.`;
+    function setStatus(message, type = "ready") {
+        if (!graphStatus) return;
 
-    stepDescription.textContent =
-        `Initialize dist(${sourceNode}) = 0; all other distances are infinity.`;
+        graphStatus.textContent = message;
 
-    renderGraph();
-    renderDistances();
-}
+        const styles = {
+            ready: { color: "#a9c9ff", background: "#1b3151", border: "#36527c" },
+            active: { color: "#c8b5ff", background: "#382d61", border: "#7655b9" },
+            complete: { color: "#6be2bd", background: "#104538", border: "#176e5b" }
+        };
 
-function nextStep() {
-    clearError();
+        const style = styles[type] || styles.ready;
 
-    if (!started || finished) return;
+        graphStatus.style.color = style.color;
+        graphStatus.style.background = style.background;
+        graphStatus.style.borderColor = style.border;
+    }
 
-    // Select the unvisited node with the smallest tentative distance.
-    let bestNode = null;
-    let bestDistance = INF;
+    // =====================================================
+    // GENERATE GRAPH
+    // =====================================================
 
-    for (const node of nodes) {
-        if (!visited.has(node) && distances[node] < bestDistance) {
-            bestDistance = distances[node];
-            bestNode = node;
+    function generateGraph() {
+        clearError();
+
+        const nodeText = nodesInput?.value.trim() || "";
+        const edgeText = edgesInput?.value.trim() || "";
+        const startText = (startInput?.value || "").trim().toUpperCase();
+
+        // ---------- nodes ----------
+
+        if (!nodeText) {
+            showError("Please enter at least one node.");
+            return;
+        }
+
+        const rawNodes = nodeText
+            .split(/[\s,]+/)
+            .map(node => node.trim().toUpperCase())
+            .filter(Boolean);
+
+        const badNode = rawNodes.find(node => !/^[A-Z0-9_]+$/.test(node));
+
+        if (badNode) {
+            showError(
+                `Invalid node name "${badNode}". Use letters, numbers or underscores only.`
+            );
+            return;
+        }
+
+        const uniqueNodes = [...new Set(rawNodes)];
+
+        if (uniqueNodes.length === 0) {
+            showError("Please enter valid nodes.");
+            return;
+        }
+
+        // ---------- source ----------
+
+        if (!startText) {
+            showError("Please enter a starting node.");
+            return;
+        }
+
+        if (!uniqueNodes.includes(startText)) {
+            showError(`Starting node "${startText}" does not exist in the node list.`);
+            return;
+        }
+
+        // ---------- weighted edges (parsed into temporary variables) ----------
+
+        const newAdjacency = {};
+        const newWeightOf = {};
+        const newEdges = [];
+
+        uniqueNodes.forEach(node => {
+            newAdjacency[node] = [];
+        });
+
+        const lines = edgeText
+            .split("\n")
+            .map(line => line.trim())
+            .filter(Boolean);
+
+        for (const line of lines) {
+            // Accepted: A-B:4   A-B 4   A-B,4   A B 4
+            let match = line.match(
+                /^([A-Za-z0-9_]+)\s*-\s*([A-Za-z0-9_]+)\s*[:,\s]\s*(\S+)$/
+            );
+
+            if (!match) {
+                match = line.match(
+                    /^([A-Za-z0-9_]+)\s+([A-Za-z0-9_]+)\s+(\S+)$/
+                );
+            }
+
+            if (!match) {
+                if (/^[A-Za-z0-9_]+\s*-\s*[A-Za-z0-9_]+\s*:?$/.test(line)) {
+                    showError(
+                        `Edge "${line}" is missing a weight. Use NODE-NODE:WEIGHT, for example A-B:4.`
+                    );
+                } else {
+                    showError(
+                        `Invalid edge "${line}". Use NODE-NODE:WEIGHT, for example A-B:4.`
+                    );
+                }
+                return;
+            }
+
+            const from = match[1].toUpperCase();
+            const to = match[2].toUpperCase();
+            const weightText = match[3];
+
+            if (!uniqueNodes.includes(from) || !uniqueNodes.includes(to)) {
+                const unknown = !uniqueNodes.includes(from) ? from : to;
+
+                showError(
+                    `Edge "${line}" uses node "${unknown}", which is not in the node list.`
+                );
+                return;
+            }
+
+            if (from === to) {
+                showError(`Edge "${line}" connects a node to itself.`);
+                return;
+            }
+
+            const weight = Number(weightText);
+
+            if (!Number.isFinite(weight)) {
+                showError(
+                    `Edge "${line}" has an invalid weight "${weightText}". Use a number such as 4 or 2.5.`
+                );
+                return;
+            }
+
+            if (weight < 0) {
+                showError(
+                    `Edge "${line}" has a negative weight. Dijkstra only works with weights of 0 or more.`
+                );
+                return;
+            }
+
+            const key = edgeKey(from, to);
+
+            if (key in newWeightOf) {
+                showError(
+                    `Edge "${from}-${to}" appears more than once. Each connection can be listed only once.`
+                );
+                return;
+            }
+
+            newWeightOf[key] = weight;
+            newEdges.push({ from, to, weight });
+
+            // Undirected graph
+            newAdjacency[from].push({ node: to, weight });
+            newAdjacency[to].push({ node: from, weight });
+        }
+
+        // ---------- input is valid: commit it ----------
+
+        nodes = uniqueNodes;
+        edges = newEdges;
+        adjacency = newAdjacency;
+        weightOf = newWeightOf;
+        startNode = startText;
+
+        // Predictable neighbour order (alphabetical).
+        nodes.forEach(node => {
+            adjacency[node].sort((a, b) => a.node.localeCompare(b.node));
+        });
+
+        resetState();
+
+        renderGraph();
+
+        if (nodeCount) nodeCount.textContent = `${nodes.length} Nodes`;
+        if (edgeCount) edgeCount.textContent = `${edges.length} Edges`;
+
+        setStatus("Graph Ready", "ready");
+
+        showDescription({
+            title: "Graph generated",
+            message:
+                `${nodes.length} nodes and ${edges.length} weighted edges. ` +
+                `Paths will be calculated from ${startNode}. Press Start Dijkstra to begin.`,
+            path: [startNode],
+            pathLabel: "Source",
+            cost: 0
+        });
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+
+        if (startBtn) startBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = true;
+
+        // Scroll only after Generate Graph.
+        // Start, Next Step and Reset never change the page scroll.
+        if (visualizerSection) {
+            requestAnimationFrame(() => {
+                visualizerSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            });
         }
     }
 
-    // No remaining reachable node.
-    if (bestNode === null) {
-        finished = true;
-        nextBtn.disabled = true;
-        pathBtn.disabled = false;
+    // =====================================================
+    // RESET ALGORITHM DATA
+    // =====================================================
+
+    function resetState() {
+        dist = {};
+        prev = {};
+
+        nodes.forEach(node => {
+            dist[node] = Infinity;
+            prev[node] = null;
+        });
+
+        visited = [];
+        heap = new MinHeap();
 
         currentNode = null;
+        pending = [];
+        lastUpdated = null;
+        activeEdge = null;
+        highlightPath = [];
 
-        statusElement.textContent =
-            "Algorithm complete. All reachable nodes are finalized.";
-
-        stepDescription.textContent =
-            "No unvisited reachable node remains. Unreachable nodes keep distance ∞.";
-
-        renderGraph();
-        renderDistances();
-        return;
+        algoStarted = false;
+        algoFinished = false;
     }
 
-    currentNode = bestNode;
-    visited.add(bestNode);
-    step++;
+    // =====================================================
+    // RENDER GRAPH (weighted)
+    // =====================================================
 
-    const updates = [];
+    function renderGraph() {
+        if (!graphContainer) return;
 
-    for (const neighbor of adjacency.get(bestNode)) {
-        if (visited.has(neighbor.node)) continue;
+        graphContainer.innerHTML = "";
 
-        const candidate = distances[bestNode] + neighbor.weight;
+        if (nodes.length === 0) {
+            return;
+        }
 
-        if (candidate < distances[neighbor.node]) {
-            const oldDistance = distances[neighbor.node];
+        const width = graphContainer.clientWidth || 700;
+        const height = graphContainer.clientHeight || 400;
 
-            distances[neighbor.node] = candidate;
-            previous[neighbor.node] = bestNode;
+        const centerX = width / 2;
+        const centerY = height / 2;
 
-            updates.push(
-                `${neighbor.node}: ${oldDistance === INF ? "∞" : oldDistance} → ${candidate}`
-            );
+        const nodeRadius = nodes.length > 12 ? 20 : 25;
+
+        // Keep nodes and their distance labels inside the container.
+        const radius = Math.max(
+            40,
+            Math.min(width, height) / 2 - nodeRadius - 30
+        );
+
+        const positions = {};
+
+        nodes.forEach((node, index) => {
+            const angle =
+                (2 * Math.PI * index / nodes.length) - Math.PI / 2;
+
+            const r = nodes.length === 1 ? 0 : radius;
+
+            positions[node] = {
+                x: centerX + r * Math.cos(angle),
+                y: centerY + r * Math.sin(angle)
+            };
+        });
+
+        const svgNS = "http://www.w3.org/2000/svg";
+
+        const svg = document.createElementNS(svgNS, "svg");
+
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", "Weighted graph for Dijkstra's algorithm");
+
+        // ---- edges ----
+        edges.forEach(edge => {
+            const line = document.createElementNS(svgNS, "line");
+
+            line.setAttribute("x1", positions[edge.from].x);
+            line.setAttribute("y1", positions[edge.from].y);
+            line.setAttribute("x2", positions[edge.to].x);
+            line.setAttribute("y2", positions[edge.to].y);
+
+            line.classList.add("graph-edge");
+
+            line.dataset.from = edge.from;
+            line.dataset.to = edge.to;
+
+            svg.appendChild(line);
+        });
+
+        // ---- edge weights (drawn after edges, before nodes) ----
+        edges.forEach(edge => {
+            const midX = (positions[edge.from].x + positions[edge.to].x) / 2;
+            const midY = (positions[edge.from].y + positions[edge.to].y) / 2;
+
+            const text = String(clean(edge.weight));
+
+            const boxWidth = 14 + text.length * 8;
+            const boxHeight = 20;
+
+            const group = document.createElementNS(svgNS, "g");
+
+            group.classList.add("graph-weight");
+            group.dataset.from = edge.from;
+            group.dataset.to = edge.to;
+
+            const rect = document.createElementNS(svgNS, "rect");
+
+            rect.setAttribute("x", midX - boxWidth / 2);
+            rect.setAttribute("y", midY - boxHeight / 2);
+            rect.setAttribute("width", boxWidth);
+            rect.setAttribute("height", boxHeight);
+            rect.setAttribute("rx", 6);
+            rect.classList.add("graph-weight-box");
+
+            const label = document.createElementNS(svgNS, "text");
+
+            label.setAttribute("x", midX);
+            label.setAttribute("y", midY);
+            label.classList.add("graph-weight-text");
+            label.textContent = text;
+
+            group.appendChild(rect);
+            group.appendChild(label);
+            svg.appendChild(group);
+        });
+
+        // ---- nodes ----
+        nodes.forEach(node => {
+            const group = document.createElementNS(svgNS, "g");
+
+            group.classList.add("graph-node-group");
+            group.dataset.node = node;
+
+            const circle = document.createElementNS(svgNS, "circle");
+
+            circle.setAttribute("cx", positions[node].x);
+            circle.setAttribute("cy", positions[node].y);
+            circle.setAttribute("r", nodeRadius);
+
+            circle.classList.add("graph-node");
+            circle.dataset.node = node;
+
+            const text = document.createElementNS(svgNS, "text");
+
+            text.setAttribute("x", positions[node].x);
+            text.setAttribute("y", positions[node].y);
+            text.classList.add("graph-node-text");
+            text.textContent = node;
+
+            // Small distance label above the node.
+            const distLabel = document.createElementNS(svgNS, "text");
+
+            distLabel.setAttribute("x", positions[node].x);
+            distLabel.setAttribute("y", positions[node].y - nodeRadius - 7);
+            distLabel.classList.add("graph-dist-label");
+            distLabel.dataset.node = node;
+            distLabel.textContent = "∞";
+
+            group.appendChild(circle);
+            group.appendChild(text);
+            group.appendChild(distLabel);
+
+            // Label that keeps the source easy to identify.
+            if (node === startNode) {
+                const label = document.createElementNS(svgNS, "text");
+
+                label.setAttribute("x", positions[node].x);
+                label.setAttribute("y", positions[node].y + nodeRadius + 13);
+                label.classList.add("graph-start-label");
+                label.textContent = "SOURCE";
+
+                group.appendChild(label);
+            }
+
+            svg.appendChild(group);
+        });
+
+        graphContainer.appendChild(svg);
+
+        updateGraphVisuals();
+    }
+
+    // =====================================================
+    // START DIJKSTRA
+    // =====================================================
+
+    function startDijkstra() {
+        clearError();
+
+        if (nodes.length === 0) {
+            showError("Generate a graph first.");
+            return;
+        }
+
+        resetState();
+
+        dist[startNode] = 0;
+        heap.push({ node: startNode, dist: 0 });
+
+        algoStarted = true;
+
+        highlightPath = [startNode];
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+
+        setStatus(`Started from ${startNode}`, "active");
+
+        showDescription({
+            title: "Initialize",
+            message:
+                `The source ${startNode} gets distance 0. Every other node starts at ` +
+                `Infinity because no route to it is known yet. ${startNode} is added to the priority queue.`,
+            path: [startNode],
+            pathLabel: "Source",
+            cost: 0,
+            facts: [
+                { label: "Distance to " + startNode, value: "0", tone: "visited" },
+                { label: "All other nodes", value: "Infinity", tone: "muted" }
+            ]
+        });
+
+        if (startBtn) startBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = false;
+    }
+
+    // =====================================================
+    // NEXT STEP
+    // One click is one operation: select a node OR relax one edge.
+    // =====================================================
+
+    function nextStep() {
+        clearError();
+
+        if (!algoStarted) {
+            showError("Click Start Dijkstra first.");
+            return;
+        }
+
+        if (algoFinished) {
+            return;
+        }
+
+        if (pending.length > 0) {
+            relaxNextEdge();
+        } else {
+            selectNextNode();
         }
     }
 
-    currentNodeElement.textContent = bestNode;
-    currentDistanceElement.textContent = String(distances[bestNode]);
-    visitedCountElement.textContent = String(visited.size);
-    stepCounter.textContent = `Step ${step}`;
+    // -----------------------------------------------------
+    // SELECT the unvisited node with the smallest distance
+    // -----------------------------------------------------
 
-    stepDescription.textContent = updates.length
-        ? `Finalize ${bestNode} (distance ${distances[bestNode]}). Updated: ${updates.join("; ")}.`
-        : `Finalize ${bestNode} (distance ${distances[bestNode]}). No shorter distance found for its unvisited neighbors.`;
+    function selectNextNode() {
+        let entry = null;
 
-    statusElement.textContent =
-        `Visited ${bestNode}; relaxed its outgoing edges.`;
+        // Pop from the min-heap, skipping outdated entries.
+        while (heap.size > 0) {
+            const candidate = heap.pop();
 
-    renderGraph();
-    renderDistances();
+            if (visited.includes(candidate.node)) continue;
+            if (candidate.dist > dist[candidate.node]) continue;
 
-    // Check whether another reachable unvisited node remains.
-    const hasReachableUnvisited = nodes.some(
-        node => !visited.has(node) && Number.isFinite(distances[node])
-    );
+            entry = candidate;
+            break;
+        }
 
-    if (!hasReachableUnvisited) {
-        finished = true;
-        nextBtn.disabled = true;
-        pathBtn.disabled = false;
+        if (!entry) {
+            finishAlgorithm();
+            return;
+        }
 
-        statusElement.textContent =
-            "Algorithm complete. All reachable nodes are finalized.";
+        const u = entry.node;
 
-        stepDescription.textContent +=
-            " Dijkstra's algorithm has finished.";
-    }
-}
+        visited.push(u);
 
-function showShortestPath() {
-    clearError();
+        currentNode = u;
+        lastUpdated = null;
+        activeEdge = null;
 
-    if (!finished) {
-        showError("Complete the algorithm before requesting a path.");
-        return;
-    }
+        pending = adjacency[u]
+            .filter(neighbor => !visited.includes(neighbor.node))
+            .map(neighbor => neighbor.node);
 
-    const target = targetInput.value;
+        highlightPath = pathTo(u);
 
-    if (!Number.isFinite(distances[target])) {
-        shortestPath = [];
-        shortestPathEdges = new Set();
+        setStatus(`Processing ${u}`, "active");
 
-        pathResult.textContent =
-            `No path exists from ${sourceNode} to ${target}.`;
+        const path = pathTo(u);
 
-        renderGraph();
-        return;
-    }
+        let nextText;
 
-    const path = [];
-    let node = target;
+        if (pending.length > 0) {
+            nextText = `Next, its edges to ${pending.join(", ")} will be checked.`;
+        } else {
+            nextText = "It has no unvisited neighbours to update.";
+        }
 
-    while (node !== null) {
-        path.unshift(node);
+        showDescription({
+            title: `Select node ${u}`,
+            message:
+                `${u} has the smallest tentative distance (${fmt(dist[u])}) among the unvisited nodes, ` +
+                `so its shortest path is now final. ${nextText}`,
+            pathLabel: "Shortest path",
+            path,
+            cost: dist[u],
+            facts: [
+                { label: "Final distance", value: fmt(dist[u]), tone: "visited" },
+                {
+                    label: "Edges to check",
+                    value: pending.length ? pending.join(", ") : "none",
+                    tone: "info"
+                }
+            ]
+        });
 
-        if (node === sourceNode) break;
-
-        node = previous[node];
-    }
-
-    if (path[0] !== sourceNode) {
-        pathResult.textContent = "No path exists.";
-        return;
-    }
-
-    shortestPath = path;
-    shortestPathEdges = new Set();
-
-    for (let i = 0; i < path.length - 1; i++) {
-        shortestPathEdges.add(`${path[i]}|${path[i + 1]}`);
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
     }
 
-    pathResult.textContent =
-        `${path.join(" → ")} | Total cost: ${distances[target]}`;
+    // -----------------------------------------------------
+    // RELAX one edge from the current node
+    // -----------------------------------------------------
 
-    renderGraph();
-    renderDistances();
-}
+    function relaxNextEdge() {
+        const u = currentNode;
+        const v = pending.shift();
 
-function resetAlgorithm() {
-    clearError();
+        const w = weightOf[edgeKey(u, v)];
 
-    if (generated) {
-        initializeAlgorithm();
-        statusElement.textContent =
-            "Graph reset. Click Start to run the algorithm again.";
-    } else {
-        statusElement.textContent = "Generate a graph to begin.";
+        const newCost = clean(dist[u] + w);
+        const previousCost = dist[v];
+
+        const previousPath = previousCost === Infinity ? [] : pathTo(v);
+        const candidatePath = pathTo(u).concat(v);
+
+        const improved = newCost < previousCost;
+
+        activeEdge = { from: u, to: v };
+        highlightPath = candidatePath;
+
+        let message;
+        let result;
+
+        if (improved) {
+            dist[v] = newCost;
+            prev[v] = u;
+            heap.push({ node: v, dist: newCost });
+
+            lastUpdated = v;
+
+            message =
+                `A shorter path to ${v} has been found through ${u}. ` +
+                `The distance is updated from ${fmt(previousCost)} to ${fmt(newCost)}.`;
+
+            result = { text: "Distance updated", tone: "updated" };
+
+            setStatus(`Updated ${v}`, "active");
+        } else {
+            lastUpdated = null;
+
+            if (newCost === previousCost) {
+                message =
+                    `The path through ${u} costs ${fmt(newCost)}, the same as the best known path to ${v}. ` +
+                    `It is not cheaper, so the distance stays ${fmt(previousCost)}.`;
+            } else {
+                message =
+                    `The path through ${u} costs ${fmt(newCost)}, which is more than the best known ` +
+                    `${fmt(previousCost)} to ${v}. The distance stays ${fmt(previousCost)}.`;
+            }
+
+            result = { text: "No change", tone: "same" };
+
+            setStatus(`Checked ${u} to ${v}`, "active");
+        }
+
+        showDescription({
+            title: `Check edge ${u} to ${v}`,
+            message,
+            pathLabel: "Path being checked",
+            path: candidatePath,
+            cost: newCost,
+            facts: [
+                {
+                    label: "Calculation",
+                    value: `dist[${u}] + w = ${fmt(dist[u])} + ${fmt(w)} = ${fmt(newCost)}`,
+                    tone: "info"
+                },
+                {
+                    label: "Previous distance",
+                    value: previousCost === Infinity
+                        ? "Infinity (no path yet)"
+                        : `${fmt(previousCost)} via ${pathText(previousPath)}`,
+                    tone: "muted"
+                },
+                {
+                    label: "New distance",
+                    value: fmt(dist[v]),
+                    tone: improved ? "visited" : "warn"
+                }
+            ],
+            result
+        });
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
     }
-}
 
-generateBtn.addEventListener("click", generateGraph);
-startBtn.addEventListener("click", startAlgorithm);
-nextBtn.addEventListener("click", nextStep);
-resetBtn.addEventListener("click", resetAlgorithm);
-pathBtn.addEventListener("click", showShortestPath);
+    // =====================================================
+    // FINISH
+    // =====================================================
 
-sourceInput.addEventListener("change", () => {
-    if (generated) initializeAlgorithm();
+    function finishAlgorithm() {
+        algoFinished = true;
+
+        currentNode = null;
+        pending = [];
+        lastUpdated = null;
+        activeEdge = null;
+        highlightPath = [];
+
+        setStatus("Dijkstra Completed", "complete");
+
+        // One row per destination: shortest path and total cost, or "no path".
+        const rows = nodes
+            .filter(node => node !== startNode)
+            .map(node => {
+                if (dist[node] === Infinity) {
+                    return {
+                        label: node,
+                        value: "no path exists",
+                        tone: "muted"
+                    };
+                }
+
+                const path = pathTo(node);
+
+                return {
+                    label: node,
+                    value: `${pathText(path)}  (cost ${fmt(dist[node])})`,
+                    tone: "visited",
+                    onClick: () => {
+                        highlightPath = path;
+                        updateGraphVisuals();
+                    }
+                };
+            });
+
+        const unreachable = nodes.filter(node => dist[node] === Infinity);
+
+        let message =
+            `The priority queue is empty, so every reachable node has its shortest path from ${startNode}.`;
+
+        if (unreachable.length > 0) {
+            message += ` ${unreachable.join(", ")} cannot be reached.`;
+        }
+
+        if (rows.length > 0) {
+            message += " Click a row to show that path on the graph.";
+        }
+
+        showDescription({
+            title: "Complete",
+            message,
+            facts: rows.length > 0
+                ? rows
+                : [{ label: "Result", value: "Only the source exists", tone: "muted" }]
+        });
+
+        if (nextBtn) nextBtn.disabled = true;
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+    }
+
+    // =====================================================
+    // RESET BUTTON
+    // =====================================================
+
+    function resetDijkstra() {
+        if (nodes.length === 0) {
+            showError("Generate a graph first.");
+            return;
+        }
+
+        resetState();
+
+        updateInformation();
+        updateGraphVisuals();
+        updateProgress();
+
+        setStatus("Ready", "ready");
+
+        showDescription({
+            title: "Reset",
+            message: `Everything is cleared. Press Start Dijkstra to begin again from ${startNode}.`,
+            path: [startNode],
+            pathLabel: "Source",
+            cost: 0
+        });
+
+        if (startBtn) startBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = true;
+
+        clearError();
+    }
+
+    // =====================================================
+    // CHIP HELPERS
+    // =====================================================
+
+    function makeChip(label, className) {
+        const chip = document.createElement("span");
+
+        chip.className = className;
+        chip.textContent = label;
+
+        return chip;
+    }
+
+    function makeTag(text) {
+        const tag = document.createElement("small");
+
+        tag.className = "chip-tag";
+        tag.textContent = text;
+
+        return tag;
+    }
+
+    function showEmpty(container, message) {
+        if (!container) return;
+
+        const span = document.createElement("span");
+
+        span.className = "empty-text";
+        span.textContent = message;
+
+        container.appendChild(span);
+    }
+
+    // =====================================================
+    // UPDATE DISTANCE / CURRENT / VISITED CARDS
+    // =====================================================
+
+    function updateInformation() {
+        // ---------------- DISTANCE ----------------
+
+        if (distanceDisplay) {
+            distanceDisplay.replaceChildren();
+
+            if (nodes.length === 0) {
+                showEmpty(distanceDisplay, "Generate a graph");
+            } else {
+                nodes.forEach(node => {
+                    let state = "dist-unknown";
+
+                    if (visited.includes(node)) {
+                        state = "dist-final";
+                    } else if (node === lastUpdated) {
+                        state = "dist-updated";
+                    } else if (dist[node] !== Infinity) {
+                        state = "dist-tentative";
+                    }
+
+                    const chip = document.createElement("span");
+                    chip.className = `chip dist-chip ${state}`;
+
+                    const name = document.createElement("b");
+                    name.textContent = node;
+
+                    const value = document.createElement("em");
+                    value.textContent = fmtShort(dist[node]);
+
+                    chip.appendChild(name);
+                    chip.appendChild(value);
+                    distanceDisplay.appendChild(chip);
+                });
+            }
+        }
+
+        // ---------------- CURRENT NODE ----------------
+
+        if (currentDisplay) {
+            currentDisplay.replaceChildren();
+
+            if (currentNode) {
+                currentDisplay.appendChild(
+                    makeChip(currentNode, "chip current-chip")
+                );
+            } else {
+                showEmpty(currentDisplay, algoFinished ? "Done" : "No node yet");
+            }
+        }
+
+        // ---------------- VISITED (finalized) ----------------
+
+        if (visitedDisplay) {
+            visitedDisplay.replaceChildren();
+
+            if (visited.length === 0) {
+                showEmpty(visitedDisplay, "None yet");
+            } else {
+                visited.forEach((node, index) => {
+                    const chip = makeChip(node, "chip visited-chip");
+
+                    const order = document.createElement("sup");
+                    order.className = "chip-order";
+                    order.textContent = index + 1;
+
+                    chip.appendChild(order);
+                    visitedDisplay.appendChild(chip);
+                });
+            }
+        }
+    }
+
+    // =====================================================
+    // UPDATE GRAPH COLORS, DISTANCES AND PATHS
+    // =====================================================
+
+    function updateGraphVisuals() {
+        const graphNodes = document.querySelectorAll(".graph-node");
+
+        graphNodes.forEach(circle => {
+            const node = circle.dataset.node;
+
+            circle.classList.remove(
+                "node-start",
+                "node-current",
+                "node-visited",
+                "node-tentative",
+                "node-updated"
+            );
+
+            if (node === startNode) {
+                circle.classList.add("node-start");
+            }
+
+            if (visited.includes(node)) {
+                circle.classList.add("node-visited");
+            } else if (dist[node] !== undefined && dist[node] !== Infinity) {
+                circle.classList.add("node-tentative");
+            }
+
+            if (node === lastUpdated) {
+                circle.classList.add("node-updated");
+            }
+
+            if (node === currentNode) {
+                circle.classList.add("node-current");
+            }
+        });
+
+        // Distance labels above nodes.
+        document.querySelectorAll(".graph-dist-label").forEach(label => {
+            const node = label.dataset.node;
+            const value = dist[node];
+
+            label.textContent = value === undefined ? "∞" : fmtShort(value);
+
+            label.classList.toggle(
+                "is-final",
+                visited.includes(node)
+            );
+        });
+
+        // Edge sets
+        const pathEdges = new Set();
+
+        for (let i = 0; i < highlightPath.length - 1; i++) {
+            pathEdges.add(edgeKey(highlightPath[i], highlightPath[i + 1]));
+        }
+
+        const treeEdges = new Set();
+
+        visited.forEach(node => {
+            if (prev[node]) {
+                treeEdges.add(edgeKey(node, prev[node]));
+            }
+        });
+
+        const activeKey = activeEdge
+            ? edgeKey(activeEdge.from, activeEdge.to)
+            : null;
+
+        document.querySelectorAll(".graph-edge").forEach(edge => {
+            const key = edgeKey(edge.dataset.from, edge.dataset.to);
+
+            edge.classList.toggle("edge-tree", treeEdges.has(key));
+            edge.classList.toggle("edge-path", pathEdges.has(key));
+            edge.classList.toggle("edge-active", key === activeKey);
+        });
+
+        document.querySelectorAll(".graph-weight").forEach(group => {
+            const key = edgeKey(group.dataset.from, group.dataset.to);
+
+            group.classList.toggle("weight-path", pathEdges.has(key));
+            group.classList.toggle("weight-active", key === activeKey);
+        });
+    }
+
+    // =====================================================
+    // UPDATE PROGRESS (finalized nodes)
+    // =====================================================
+
+    function updateProgress() {
+        const total = nodes.length;
+        const done = visited.length;
+
+        const percent = total > 0
+            ? Math.round((done / total) * 100)
+            : 0;
+
+        if (progressBar) {
+            progressBar.style.width = `${percent}%`;
+        }
+
+        if (progressPercent) {
+            progressPercent.textContent = `${percent}%`;
+        }
+
+        if (progressText) {
+            progressText.textContent = `${done}/${total} finalized`;
+        }
+    }
+
+    // =====================================================
+    // ERROR HANDLING
+    // =====================================================
+
+    function showError(message) {
+        if (errorMessage) {
+            errorMessage.textContent = message;
+        }
+    }
+
+    function clearError() {
+        if (errorMessage) {
+            errorMessage.textContent = "";
+        }
+    }
+
+    // =====================================================
+    // BUTTON EVENTS
+    // =====================================================
+
+    if (generateBtn) generateBtn.addEventListener("click", generateGraph);
+    if (startBtn) startBtn.addEventListener("click", startDijkstra);
+    if (nextBtn) nextBtn.addEventListener("click", nextStep);
+    if (resetBtn) resetBtn.addEventListener("click", resetDijkstra);
+
+    // Re-draw the graph if the window size changes (no scrolling involved).
+    let resizeTimer = null;
+
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(() => {
+            if (nodes.length > 0) {
+                renderGraph();
+            }
+        }, 150);
+    });
+
+    // =====================================================
+    // INITIAL STATE
+    // =====================================================
+
+    // Generate Graph is user-triggered, so the page never
+    // scrolls on its own when it loads.
+    renderPqDemo();
+    updateInformation();
+    updateProgress();
+
+    if (startBtn) startBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+
+    setStatus("Ready", "ready");
+
 });
-
-targetInput.addEventListener("change", () => {
-    pathResult.textContent = "Click Show Shortest Path to view the selected destination.";
-});
-
-generateGraph();

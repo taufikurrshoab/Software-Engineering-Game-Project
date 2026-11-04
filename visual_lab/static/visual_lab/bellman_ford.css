@@ -1,398 +1,1630 @@
+/* ==========================================================================
+   ThinkSphere - Bellman-Ford Visualizer
+   File: static/css/visual_lab/bellman_ford.css
+   Every rule is scoped under .bellman-ford-page to avoid conflicts.
+   ========================================================================== */
 
-* {
-    box-sizing: border-box;
+.bellman-ford-page {
+  --bf-bg: #0a0f1f;
+  --bf-bg-soft: #0e1528;
+  --bf-card: #111a31;
+  --bf-card-raised: #16213d;
+  --bf-border: rgba(129, 150, 214, 0.16);
+  --bf-border-strong: rgba(129, 150, 214, 0.32);
+  --bf-text: #e8ecf8;
+  --bf-text-soft: #aab4d1;
+  --bf-text-mute: #7683a8;
+  --bf-blue: #4f8cff;
+  --bf-purple: #8b6cf6;
+  --bf-green: #34d399;
+  --bf-amber: #fbbf24;
+  --bf-red: #f87171;
+  --bf-cyan: #38bdf8;
+  --bf-radius: 16px;
+  --bf-radius-sm: 10px;
+  --bf-shadow: 0 10px 30px rgba(3, 6, 18, 0.45);
+  --bf-gradient: linear-gradient(135deg, #4f8cff 0%, #8b6cf6 100%);
+  --bf-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  color: var(--bf-text);
+  font-family: inherit;
+  line-height: 1.6;
 }
 
-:root {
-    color-scheme: dark;
-    --bg: #0b1120;
-    --panel: #111a2b;
-    --panel2: #151f32;
-    --border: #293750;
-    --text: #e5eaf4;
-    --muted: #98a6bd;
-    --blue: #69b7ce;
-    --green: #35c98b;
-    --yellow: #f3c74f;
-    --purple: #a78bfa;
-    --red: #ff9292;
+.bellman-ford-page *,
+.bellman-ford-page *::before,
+.bellman-ford-page *::after {
+  box-sizing: border-box;
 }
 
-body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: Arial, Helvetica, sans-serif;
+.bellman-ford-page [hidden] {
+  display: none !important;
 }
 
-button, input, textarea, select {
-    font: inherit;
+.bellman-ford-page code {
+  font-family: var(--bf-mono);
+  font-size: 0.88em;
+  padding: 0.1em 0.4em;
+  border-radius: 6px;
+  background: rgba(79, 140, 255, 0.12);
+  color: #bcd2ff;
 }
 
-.page {
-    width: min(1150px, 94%);
-    margin: auto;
-    padding: 28px 0 40px;
+.bellman-ford-page strong {
+  color: var(--bf-text);
+  font-weight: 600;
 }
 
-.header {
-    margin-bottom: 26px;
+.bellman-ford-page p {
+  margin: 0;
 }
 
-.back-link {
-    display: inline-block;
-    margin-bottom: 22px;
-    color: var(--blue);
-    text-decoration: none;
-    font-weight: 700;
+.bellman-ford-page h1,
+.bellman-ford-page h2,
+.bellman-ford-page h3,
+.bellman-ford-page h4 {
+  margin: 0;
+  color: var(--bf-text);
+  line-height: 1.25;
 }
 
-.back-link:hover {
-    text-decoration: underline;
+.bellman-ford-page button:focus-visible,
+.bellman-ford-page input:focus-visible,
+.bellman-ford-page textarea:focus-visible {
+  outline: 2px solid var(--bf-blue);
+  outline-offset: 2px;
 }
 
-.eyebrow {
-    color: var(--blue);
-    font-size: 12px;
-    letter-spacing: 2px;
-    font-weight: 700;
+/* ---------- Cards ---------- */
+.bellman-ford-page .bf-card {
+  background: linear-gradient(180deg, var(--bf-card-raised) 0%, var(--bf-card) 100%);
+  border: 1px solid var(--bf-border);
+  border-radius: var(--bf-radius);
+  box-shadow: var(--bf-shadow);
+  padding: 1.25rem;
 }
 
-h1 {
-    font-size: clamp(30px, 5vw, 44px);
-    margin: 8px 0;
+/* ---------- Page intro ---------- */
+.bellman-ford-page .bf-intro {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto 2.5rem;
 }
 
-h1 span {
-    color: var(--blue);
+.bellman-ford-page .bf-eyebrow {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border: 1px solid var(--bf-border-strong);
+  border-radius: 999px;
+  background: rgba(79, 140, 255, 0.08);
+  color: #9db9ff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 
-.subtitle, .section-heading p, footer {
-    color: var(--muted);
-    line-height: 1.7;
+.bellman-ford-page .bf-title {
+  margin-top: 1rem;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 22px;
-    margin-bottom: 20px;
+.bellman-ford-page .bf-subtitle {
+  margin-top: 0.75rem;
+  color: var(--bf-text-soft);
+  font-size: 1.02rem;
 }
 
-.panel h2 {
-    margin: 0 0 16px;
-    font-size: 20px;
+/* ---------- Sections ---------- */
+.bellman-ford-page .bf-section {
+  margin-top: 3.25rem;
 }
 
-.field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+.bellman-ford-page .bf-section-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
-.field label {
-    font-size: 14px;
-    font-weight: 700;
+.bellman-ford-page .bf-section-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 12px;
+  background: var(--bf-gradient);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
 }
 
-.field input, .field textarea, .field select {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 12px;
-    background: #0d1525;
-    color: var(--text);
-    outline: none;
+.bellman-ford-page .bf-section-label {
+  color: #8da6e6;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
 }
 
-.field input:focus, .field textarea:focus, .field select:focus {
-    border-color: var(--blue);
+.bellman-ford-page .bf-section-title {
+  margin-top: 0.15rem;
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  font-weight: 700;
 }
 
-.field textarea {
-    resize: vertical;
-    line-height: 1.7;
+/* ---------- Buttons ---------- */
+.bellman-ford-page .bf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
 }
 
-.field small {
-    color: var(--muted);
-    line-height: 1.6;
+.bellman-ford-page .bf-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
-.button-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+.bellman-ford-page .bf-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-button {
-    padding: 11px 15px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    background: #1b2b45;
-    color: var(--text);
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
+.bellman-ford-page .bf-btn-primary {
+  background: var(--bf-gradient);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.35);
 }
 
-button:hover:not(:disabled) {
-    filter: brightness(1.15);
-    transform: translateY(-1px);
+.bellman-ford-page .bf-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 10px 28px rgba(99, 102, 241, 0.5);
 }
 
-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+.bellman-ford-page .bf-btn-secondary {
+  background: rgba(79, 140, 255, 0.14);
+  border-color: rgba(79, 140, 255, 0.45);
+  color: #cfe0ff;
 }
 
-button.primary {
-    background: var(--blue);
-    color: #07121c;
-    border-color: var(--blue);
+.bellman-ford-page .bf-btn-secondary:hover:not(:disabled) {
+  background: rgba(79, 140, 255, 0.24);
 }
 
-button.ghost {
-    background: transparent;
-    color: var(--muted);
+.bellman-ford-page .bf-btn-ghost {
+  background: transparent;
+  border-color: var(--bf-border-strong);
+  color: var(--bf-text-soft);
 }
 
-.error {
-    color: var(--red);
-    font-size: 14px;
-    line-height: 1.6;
+.bellman-ford-page .bf-btn-ghost:hover:not(:disabled) {
+  background: rgba(129, 150, 214, 0.1);
+  color: var(--bf-text);
 }
 
-.status {
-    color: var(--blue);
-    line-height: 1.7;
-    overflow-wrap: anywhere;
+.bellman-ford-page .bf-btn-small {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.84rem;
 }
 
-.legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin: 18px 4px;
-    color: var(--muted);
-    font-size: 13px;
+/* ---------- Chips ---------- */
+.bellman-ford-page .bf-chip {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--bf-border-strong);
+  background: rgba(129, 150, 214, 0.08);
+  color: var(--bf-text-soft);
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
-.legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+/* ==========================================================================
+   SECTION 01 - THEORY
+   ========================================================================== */
+.bellman-ford-page .bf-theory-intro {
+  color: var(--bf-text-soft);
+  font-size: 1rem;
 }
 
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+.bellman-ford-page .bf-concept-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.source-dot { background: var(--blue); }
-.current-dot { background: var(--yellow); }
-.updated-dot { background: var(--green); }
-.cycle-dot { background: var(--red); }
-
-.section-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+.bellman-ford-page .bf-concept-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--bf-border);
+  border-radius: var(--bf-radius);
+  background: var(--bf-card);
+  color: var(--bf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
 
-.section-heading h2 {
-    margin-bottom: 5px;
+.bellman-ford-page .bf-concept-card:hover {
+  border-color: var(--bf-border-strong);
+  transform: translateY(-2px);
 }
 
-.section-heading p {
-    margin: 0;
-    font-size: 13px;
+.bellman-ford-page .bf-concept-card.is-active {
+  border-color: var(--bf-blue);
+  background: linear-gradient(180deg, rgba(79, 140, 255, 0.16), rgba(139, 108, 246, 0.08));
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.35), var(--bf-shadow);
 }
 
-.badge {
-    border: 1px solid var(--border);
-    color: var(--blue);
-    border-radius: 20px;
-    padding: 7px 11px;
-    white-space: nowrap;
-    font-size: 12px;
+.bellman-ford-page .bf-concept-icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  background: rgba(79, 140, 255, 0.14);
+  color: #9db9ff;
 }
 
-#graph-container {
-    width: 100%;
-    overflow: auto;
-    background: #0d1525;
-    border: 1px solid var(--border);
-    border-radius: 12px;
+.bellman-ford-page .bf-concept-card.is-active .bf-concept-icon {
+  background: var(--bf-gradient);
+  color: #fff;
 }
 
-#graph-svg {
-    display: block;
-    min-width: 600px;
-    width: 100%;
-    height: auto;
+.bellman-ford-page .bf-concept-name {
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-.edge {
-    stroke: #3a4c6b;
-    stroke-width: 2.5;
+.bellman-ford-page .bf-concept-hint {
+  color: var(--bf-text-mute);
+  font-size: 0.84rem;
 }
 
-.edge.current-edge {
-    stroke: var(--yellow);
-    stroke-width: 4;
+.bellman-ford-page .bf-concept-panel {
+  margin-top: 1rem;
 }
 
-.edge.path-edge {
-    stroke: var(--purple);
-    stroke-width: 4.5;
+.bellman-ford-page .bf-concept-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.edge.cycle-edge {
-    stroke: var(--red);
-    stroke-width: 4;
+.bellman-ford-page .bf-concept-text h3 {
+  margin-bottom: 0.6rem;
+  font-size: 1.2rem;
 }
 
-.edge-label-bg {
-    fill: #0d1525;
-    stroke: #293750;
+.bellman-ford-page .bf-concept-text p {
+  color: var(--bf-text-soft);
 }
 
-.edge-label {
-    fill: var(--text);
-    text-anchor: middle;
-    dominant-baseline: central;
-    font-size: 13px;
-    font-weight: 700;
+.bellman-ford-page .bf-concept-text p + p {
+  margin-top: 0.7rem;
 }
 
-.node {
-    stroke-width: 3;
+/* Demos */
+.bellman-ford-page .bf-demo {
+  padding: 1rem;
+  border: 1px solid var(--bf-border);
+  border-radius: 14px;
+  background: var(--bf-bg-soft);
 }
 
-.node.normal {
-    fill: #17243a;
-    stroke: #50678c;
+.bellman-ford-page .bf-demo-svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.node.source {
-    fill: #15334a;
-    stroke: var(--blue);
+.bellman-ford-page .bf-demo-edge {
+  stroke: #6f82b5;
+  stroke-width: 2;
 }
 
-.node.updated {
-    fill: #153d34;
-    stroke: var(--green);
+.bellman-ford-page .bf-demo-edge-neg {
+  stroke: var(--bf-amber);
 }
 
-.node.path-node {
-    fill: #2a2041;
-    stroke: var(--purple);
-    stroke-width: 4;
+.bellman-ford-page .bf-demo-arrow {
+  fill: #8ea0d0;
 }
 
-.node.cycle-node {
-    fill: #4a2029;
-    stroke: var(--red);
-    stroke-width: 4;
+.bellman-ford-page .bf-demo-weight {
+  fill: #cdd7f2;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.node-label {
-    fill: var(--text);
-    font-size: 16px;
-    font-weight: 700;
-    text-anchor: middle;
-    dominant-baseline: central;
+.bellman-ford-page .bf-demo-weight-neg {
+  fill: var(--bf-amber);
 }
 
-.node-distance {
-    fill: var(--muted);
-    font-size: 12px;
-    text-anchor: middle;
+.bellman-ford-page .bf-demo-node {
+  fill: #1a2646;
+  stroke: #5f74ad;
+  stroke-width: 2;
 }
 
-.metrics {
-    display: grid;
+.bellman-ford-page .bf-demo-node-source {
+  fill: rgba(79, 140, 255, 0.28);
+  stroke: var(--bf-blue);
+}
+
+.bellman-ford-page .bf-demo-label {
+  fill: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.bellman-ford-page .bf-demo-caption {
+  margin-top: 0.6rem;
+  color: var(--bf-text-soft);
+  font-size: 0.88rem;
+}
+
+.bellman-ford-page .bf-demo-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.bellman-ford-page .bf-demo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: var(--bf-text-mute);
+  font-family: var(--bf-mono);
+  font-size: 0.78rem;
+}
+
+.bellman-ford-page .bf-demo-field input {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--bf-border-strong);
+  border-radius: 8px;
+  background: var(--bf-bg);
+  color: var(--bf-text);
+  font-family: var(--bf-mono);
+  font-size: 0.95rem;
+}
+
+.bellman-ford-page .bf-demo-equation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: var(--bf-bg);
+  border: 1px dashed var(--bf-border-strong);
+  font-family: var(--bf-mono);
+  font-size: 0.95rem;
+  color: #cfe0ff;
+}
+
+.bellman-ford-page .bf-demo-result {
+  margin-top: 0.75rem;
+  color: var(--bf-text-soft);
+  font-size: 0.9rem;
+}
+
+.bellman-ford-page .bf-demo-result.is-success {
+  color: var(--bf-green);
+}
+
+.bellman-ford-page .bf-demo-result.is-danger {
+  color: var(--bf-red);
+}
+
+.bellman-ford-page .bf-demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+/* Complexity */
+.bellman-ford-page .bf-complexity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.bellman-ford-page .bf-complexity-label {
+  color: var(--bf-text-mute);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.bellman-ford-page .bf-complexity-value {
+  margin-top: 0.35rem;
+  font-family: var(--bf-mono);
+  font-size: 1.7rem;
+  font-weight: 700;
+  background: var(--bf-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.bellman-ford-page .bf-complexity-note {
+  margin-top: 0.4rem;
+  color: var(--bf-text-soft);
+  font-size: 0.88rem;
+}
+
+.bellman-ford-page .bf-definition-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0;
+}
+
+.bellman-ford-page .bf-definition-list > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.bellman-ford-page .bf-definition-list dt {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(139, 108, 246, 0.18);
+  color: #cdbfff;
+  font-family: var(--bf-mono);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bellman-ford-page .bf-definition-list dd {
+  margin: 0;
+  color: var(--bf-text-soft);
+  font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   SECTION 02 - PSEUDOCODE
+   ========================================================================== */
+.bellman-ford-page .bf-pseudo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.bellman-ford-page .bf-code-panel {
+  padding: 0;
+  overflow: hidden;
+  background: var(--bf-bg-soft);
+}
+
+.bellman-ford-page .bf-panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--bf-border);
+  background: rgba(22, 33, 61, 0.7);
+}
+
+.bellman-ford-page .bf-panel-dots {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.bellman-ford-page .bf-panel-dots i {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #3a4a78;
+}
+
+.bellman-ford-page .bf-panel-title {
+  color: var(--bf-text-mute);
+  font-family: var(--bf-mono);
+  font-size: 0.8rem;
+}
+
+.bellman-ford-page .bf-code {
+  margin: 0;
+  padding: 0.6rem 0;
+  list-style: none;
+}
+
+.bellman-ford-page .bf-code-line {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  padding: 0.38rem 1rem 0.38rem 0;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: #c3cdea;
+  font-family: var(--bf-mono);
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bellman-ford-page .bf-code-line:hover {
+  background: rgba(79, 140, 255, 0.08);
+}
+
+.bellman-ford-page .bf-code-line.is-active {
+  background: rgba(79, 140, 255, 0.18);
+  border-left-color: var(--bf-blue);
+  color: #fff;
+}
+
+.bellman-ford-page .bf-code-line.is-running {
+  background: rgba(52, 211, 153, 0.14);
+  border-left-color: var(--bf-green);
+  color: #fff;
+}
+
+.bellman-ford-page .bf-line-no {
+  flex: 0 0 2.6rem;
+  padding-right: 0.8rem;
+  color: var(--bf-text-mute);
+  text-align: right;
+  user-select: none;
+}
+
+.bellman-ford-page .bf-line-code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bellman-ford-page .bf-code-line[data-indent="1"] .bf-line-code { padding-left: 1.5rem; }
+.bellman-ford-page .bf-code-line[data-indent="2"] .bf-line-code { padding-left: 3rem; }
+.bellman-ford-page .bf-code-line[data-indent="3"] .bf-line-code { padding-left: 4.5rem; }
+.bellman-ford-page .bf-code-line[data-indent="4"] .bf-line-code { padding-left: 6rem; }
+
+.bellman-ford-page .bf-explain-panel {
+  position: sticky;
+  top: 1.25rem;
+}
+
+.bellman-ford-page .bf-explain-label {
+  color: #8da6e6;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.bellman-ford-page .bf-explain-title {
+  margin-top: 0.5rem;
+  font-size: 1.15rem;
+}
+
+.bellman-ford-page .bf-explain-text {
+  margin-top: 0.6rem;
+  color: var(--bf-text-soft);
+}
+
+.bellman-ford-page .bf-explain-meta {
+  margin-top: 1rem;
+}
+
+/* ==========================================================================
+   SECTION 03 - CONFIGURATION
+   ========================================================================== */
+.bellman-ford-page .bf-config-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.bellman-ford-page .bf-config-form {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.bellman-ford-page .bf-field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.bellman-ford-page .bf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bellman-ford-page .bf-field label {
+  color: var(--bf-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.bellman-ford-page .bf-field input,
+.bellman-ford-page .bf-field textarea {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--bf-border-strong);
+  border-radius: var(--bf-radius-sm);
+  background: var(--bf-bg);
+  color: var(--bf-text);
+  font-family: var(--bf-mono);
+  font-size: 0.92rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bellman-ford-page .bf-field textarea {
+  min-height: 11rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.bellman-ford-page .bf-field input:focus,
+.bellman-ford-page .bf-field textarea:focus {
+  border-color: var(--bf-blue);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.2);
+}
+
+.bellman-ford-page .bf-field input.is-invalid,
+.bellman-ford-page .bf-field textarea.is-invalid {
+  border-color: var(--bf-red);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.bellman-ford-page .bf-field-help {
+  color: var(--bf-text-mute);
+  font-size: 0.82rem;
+}
+
+/* Switch */
+.bellman-ford-page .bf-toggle-row {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--bf-border);
+  border-radius: var(--bf-radius-sm);
+  background: var(--bf-bg-soft);
+}
+
+.bellman-ford-page .bf-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.bellman-ford-page .bf-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.bellman-ford-page .bf-switch-track {
+  position: relative;
+  width: 2.5rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: #2a3760;
+  transition: background 0.2s ease;
+}
+
+.bellman-ford-page .bf-switch-thumb {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.bellman-ford-page .bf-switch input:checked + .bf-switch-track {
+  background: var(--bf-gradient);
+}
+
+.bellman-ford-page .bf-switch input:checked + .bf-switch-track .bf-switch-thumb {
+  transform: translateX(1.1rem);
+}
+
+.bellman-ford-page .bf-switch input:focus-visible + .bf-switch-track {
+  outline: 2px solid var(--bf-blue);
+  outline-offset: 2px;
+}
+
+.bellman-ford-page .bf-switch-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* Errors */
+.bellman-ford-page .bf-form-error {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(248, 113, 113, 0.5);
+  border-radius: var(--bf-radius-sm);
+  background: rgba(248, 113, 113, 0.1);
+  color: #fecaca;
+}
+
+.bellman-ford-page .bf-form-error svg {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: var(--bf-red);
+}
+
+.bellman-ford-page .bf-form-error-title {
+  font-weight: 600;
+  color: #fecaca;
+}
+
+.bellman-ford-page .bf-form-error-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.88rem;
+}
+
+.bellman-ford-page .bf-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+/* Format panel */
+.bellman-ford-page .bf-format-title {
+  font-size: 1.05rem;
+}
+
+.bellman-ford-page .bf-format-pattern {
+  margin-top: 0.7rem;
+}
+
+.bellman-ford-page .bf-format-pattern code {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  background: var(--bf-bg);
+  border: 1px solid var(--bf-border-strong);
+  border-radius: 10px;
+}
+
+.bellman-ford-page .bf-format-example {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: var(--bf-bg-soft);
+  border: 1px solid var(--bf-border);
+}
+
+.bellman-ford-page .bf-format-example > code {
+  font-size: 1rem;
+}
+
+.bellman-ford-page .bf-format-arrow {
+  width: 100%;
+  max-width: 130px;
+  height: auto;
+}
+
+.bellman-ford-page .bf-format-example > p {
+  grid-column: 1 / -1;
+  color: var(--bf-text-soft);
+  font-size: 0.88rem;
+}
+
+.bellman-ford-page .bf-format-rules {
+  margin: 1rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--bf-text-soft);
+  font-size: 0.88rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.bellman-ford-page .bf-format-rules li::marker {
+  color: var(--bf-purple);
+}
+
+/* ==========================================================================
+   SECTION 04 - WORKSPACE
+   ========================================================================== */
+.bellman-ford-page .bf-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.bellman-ford-page .bf-workspace-left,
+.bellman-ford-page .bf-workspace-right {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.bellman-ford-page .bf-workspace-right {
+  position: sticky;
+  top: 1rem;
+}
+
+/* State cards */
+.bellman-ford-page .bf-state-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 0.9fr;
+  gap: 0.85rem;
+}
+
+.bellman-ford-page .bf-state-card {
+  padding: 0.95rem 1rem;
+  min-width: 0;
+}
+
+.bellman-ford-page .bf-state-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.bellman-ford-page .bf-state-icon {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 8px;
+  background: rgba(79, 140, 255, 0.15);
+  color: #9db9ff;
+}
+
+.bellman-ford-page .bf-state-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.bellman-ford-page .bf-state-empty {
+  color: var(--bf-text-mute);
+  font-size: 0.84rem;
+}
+
+/* Distance list */
+.bellman-ford-page .bf-distance-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 0.45rem;
+}
+
+.bellman-ford-page .bf-distance-list .bf-state-empty {
+  grid-column: 1 / -1;
+}
+
+.bellman-ford-page .bf-distance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.4rem 0.3rem;
+  border: 1px solid var(--bf-border);
+  border-radius: 10px;
+  background: var(--bf-bg-soft);
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.bellman-ford-page .bf-distance-node {
+  color: var(--bf-text-mute);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.bellman-ford-page .bf-distance-value {
+  font-family: var(--bf-mono);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--bf-text);
+}
+
+.bellman-ford-page .bf-distance-item.is-source {
+  border-color: rgba(79, 140, 255, 0.55);
+}
+
+.bellman-ford-page .bf-distance-item.is-infinite .bf-distance-value {
+  color: var(--bf-text-mute);
+}
+
+.bellman-ford-page .bf-distance-item.is-updated {
+  border-color: var(--bf-green);
+  background: rgba(52, 211, 153, 0.16);
+  transform: translateY(-2px);
+}
+
+.bellman-ford-page .bf-distance-item.is-updated .bf-distance-value {
+  color: #86efc0;
+}
+
+.bellman-ford-page .bf-distance-item.is-cycle {
+  border-color: var(--bf-red);
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.bellman-ford-page .bf-distance-item.is-cycle .bf-distance-value {
+  color: #fca5a5;
+}
+
+/* Current edge */
+.bellman-ford-page .bf-edge-readout {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bellman-ford-page .bf-edge-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+}
+
+.bellman-ford-page .bf-edge-key {
+  color: var(--bf-text-mute);
+}
+
+.bellman-ford-page .bf-edge-val {
+  font-family: var(--bf-mono);
+  font-weight: 700;
+  color: var(--bf-text);
+  text-align: right;
+}
+
+.bellman-ford-page .bf-edge-result {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  background: rgba(129, 150, 214, 0.12);
+  color: var(--bf-text-soft);
+}
+
+.bellman-ford-page .bf-edge-result[data-state="relaxed"] {
+  background: rgba(52, 211, 153, 0.18);
+  color: #86efc0;
+}
+
+.bellman-ford-page .bf-edge-result[data-state="unchanged"] {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fcd988;
+}
+
+.bellman-ford-page .bf-edge-result[data-state="skipped"] {
+  background: rgba(129, 150, 214, 0.16);
+  color: #b9c4e4;
+}
+
+.bellman-ford-page .bf-edge-result[data-state="cycle"] {
+  background: rgba(248, 113, 113, 0.2);
+  color: #fca5a5;
+}
+
+/* Pass */
+.bellman-ford-page .bf-pass-main {
+  font-family: var(--bf-mono);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.bellman-ford-page .bf-pass-main #passCurrent {
+  background: var(--bf-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.bellman-ford-page .bf-pass-sep {
+  color: var(--bf-text-mute);
+}
+
+.bellman-ford-page .bf-pass-note {
+  margin-top: 0.35rem;
+  color: var(--bf-text-mute);
+  font-size: 0.78rem;
+}
+
+/* Graph card */
+.bellman-ford-page .bf-graph-card {
+  padding: 1rem;
+}
+
+.bellman-ford-page .bf-graph-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.bellman-ford-page .bf-graph-title {
+  font-size: 1rem;
+}
+
+.bellman-ford-page .bf-graph-stage {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--bf-border);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(79, 140, 255, 0.08), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(139, 108, 246, 0.08), transparent 45%),
+    var(--bf-bg);
+}
+
+.bellman-ford-page .bf-graph-svg {
+  display: block;
+  width: 100%;
+  min-width: 480px;
+  height: auto;
+  aspect-ratio: 700 / 440;
+}
+
+.bellman-ford-page .bf-graph-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  color: var(--bf-text-mute);
+  font-size: 0.92rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Graph SVG elements (created by JavaScript) */
+.bellman-ford-page .bf-arrow-normal { fill: #6f82b5; }
+.bellman-ford-page .bf-arrow-current { fill: var(--bf-amber); }
+.bellman-ford-page .bf-arrow-updated { fill: var(--bf-green); }
+.bellman-ford-page .bf-arrow-path { fill: var(--bf-cyan); }
+.bellman-ford-page .bf-arrow-cycle { fill: var(--bf-red); }
+
+.bellman-ford-page .bf-edge {
+  fill: none;
+  stroke: #4c5e91;
+  stroke-width: 2;
+  transition: stroke 0.25s ease, stroke-width 0.25s ease, opacity 0.25s ease;
+}
+
+.bellman-ford-page .bf-edge.is-current {
+  stroke: var(--bf-amber);
+  stroke-width: 3.5;
+}
+
+.bellman-ford-page .bf-edge.is-updated {
+  stroke: var(--bf-green);
+  stroke-width: 3;
+}
+
+.bellman-ford-page .bf-edge.is-skipped {
+  stroke: #7683a8;
+  stroke-dasharray: 5 5;
+}
+
+.bellman-ford-page .bf-edge.is-path {
+  stroke: var(--bf-cyan);
+  stroke-width: 3.5;
+}
+
+.bellman-ford-page .bf-edge.is-cycle {
+  stroke: var(--bf-red);
+  stroke-width: 3.5;
+  stroke-dasharray: 8 4;
+}
+
+.bellman-ford-page .bf-edge.is-dim {
+  opacity: 0.35;
+}
+
+.bellman-ford-page .bf-edge-label-bg {
+  fill: var(--bf-bg);
+  stroke: var(--bf-border-strong);
+  stroke-width: 1;
+}
+
+.bellman-ford-page .bf-edge-label {
+  fill: #dbe3fa;
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.bellman-ford-page .bf-edge-label.is-negative {
+  fill: var(--bf-amber);
+}
+
+.bellman-ford-page .bf-edge-label.is-current {
+  fill: var(--bf-amber);
+}
+
+.bellman-ford-page .bf-node-circle {
+  fill: #1a2646;
+  stroke: #6076b4;
+  stroke-width: 2.5;
+  transition: fill 0.25s ease, stroke 0.25s ease;
+}
+
+.bellman-ford-page .bf-node.is-source .bf-node-circle {
+  fill: rgba(79, 140, 255, 0.32);
+  stroke: var(--bf-blue);
+  stroke-width: 3;
+}
+
+.bellman-ford-page .bf-node.is-current .bf-node-circle {
+  stroke: var(--bf-amber);
+  stroke-width: 3.5;
+}
+
+.bellman-ford-page .bf-node.is-updated .bf-node-circle {
+  fill: rgba(52, 211, 153, 0.3);
+  stroke: var(--bf-green);
+  stroke-width: 3.5;
+}
+
+.bellman-ford-page .bf-node.is-path .bf-node-circle {
+  fill: rgba(56, 189, 248, 0.24);
+  stroke: var(--bf-cyan);
+  stroke-width: 3;
+}
+
+.bellman-ford-page .bf-node.is-cycle .bf-node-circle {
+  fill: rgba(248, 113, 113, 0.26);
+  stroke: var(--bf-red);
+  stroke-width: 3.5;
+}
+
+.bellman-ford-page .bf-node.is-unreachable .bf-node-circle {
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+}
+
+.bellman-ford-page .bf-node-label {
+  fill: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.bellman-ford-page .bf-node-dist {
+  fill: #cfe0ff;
+  font-family: var(--bf-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.bellman-ford-page .bf-node.is-updated .bf-node-dist {
+  fill: #86efc0;
+}
+
+/* Legend */
+.bellman-ford-page .bf-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--bf-text-soft);
+  font-size: 0.8rem;
+}
+
+.bellman-ford-page .bf-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bellman-ford-page .bf-legend-swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 2px solid;
+}
+
+.bellman-ford-page .bf-swatch-source  { border-color: var(--bf-blue);  background: rgba(79, 140, 255, 0.32); }
+.bellman-ford-page .bf-swatch-current { border-color: var(--bf-amber); background: rgba(251, 191, 36, 0.25); }
+.bellman-ford-page .bf-swatch-updated { border-color: var(--bf-green); background: rgba(52, 211, 153, 0.3); }
+.bellman-ford-page .bf-swatch-normal  { border-color: #6076b4;         background: #1a2646; }
+.bellman-ford-page .bf-swatch-path    { border-color: var(--bf-cyan);  background: rgba(56, 189, 248, 0.25); }
+.bellman-ford-page .bf-swatch-cycle   { border-color: var(--bf-red);   background: rgba(248, 113, 113, 0.28); }
+
+/* Description */
+.bellman-ford-page .bf-description-card {
+  border-color: var(--bf-border-strong);
+}
+
+.bellman-ford-page .bf-description-heading {
+  color: #9db9ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.bellman-ford-page .bf-description-body {
+  margin-top: 0.75rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.bellman-ford-page .bf-description-lead {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--bf-text);
+}
+
+.bellman-ford-page .bf-description-text {
+  margin-top: 0.5rem;
+  color: var(--bf-text-soft);
+  font-size: 0.93rem;
+}
+
+.bellman-ford-page .bf-description-facts {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bellman-ford-page .bf-description-facts:empty {
+  display: none;
+}
+
+.bellman-ford-page .bf-description-facts li {
+  padding: 0.5rem 0.7rem;
+  border-left: 3px solid var(--bf-blue);
+  border-radius: 6px;
+  background: var(--bf-bg-soft);
+  color: var(--bf-text-soft);
+  font-size: 0.86rem;
+}
+
+.bellman-ford-page .bf-description-facts li.is-success { border-left-color: var(--bf-green); }
+.bellman-ford-page .bf-description-facts li.is-warning { border-left-color: var(--bf-amber); }
+.bellman-ford-page .bf-description-facts li.is-danger  { border-left-color: var(--bf-red); }
+
+.bellman-ford-page .bf-description-card[data-state="danger"] {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.bellman-ford-page .bf-description-card[data-state="success"] {
+  border-color: rgba(52, 211, 153, 0.45);
+}
+
+/* Progress */
+.bellman-ford-page .bf-progress-card {
+  padding: 1rem 1.15rem;
+}
+
+.bellman-ford-page .bf-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.bellman-ford-page .bf-progress-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.bellman-ford-page .bf-progress-value {
+  color: #9db9ff;
+  font-family: var(--bf-mono);
+  font-weight: 700;
+}
+
+.bellman-ford-page .bf-progress-track {
+  height: 0.55rem;
+  margin-top: 0.6rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1c2748;
+}
+
+.bellman-ford-page .bf-progress-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--bf-gradient);
+  transition: width 0.3s ease;
+}
+
+.bellman-ford-page .bf-progress-track.is-danger .bf-progress-fill {
+  background: linear-gradient(135deg, #f87171, #fb923c);
+}
+
+.bellman-ford-page .bf-progress-sub {
+  margin-top: 0.5rem;
+  color: var(--bf-text-mute);
+  font-size: 0.8rem;
+}
+
+/* Controls */
+.bellman-ford-page .bf-controls-card {
+  padding: 0.9rem 1rem;
+}
+
+.bellman-ford-page .bf-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.bellman-ford-page .bf-controls .bf-btn-primary {
+  flex: 1 1 100%;
+}
+
+.bellman-ford-page .bf-controls .bf-btn-secondary,
+.bellman-ford-page .bf-controls .bf-btn-ghost {
+  flex: 1 1 0;
+}
+
+/* Result card */
+.bellman-ford-page .bf-result-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.bellman-ford-page .bf-result-banner {
+  padding: 0.8rem 1rem;
+  border-radius: var(--bf-radius-sm);
+  border: 1px solid rgba(52, 211, 153, 0.45);
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.bellman-ford-page .bf-result-banner[data-state="danger"] {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.bellman-ford-page .bf-result-banner-title {
+  font-weight: 700;
+  color: #86efc0;
+}
+
+.bellman-ford-page .bf-result-banner[data-state="danger"] .bf-result-banner-title {
+  color: #fca5a5;
+}
+
+.bellman-ford-page .bf-result-banner-text {
+  margin-top: 0.25rem;
+  color: var(--bf-text-soft);
+  font-size: 0.88rem;
+}
+
+.bellman-ford-page .bf-result-heading {
+  margin-bottom: 0.6rem;
+  font-size: 0.92rem;
+}
+
+.bellman-ford-page .bf-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--bf-border);
+  border-radius: 12px;
+}
+
+.bellman-ford-page .bf-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.bellman-ford-page .bf-result-table th,
+.bellman-ford-page .bf-result-table td {
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--bf-border);
+  white-space: nowrap;
+}
+
+.bellman-ford-page .bf-result-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.bellman-ford-page .bf-result-table th {
+  background: rgba(22, 33, 61, 0.8);
+  color: var(--bf-text-mute);
+  font-weight: 600;
+  font-size: 0.76rem;
+}
+
+.bellman-ford-page .bf-result-table td {
+  font-family: var(--bf-mono);
+  color: var(--bf-text);
+}
+
+.bellman-ford-page .bf-result-table td:last-child {
+  font-family: inherit;
+}
+
+.bellman-ford-page .bf-result-table tr.is-unreachable td {
+  color: var(--bf-text-mute);
+}
+
+.bellman-ford-page .bf-result-table tr.is-affected td {
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.07);
+}
+
+.bellman-ford-page .bf-badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: rgba(52, 211, 153, 0.16);
+  color: #86efc0;
+}
+
+.bellman-ford-page .bf-badge.is-muted {
+  background: rgba(129, 150, 214, 0.14);
+  color: #b9c4e4;
+}
+
+.bellman-ford-page .bf-badge.is-danger {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+}
+
+.bellman-ford-page .bf-result-cycle-path {
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px dashed rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.08);
+  color: #fecaca;
+  font-family: var(--bf-mono);
+  font-size: 0.9rem;
+}
+
+.bellman-ford-page .bf-result-note {
+  margin-top: 0.6rem;
+  color: var(--bf-text-soft);
+  font-size: 0.86rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .bellman-ford-page .bf-state-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bellman-ford-page .bf-state-distance {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 960px) {
+  .bellman-ford-page .bf-workspace,
+  .bellman-ford-page .bf-pseudo-layout,
+  .bellman-ford-page .bf-config-layout,
+  .bellman-ford-page .bf-concept-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bellman-ford-page .bf-workspace-right,
+  .bellman-ford-page .bf-explain-panel {
+    position: static;
+  }
+
+  .bellman-ford-page .bf-complexity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bellman-ford-page .bf-legend-card {
+    grid-column: 1 / -1;
+  }
+
+  .bellman-ford-page .bf-description-body {
+    max-height: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .bellman-ford-page {
+    padding: 1.25rem 0.85rem 3rem;
+  }
+
+  .bellman-ford-page .bf-section {
+    margin-top: 2.5rem;
+  }
+
+  .bellman-ford-page .bf-card {
+    padding: 1rem;
+  }
+
+  .bellman-ford-page .bf-concept-grid,
+  .bellman-ford-page .bf-complexity-grid,
+  .bellman-ford-page .bf-field-row,
+  .bellman-ford-page .bf-state-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bellman-ford-page .bf-demo-controls {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 18px;
+  }
+
+  .bellman-ford-page .bf-line-no {
+    flex-basis: 2.2rem;
+    padding-right: 0.5rem;
+  }
+
+  .bellman-ford-page .bf-code-line {
+    font-size: 0.8rem;
+  }
+
+  .bellman-ford-page .bf-code-line[data-indent="1"] .bf-line-code { padding-left: 0.8rem; }
+  .bellman-ford-page .bf-code-line[data-indent="2"] .bf-line-code { padding-left: 1.6rem; }
+  .bellman-ford-page .bf-code-line[data-indent="3"] .bf-line-code { padding-left: 2.4rem; }
+  .bellman-ford-page .bf-code-line[data-indent="4"] .bf-line-code { padding-left: 3.2rem; }
+
+  .bellman-ford-page .bf-form-actions .bf-btn {
+    flex: 1 1 100%;
+  }
+
+  .bellman-ford-page .bf-graph-svg {
+    min-width: 440px;
+  }
+
+  .bellman-ford-page .bf-controls .bf-btn-secondary,
+  .bellman-ford-page .bf-controls .bf-btn-ghost {
+    flex: 1 1 100%;
+  }
 }
 
-.metric {
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    min-width: 0;
-}
-
-.metric span {
-    display: block;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 9px;
-}
-
-.metric strong {
-    font-size: 20px;
-    overflow-wrap: anywhere;
-}
-
-.distance-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 10px;
-}
-
-.distance-item {
-    border: 1px solid var(--border);
-    background: var(--panel2);
-    border-radius: 10px;
-    padding: 13px;
-}
-
-.distance-item.updated {
-    border-color: var(--green);
-}
-
-.distance-item .name {
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.distance-item strong {
-    display: block;
-    margin-top: 8px;
-    font-size: 21px;
-}
-
-.distance-item small {
-    display: block;
-    margin-top: 6px;
-    color: var(--muted);
-}
-
-footer {
-    text-align: center;
-    padding-top: 10px;
-    font-size: 13px;
-}
-
-@media (max-width: 650px) {
-    .panel {
-        padding: 16px;
-    }
-
-    .metrics {
-        grid-template-columns: 1fr;
-    }
-
-    .button-row button {
-        flex: 1 1 130px;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .bellman-ford-page *,
+  .bellman-ford-page *::before,
+  .bellman-ford-page *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
