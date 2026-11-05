@@ -181,8 +181,3 @@
     .vlt-open{margin-left:0;width:100%}
     .vlt-bay{min-height:600px}
 }
-@media (prefers-reduced-motion:reduce){
-    .vlt *,.vlt *::before,.vlt *::after{animation:none!important;transition:none!important}
-    .vlt-edge{stroke-dasharray:none;stroke-dashoffset:0}
-    .vlt-pop{opacity:1}
-}

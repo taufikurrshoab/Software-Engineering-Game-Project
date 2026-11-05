@@ -23,11 +23,11 @@
         <header class="vlt-head" id="vlt-head">
             {% if user.is_authenticated %}<p class="vlt-hello">Welcome back, {{ user.username }}</p>{% endif %}
             <h1 class="vlt-title" id="vlt-title">Visual Lab</h1>
-            <p class="vlt-hint">Select any node to explore its algorithm.</p>
+            <p class="vlt-hint">Select any node. Press Esc to return to the tree.</p>
         </header>
 
         <div class="vlt-treewrap">
-            <svg class="vlt-tree" id="vlt-tree" role="group" aria-label="Algorithm tree. Each node is an algorithm you can select."></svg>
+            <svg class="vlt-tree" id="vlt-tree" viewBox="0 0 1000 450" role="group" aria-label="Algorithm tree. Each node is an algorithm you can select."></svg>
         </div>
 
         <svg class="vlt-trail" aria-hidden="true"><path id="vlt-trailp" pathLength="1" d=""></path></svg>

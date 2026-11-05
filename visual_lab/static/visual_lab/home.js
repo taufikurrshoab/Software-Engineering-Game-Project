@@ -3,9 +3,12 @@
   "use strict";
   const $ = (s, r = document) => r.querySelector(s);
   const NS = "http://www.w3.org/2000/svg";
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // The tree build and the node travel are the identity of this page, so they always play.
+  // Set to true to make them skip when the OS has "reduce motion" turned on.
+  const RESPECT_REDUCED_MOTION = false;
+  const reduce = RESPECT_REDUCED_MOTION && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
-  const D = reduce ? 1 : 950;
+  const D = reduce ? 1 : 1700;
 
   /* ---------- Tree ---------- */
   const BR = { traversal: ["Graph traversal", "--primary"], path: ["Shortest path", "--accent"], play: ["Game AI", "--secondary"] };
@@ -179,6 +182,7 @@
 
   // Intro: the tree grows, then the title and hint appear
   (async () => {
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const total = buildTree(true);
     await wait(total);
     built = true; tree.classList.add("vlt-built");
