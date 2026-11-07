@@ -1,0 +1,68 @@
+{% extends 'academic/academic_base.html' %}
+
+{% block academic_title %}Semesters{% endblock %}
+
+{% block academic_content %}
+<header class="ac-page-head" data-reveal>
+    <div>
+        <span class="ac-eyebrow">Manage</span>
+        <h1 class="ac-title">Semesters</h1>
+        <p class="ac-subtitle">Everything in Academic follows your active semester. Switch terms, edit dates or start a new one.</p>
+    </div>
+    <div class="ac-head-actions">
+        <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>New semester</a>
+    </div>
+</header>
+
+{% if semesters %}
+<div class="ac-grid ac-grid--2">
+    {% for s in semesters %}
+    <article class="ac-card ac-semester-card{% if s.is_active %} is-active{% endif %}" data-reveal>
+        <div class="ac-semester-card__top">
+            <div>
+                <h2 class="ac-semester-card__name">{{ s.name }}</h2>
+                <p class="ac-semester-card__dates">
+                    {{ s.start_date|date:"d M Y" }} &ndash; {{ s.end_date|date:"d M Y" }}
+                    &middot; {% if s.end_date < today %}Ended{% elif s.start_date > today %}Upcoming{% else %}In progress{% endif %}
+                </p>
+            </div>
+            {% if s.is_active %}<span class="ac-badge ac-badge--accent">Active</span>{% endif %}
+        </div>
+
+        <p class="ac-meta">
+            <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg><strong>{{ s.course_total }}</strong> course{{ s.course_total|pluralize }}</span>
+            <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clock"/></svg><strong>{{ s.class_total }}</strong> weekly class{{ s.class_total|pluralize:"es" }}</span>
+        </p>
+
+        <div class="ac-card-actions">
+            {% if s.is_active %}
+            <a class="ac-btn ac-btn--ghost ac-btn--sm" href="{% url 'academic:home' %}">Open dashboard</a>
+            {% else %}
+            <form method="post" action="{% url 'academic:semester_activate' s.pk %}" class="ac-inline-form">
+                {% csrf_token %}
+                <button type="submit" class="ac-btn ac-btn--primary ac-btn--sm">Set active</button>
+            </form>
+            {% endif %}
+            <a class="ac-btn ac-btn--ghost ac-btn--sm" href="{% url 'academic:semester_edit' s.pk %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pencil"/></svg>Edit</a>
+            <form method="post" action="{% url 'academic:semester_delete' s.pk %}" class="ac-inline-form"
+                  data-ac-confirm="Delete {{ s.name }} with all its courses, routine, attendance, holidays and assignments? This cannot be undone."
+                  data-ac-confirm-title="Delete semester?" data-ac-confirm-label="Delete">
+                {% csrf_token %}
+                <button type="submit" class="ac-btn ac-btn--danger ac-btn--sm">
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg>Delete</button>
+            </form>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="ac-empty" data-reveal>
+    <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-layers"/></svg></span>
+    <p class="ac-empty__title">No semesters yet</p>
+    <p class="ac-empty__text">Create your first semester to start adding courses and classes.</p>
+    <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">Create semester</a>
+</div>
+{% endif %}
+{% endblock %}
