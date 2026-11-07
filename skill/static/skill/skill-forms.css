@@ -95,3 +95,29 @@
     .skill-page .skill-form .skill-form-actions { flex-direction: column-reverse; }
     .skill-page .skill-form .skill-form-actions .skill-btn { width: 100%; }
 }
+/* Optional start-assessment control on the new-skill form */
+.skill-page .skill-assessment-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--sk-border);
+    border-radius: var(--sk-r-md);
+    background: var(--sk-overlay);
+    color: var(--sk-text);
+    cursor: pointer;
+}
+.skill-page .skill-assessment-choice:has(input:checked) {
+    border-color: var(--sk-primary);
+    background: var(--sk-primary-soft);
+}
+.skill-page .skill-assessment-choice input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    margin: 2px 0 0;
+    accent-color: var(--sk-primary);
+}
+.skill-assessment-choice__copy { display: grid; gap: 4px; }
+.skill-assessment-choice__copy strong { color: var(--sk-text); font-size: .92rem; }
+.skill-assessment-choice__copy small { color: var(--sk-muted); font-size: .8rem; line-height: 1.5; }

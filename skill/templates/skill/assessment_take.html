@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ assessment.skill.name }} assessment | ThinkSphere{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+<link rel="stylesheet" href="{% static 'skill/assessment.css' %}">
+{% endblock %}
+{% block content %}
+<div class="skill-page">
+<section class="skill-section">
+  <div class="skill-container assessment-wrap">
+    <a href="{% url 'skill:home' %}" class="skill-back">&larr; Back to skills</a>
+    <div class="assessment-card">
+      <div class="assessment-topline">
+        <span class="skill-eyebrow">Adaptive AI assessment</span>
+        <span class="assessment-difficulty">{% if question %}{{ question.get_difficulty_display }}{% else %}Preparing{% endif %}</span>
+      </div>
+      <h1 class="skill-title">{{ assessment.skill.name }}</h1>
+      <p class="skill-lead">Answer {{ assessment.total_questions }} questions. The next question adapts to your previous answer.</p>
+      <div class="assessment-progress">
+        <div class="assessment-progress__labels">
+          <span>Question {{ assessment.answered_questions|add:1 }} of {{ assessment.total_questions }}</span>
+          <strong>{% widthratio assessment.answered_questions assessment.total_questions 100 %}% complete</strong>
+        </div>
+        <div class="assessment-progress__track">
+          <span style="width:{% widthratio assessment.answered_questions assessment.total_questions 100 %}%"></span>
+        </div>
+      </div>
+
+      {% if question %}
+      <div class="assessment-question">
+        <div class="assessment-topic">{{ question.topic|default:"Knowledge check" }}</div>
+        <h2>{{ question.question_text|linebreaksbr }}</h2>
+        <form method="post" action="{% url 'skill:assessment_answer' assessment.pk question.pk %}">
+          {% csrf_token %}
+          <div class="assessment-options">
+            {% for option in question.options %}
+            <label class="assessment-option">
+              <input type="radio" name="choice" value="{{ forloop.counter0 }}" required>
+              <span class="assessment-option__letter">{{ forloop.counter|add:0 }}</span>
+              <span>{{ option|linebreaksbr }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <button type="submit" class="skill-btn skill-btn--primary assessment-submit">Submit answer</button>
+        </form>
+      </div>
+      {% else %}
+      <div class="assessment-wait">
+        <div class="assessment-spinner" aria-hidden="true"></div>
+        <h2>Preparing your next question</h2>
+        <p>We couldn't load a question just now. Your saved progress is safe.</p>
+        <a href="{% url 'skill:assessment_take' assessment.pk %}" class="skill-btn skill-btn--primary">Try again</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+</div>
+{% endblock %}

@@ -1,12 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import ProjectForm, SkillForm, SkillProgressForm
-from .models import Project, Skill
-from .recommendations import STARTER_SKILLS, next_skills_for
+from .forms import ProjectForm, SkillForm
+from .models import Assessment, Project, Skill
+from .recommendations import STARTER_SKILLS, next_skills_for, refresh_learning_recommendations
 
 JUST_COMPLETED_KEY = "skill_just_completed"
 
@@ -39,7 +38,7 @@ def remember_completion(request, skill, was_completed):
 
 @login_required
 def home(request):
-    user_skills = Skill.objects.filter(user=request.user)
+    user_skills = Skill.objects.filter(user=request.user).select_related("parent")
     project_qs = Project.objects.filter(user=request.user)
 
     # State A: nothing yet -> welcome page
@@ -53,13 +52,21 @@ def home(request):
     skills = list(user_skills)
     owned_names = {s.name.lower() for s in skills}
 
-    stats = user_skills.aggregate(
-        total=Count("id"),
-        completed=Count("id", filter=Q(status=Skill.Status.COMPLETED)),
-        in_progress=Count("id", filter=Q(status=Skill.Status.IN_PROGRESS)),
-        average=Avg("progress"),
-    )
-    stats["average"] = round(stats["average"] or 0)
+    assessed_skill_ids = set(Assessment.objects.filter(
+        user=request.user, status=Assessment.Status.COMPLETED
+    ).values_list("skill_id", flat=True).distinct())
+    for skill in skills:
+        skill.has_assessment = skill.pk in assessed_skill_ids
+
+    assessed_skills = [skill for skill in skills if skill.has_assessment]
+    stats = {
+        "total": len(skills),
+        "completed": sum(skill.status == Skill.Status.COMPLETED for skill in assessed_skills),
+        "in_progress": sum(skill.status == Skill.Status.IN_PROGRESS for skill in assessed_skills),
+        "average": round(
+            sum(skill.progress for skill in assessed_skills) / len(assessed_skills)
+        ) if assessed_skills else 0,
+    }
 
     # Projects, grouped under every skill they are linked to
     all_projects = list(project_qs.prefetch_related("technologies", "related_skills"))
@@ -68,13 +75,13 @@ def home(request):
         for skill in project.related_skills.all():
             projects_by_skill.setdefault(skill.pk, []).append(project)
 
-    # One suggestion block per completed skill that still has open suggestions
-    recommendations = []
-    for s in skills:
-        if s.is_completed:
-            names = open_suggestions(s, owned_names)
-            if names:
-                recommendations.append({"skill": s, "names": names})
+    # Personalized AI next-step suggestions for every skill entry. Results are
+    # persisted and regenerated only when proficiency changes or on request.
+    recommendation_map = refresh_learning_recommendations(request.user, skills)
+    recommendations = [
+        {"skill": skill, "items": recommendation_map.get(skill.pk, [])}
+        for skill in skills
+    ]
 
     # Banner shown once after completing a skill
     just_completed, just_completed_names = None, []
@@ -84,8 +91,28 @@ def home(request):
         if just_completed:
             just_completed_names = open_suggestions(just_completed, owned_names)
 
+    skill_assessments = []
+    for skill in skills:
+        completed_attempts = Assessment.objects.filter(
+            user=request.user, skill=skill, status=Assessment.Status.COMPLETED
+        )
+        skill_assessments.append({
+            "skill": skill,
+            "latest": completed_attempts.first(),
+            "attempt_count": completed_attempts.count(),
+            "active": Assessment.objects.filter(
+                user=request.user, skill=skill, status=Assessment.Status.ACTIVE
+            ).first(),
+        })
+
+    assessment_history = Assessment.objects.filter(
+        user=request.user, status=Assessment.Status.COMPLETED
+    ).select_related("skill")[:8]
+
     return render(request, "skill/home.html", {
         "configured": True,
+        "skill_assessments": skill_assessments,
+        "assessment_history": assessment_history,
         "skills": skills,
         "tree": build_tree(skills, projects_by_skill),
         "stats": stats,
@@ -118,6 +145,15 @@ def skill_create(request):
         if form.is_valid():
             skill = form.save()
             remember_completion(request, skill, was_completed=False)
+            if form.cleaned_data.get("start_assessment"):
+                assessment = Assessment.objects.create(
+                    user=request.user,
+                    skill=skill,
+                    total_questions=5,
+                    next_difficulty="beginner",
+                )
+                messages.success(request, f"{skill.name} was added. Your assessment is starting now.")
+                return redirect("skill:assessment_take", assessment_id=assessment.pk)
             messages.success(request, f"{skill.name} added to your skill tree.")
             return redirect("skill:home")
     else:
@@ -143,27 +179,21 @@ def skill_edit(request, pk):
 
 @login_required
 @require_POST
-def skill_progress(request, pk):
-    """Quick progress update from the dashboard (plain form POST)."""
-    skill = get_object_or_404(Skill, pk=pk, user=request.user)
-    form = SkillProgressForm(request.POST)
-    if form.is_valid():
-        was_completed = skill.is_completed
-        skill.progress = form.cleaned_data["progress"]
-        skill.save()
-        remember_completion(request, skill, was_completed)
-    else:
-        messages.error(request, "Progress must be a number from 0 to 100.")
-    return redirect("skill:home")
-
-
-@login_required
-@require_POST
 def skill_delete(request, pk):
     skill = get_object_or_404(Skill, pk=pk, user=request.user)
     name = skill.name
     skill.delete()  # children become top-level skills
     messages.success(request, f"{name} deleted.")
+    return redirect("skill:home")
+
+
+@login_required
+@require_POST
+def recommendations_refresh(request):
+    """Force-regenerate AI learning suggestions for this user's skills."""
+    skills = list(Skill.objects.filter(user=request.user).select_related("parent"))
+    refresh_learning_recommendations(request.user, skills, force=True)
+    messages.success(request, "Your learning suggestions have been refreshed (AI-generated where available).")
     return redirect("skill:home")
 
 

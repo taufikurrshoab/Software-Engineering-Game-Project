@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .forms import SkillForm
-from .models import Skill, Project
+from .models import Assessment, Skill, Project, LearningRecommendation
 
 User = get_user_model()
 
@@ -28,8 +28,14 @@ class AccessTests(SkillTestBase):
         self.assertContains(response, "Start My Skill Journey")
 
     def test_user_with_skills_sees_dashboard_with_real_numbers(self):
-        Skill.objects.create(user=self.alice, name="Python", progress=100)
-        Skill.objects.create(user=self.alice, name="Django", progress=50)
+        python = Skill.objects.create(user=self.alice, name="Python", progress=100)
+        django = Skill.objects.create(user=self.alice, name="Django", progress=50)
+        Assessment.objects.create(
+            user=self.alice, skill=python, status=Assessment.Status.COMPLETED, score=100,
+        )
+        Assessment.objects.create(
+            user=self.alice, skill=django, status=Assessment.Status.COMPLETED, score=50,
+        )
         response = self.client.get(reverse("skill:home"))
         self.assertTrue(response.context["configured"])
         stats = response.context["stats"]
@@ -53,14 +59,6 @@ class OwnershipTests(SkillTestBase):
     def test_cannot_edit_other_users_skill(self):
         response = self.client.get(reverse("skill:skill_edit", args=[self.bobs_skill.pk]))
         self.assertEqual(response.status_code, 404)
-
-    def test_cannot_update_progress_of_other_users_skill(self):
-        response = self.client.post(
-            reverse("skill:skill_progress", args=[self.bobs_skill.pk]), {"progress": 90}
-        )
-        self.assertEqual(response.status_code, 404)
-        self.bobs_skill.refresh_from_db()
-        self.assertEqual(self.bobs_skill.progress, 10)
 
     def test_cannot_delete_other_users_skill(self):
         response = self.client.post(reverse("skill:skill_delete", args=[self.bobs_skill.pk]))
@@ -87,18 +85,23 @@ class SkillCreationTests(SkillTestBase):
         })
         self.assertRedirects(response, reverse("skill:home"))
         skill = Skill.objects.get(user=self.alice, name="Python")
-        self.assertEqual(skill.status, Skill.Status.COMPLETED)
+        self.assertEqual(skill.status, Skill.Status.NOT_STARTED)
+        self.assertEqual(skill.progress, 0)
+
+    def test_create_skill_can_start_assessment_immediately(self):
+        response = self.client.post(reverse("skill:skill_create"), {
+            "name": "Java", "category": "programming", "parent": "",
+            "start_assessment": "on",
+        })
+        skill = Skill.objects.get(user=self.alice, name="Java")
+        attempt = Assessment.objects.get(user=self.alice, skill=skill)
+        self.assertRedirects(response, reverse("skill:assessment_take", args=[attempt.pk]))
+        self.assertEqual(attempt.total_questions, 5)
+        self.assertEqual(attempt.status, Assessment.Status.ACTIVE)
 
     def test_empty_name_is_rejected(self):
         response = self.client.post(reverse("skill:skill_create"), {
             "name": "", "category": "other", "parent": "", "progress": 0,
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(Skill.objects.count(), 0)
-
-    def test_progress_out_of_range_is_rejected(self):
-        response = self.client.post(reverse("skill:skill_create"), {
-            "name": "Python", "category": "other", "parent": "", "progress": 150,
         })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Skill.objects.count(), 0)
@@ -119,9 +122,15 @@ class SkillCreationTests(SkillTestBase):
         self.assertTrue(Skill.objects.filter(user=self.alice, name="Python").exists())
 
     def test_completing_a_skill_shows_recommendations_once(self):
-        self.client.post(reverse("skill:skill_create"), {
-            "name": "Python", "category": "programming", "parent": "", "progress": 100,
-        })
+        python = Skill.objects.create(
+            user=self.alice, name="Python", category="programming", progress=100,
+        )
+        Assessment.objects.create(
+            user=self.alice, skill=python, status=Assessment.Status.COMPLETED, score=100,
+        )
+        session = self.client.session
+        session["skill_just_completed"] = python.pk
+        session.save()
         first = self.client.get(reverse("skill:home"))
         self.assertEqual(first.context["just_completed"].name, "Python")
         self.assertEqual(first.context["just_completed_names"], ["Django", "Machine Learning"])
@@ -130,11 +139,60 @@ class SkillCreationTests(SkillTestBase):
 
     def test_recommendation_hidden_if_user_already_has_it(self):
         Skill.objects.create(user=self.alice, name="Django")
-        self.client.post(reverse("skill:skill_create"), {
-            "name": "Python", "category": "programming", "parent": "", "progress": 100,
-        })
+        python = Skill.objects.create(
+            user=self.alice, name="Python", category="programming", progress=100,
+        )
+        Assessment.objects.create(
+            user=self.alice, skill=python, status=Assessment.Status.COMPLETED, score=100,
+        )
+        session = self.client.session
+        session["skill_just_completed"] = python.pk
+        session.save()
         response = self.client.get(reverse("skill:home"))
         self.assertEqual(response.context["just_completed_names"], ["Machine Learning"])
+
+
+    def test_new_skill_starts_unassessed_and_progress_is_not_a_form_field(self):
+        form = SkillForm(user=self.alice)
+        self.assertNotIn("progress", form.fields)
+        response = self.client.post(reverse("skill:skill_create"), {
+            "name": "Rust", "category": "programming", "parent": "", "progress": 95,
+        })
+        self.assertRedirects(response, reverse("skill:home"))
+        skill = Skill.objects.get(user=self.alice, name="Rust")
+        self.assertEqual(skill.progress, 0)
+
+
+class LearningRecommendationTests(SkillTestBase):
+    def test_each_skill_gets_persisted_fallback_suggestions_without_api_key(self):
+        from django.test import override_settings
+        from .recommendations import refresh_learning_recommendations
+
+        python = Skill.objects.create(user=self.alice, name="Python", category="programming")
+        custom = Skill.objects.create(user=self.alice, name="Rust", category="programming")
+        with override_settings(GROQ_API_KEY=""):
+            result = refresh_learning_recommendations(self.alice, [python, custom])
+
+        self.assertIn(python.pk, result)
+        self.assertIn(custom.pk, result)
+        self.assertTrue(LearningRecommendation.objects.filter(user=self.alice, skill=python).exists())
+        self.assertTrue(LearningRecommendation.objects.filter(user=self.alice, skill=custom).exists())
+        self.assertTrue(result[custom.pk])
+
+    def test_saved_suggestions_are_reused_when_progress_has_not_changed(self):
+        from unittest.mock import patch
+        from .recommendations import refresh_learning_recommendations
+
+        python = Skill.objects.create(user=self.alice, name="Python", category="programming")
+        saved = [{"name": "Django", "reason": "Build web applications."}]
+        LearningRecommendation.objects.create(
+            user=self.alice, skill=python, suggestions=saved, based_on_progress=python.progress
+        )
+        with patch("skill.recommendations.Groq") as groq_client:
+            result = refresh_learning_recommendations(self.alice, [python])
+        groq_client.assert_not_called()
+        self.assertEqual(result[python.pk], saved)
+
 
 
 class RuleTests(SkillTestBase):
@@ -151,19 +209,6 @@ class RuleTests(SkillTestBase):
         skill.progress = 90
         skill.save()
         self.assertIsNone(skill.completed_at)
-
-    def test_quick_progress_update(self):
-        skill = Skill.objects.create(user=self.alice, name="SQL", progress=10)
-        response = self.client.post(reverse("skill:skill_progress", args=[skill.pk]), {"progress": 100})
-        self.assertRedirects(response, reverse("skill:home"))
-        skill.refresh_from_db()
-        self.assertEqual(skill.status, Skill.Status.COMPLETED)
-
-    def test_invalid_quick_progress_changes_nothing(self):
-        skill = Skill.objects.create(user=self.alice, name="SQL", progress=10)
-        self.client.post(reverse("skill:skill_progress", args=[skill.pk]), {"progress": 500})
-        skill.refresh_from_db()
-        self.assertEqual(skill.progress, 10)
 
     def test_skill_cannot_become_child_of_its_own_descendant(self):
         a = Skill.objects.create(user=self.alice, name="A")
@@ -212,3 +257,42 @@ class ProjectTreeTests(SkillTestBase):
         response = self.client.get(reverse("skill:home"))
         self.assertEqual(response.context["tree"][0]["projects"], [])
         self.assertNotContains(response, "data-pnode")
+
+class AIAssessmentTests(SkillTestBase):
+    def test_starting_assessment_creates_attempt_for_owned_skill(self):
+        skill = Skill.objects.create(user=self.alice, name="Python")
+        response = self.client.post(reverse("skill:assessment_start", args=[skill.pk]))
+        from .models import Assessment
+        attempt = Assessment.objects.get(user=self.alice, skill=skill)
+        self.assertRedirects(response, reverse("skill:assessment_take", args=[attempt.pk]))
+        self.assertEqual(attempt.status, Assessment.Status.ACTIVE)
+        self.assertEqual(attempt.total_questions, 5)
+
+    def test_assessment_start_cannot_target_another_users_skill(self):
+        skill = Skill.objects.create(user=self.bob, name="Private skill")
+        response = self.client.post(reverse("skill:assessment_start", args=[skill.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_completed_assessment_updates_skill_proficiency(self):
+        from unittest.mock import patch
+        from .models import Assessment, AssessmentQuestion
+        skill = Skill.objects.create(user=self.alice, name="Python")
+        attempt = Assessment.objects.create(
+            user=self.alice, skill=skill, total_questions=1,
+        )
+        q = AssessmentQuestion.objects.create(
+            assessment=attempt, question_number=1, topic="Basics",
+            question_text="Which value is an integer?", options=["2", "'2'", "2.0", "None"],
+            correct_index=0, explanation="2 is an integer.", difficulty="beginner",
+        )
+        with patch("skill.assessment_views._ensure_question", return_value=q):
+            response = self.client.post(
+                reverse("skill:assessment_answer", args=[attempt.pk, q.pk]),
+                {"choice": "0"},
+            )
+        self.assertRedirects(response, reverse("skill:assessment_result", args=[attempt.pk]))
+        skill.refresh_from_db()
+        attempt.refresh_from_db()
+        self.assertEqual(skill.progress, 100)
+        self.assertEqual(skill.status, Skill.Status.COMPLETED)
+        self.assertEqual(attempt.status, Assessment.Status.COMPLETED)

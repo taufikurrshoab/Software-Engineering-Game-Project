@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ assessment.skill.name }} result | ThinkSphere{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+<link rel="stylesheet" href="{% static 'skill/assessment.css' %}">
+{% endblock %}
+{% block content %}
+<div class="skill-page">
+<section class="skill-section">
+  <div class="skill-container assessment-wrap">
+    <div class="assessment-card assessment-result">
+      <span class="skill-eyebrow">Assessment completed</span>
+      <h1 class="skill-title">{{ assessment.skill.name }}</h1>
+      <div class="assessment-score">{{ assessment.score|floatformat:0 }}<span>%</span></div>
+      <p class="skill-lead">Your weighted demonstrated-knowledge score</p>
+      <div class="assessment-result-stats">
+        <div><strong>{{ correct_count }}/{{ assessment.total_questions }}</strong><span>Correct answers</span></div>
+        <div><strong>{{ assessment.completed_at|date:"M d, Y" }}</strong><span>Completed</span></div>
+      </div>
+      <p class="assessment-result-note">Your skill proficiency has been updated automatically. You can retest any time from your Skill dashboard.</p>
+      <div class="assessment-result-actions">
+        <a href="{% url 'skill:home' %}" class="skill-btn skill-btn--primary">Back to Skill dashboard</a>
+        <form method="post" action="{% url 'skill:assessment_start' assessment.skill.pk %}">
+          {% csrf_token %}
+          <button class="skill-btn skill-btn--ghost" type="submit">Retest this skill</button>
+        </form>
+      </div>
+    </div>
+    <h2 class="assessment-review-title">Answer review</h2>
+    {% for q in questions %}
+    <article class="assessment-review">
+      <div class="assessment-review__head">
+        <strong>Q{{ q.question_number }} · {{ q.topic|default:"General" }}</strong>
+        {% if q.is_correct %}<span class="assessment-correct">Correct</span>{% else %}<span class="assessment-incorrect">Incorrect</span>{% endif %}
+      </div>
+      <p>{{ q.question_text|linebreaksbr }}</p>
+      <div class="assessment-review__answer">Your answer: {{ q.selected_answer }}</div>
+      {% if not q.is_correct %}<div class="assessment-review__answer">Correct answer: {{ q.correct_answer }}</div>{% endif %}
+      <p class="assessment-explanation">Explanation: {{ q.explanation }}</p>
+      <span class="assessment-difficulty">{{ q.get_difficulty_display }}</span>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+</div>
+{% endblock %}

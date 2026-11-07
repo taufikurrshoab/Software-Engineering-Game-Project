@@ -19,9 +19,9 @@
             <h1 class="skill-title">{% if skill %}Edit {{ skill.name }}{% else %}Add a skill{% endif %}</h1>
             <p class="skill-lead">
                 {% if skill %}
-                Change the details or update your progress. The status follows the percentage.
+                Change the details of this skill. Your proficiency is updated automatically when you complete an AI assessment.
                 {% else %}
-                Add something you are learning or already know. You can change everything later.
+                Add a skill you want to assess. Your proficiency will be measured by an AI-generated assessment.
                 {% endif %}
             </p>
         </header>
@@ -36,19 +36,26 @@
             {% endif %}
 
             {% for field in form %}
+            {% if field.name != "start_assessment" %}
             <div class="skill-field{% if field.errors %} has-error{% endif %}">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
 
-                {% if field.name == "progress" %}
-                <input type="range" min="0" max="100" step="5" value="{{ field.value|default:0 }}"
-                       class="skill-range" data-progress-range aria-label="Progress slider">
-                {% endif %}
-
                 {% if field.help_text %}<p class="skill-help">{{ field.help_text }}</p>{% endif %}
                 {% for error in field.errors %}<p class="skill-error">{{ error }}</p>{% endfor %}
             </div>
+            {% endif %}
             {% endfor %}
+
+            {% if not skill %}
+            <label class="skill-assessment-choice" for="{{ form.start_assessment.id_for_label }}">
+                {{ form.start_assessment }}
+                <span class="skill-assessment-choice__copy">
+                    <strong>{{ form.start_assessment.label }}</strong>
+                    <small>{{ form.start_assessment.help_text }}</small>
+                </span>
+            </label>
+            {% endif %}
 
             <div class="skill-form-actions">
                 <a href="{% url 'skill:home' %}" class="skill-btn skill-btn--ghost">Cancel</a>

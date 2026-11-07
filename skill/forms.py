@@ -10,18 +10,22 @@ MAX_TECHNOLOGIES = 12
 
 
 class SkillForm(forms.ModelForm):
+    start_assessment = forms.BooleanField(
+        required=False,
+        label="Start AI skill assessment after adding",
+        help_text="Save this skill and immediately begin its 5-question adaptive assessment.",
+        widget=forms.CheckboxInput(attrs={"class": "skill-checkbox"}),
+    )
+
     class Meta:
         model = Skill
-        fields = ["name", "category", "parent", "progress"]
+        fields = ["name", "category", "parent"]
         widgets = {
             "name": forms.TextInput(attrs={
                 "class": "skill-input", "placeholder": "e.g. Python", "autocomplete": "off",
             }),
             "category": forms.Select(attrs={"class": "skill-input"}),
             "parent": forms.Select(attrs={"class": "skill-input"}),
-            "progress": forms.NumberInput(attrs={
-                "class": "skill-input", "min": 0, "max": 100, "step": 5,
-            }),
         }
 
     def __init__(self, *args, user, **kwargs):
@@ -45,10 +49,6 @@ class SkillForm(forms.ModelForm):
         if duplicates.exists():
             raise ValidationError("You already have a skill with this name.")
         return name
-
-
-class SkillProgressForm(forms.Form):
-    progress = forms.IntegerField(min_value=0, max_value=100)
 
 
 class ProjectForm(forms.ModelForm):

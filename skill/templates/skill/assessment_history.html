@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ skill.name }} assessment history | ThinkSphere{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'skill/skill-home.css' %}"><link rel="stylesheet" href="{% static 'skill/assessment.css' %}">{% endblock %}
+{% block content %}
+<div class="skill-page"><section class="skill-section"><div class="skill-container assessment-wrap">
+  <a href="{% url 'skill:home' %}" class="skill-back">&larr; Back to skills</a>
+  <h1 class="skill-title">{{ skill.name }} assessment history</h1>
+  <p class="skill-lead">Every completed retest stays here, so you can compare your progress over time.</p>
+  {% for attempt in attempts %}
+  <a class="skill-history-row" href="{% url 'skill:assessment_result' attempt.pk %}">
+    <span><strong>{{ attempt.completed_at|date:"M d, Y · g:i A" }}</strong><small>{{ attempt.questions.count }} questions · {{ attempt.answered_questions }} answered</small></span>
+    <span class="skill-history-score">{{ attempt.score|floatformat:0 }}%</span>
+    <span class="skill-history-arrow">›</span>
+  </a>
+  {% empty %}<div class="assessment-card">No completed assessments yet.</div>{% endfor %}
+</div></section></div>
+{% endblock %}
