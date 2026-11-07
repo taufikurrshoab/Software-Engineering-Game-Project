@@ -1,0 +1,99 @@
+/* ==========================================================================
+   CGPA & grades (cgpa.css)
+   Loaded after academic.css on the CGPA and grade pages only. Uses the shared
+   tokens, cards, rings, progress bars, buttons, dialogs and empty states;
+   everything here is .cg-*.
+   ========================================================================== */
+
+/* ---------- Overview ---------- */
+.cg-hero {
+    display: flex; align-items: center; gap: 30px;
+    background:
+        radial-gradient(620px 260px at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%),
+        var(--bg-card);
+}
+.cg-hero__ring { flex: none; }
+.cg-hero .ac-ring { --size: 132px; --stroke: 11px; --tone: var(--accent); }
+.cg-hero__value { position: absolute; display: grid; justify-items: center; line-height: 1.1; }
+.cg-hero__value strong { font-size: 2rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.cg-hero__value span { margin-top: 2px; color: var(--text-muted); font-size: .66rem; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; }
+.cg-hero__body { display: grid; gap: 6px; min-width: 0; }
+.cg-hero__label { color: var(--accent); font-size: .72rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.cg-hero__title { font-size: 1.25rem; font-weight: 650; letter-spacing: -.01em; }
+
+/* The ring fills from empty on load (cgpa.js); without JS it is simply full */
+.js .cg-ring:not(.is-ready) { --value: 0 !important; }
+
+/* ---------- Semesters ---------- */
+.cg-semesters { display: grid; gap: 18px; padding: var(--ac-pad); }
+.cg-sem { display: grid; gap: 8px; padding-left: 14px; position: relative; }
+.cg-sem::before {
+    content: ""; position: absolute; inset: 2px auto 2px 0; width: 3px; border-radius: 3px;
+    background: color-mix(in srgb, var(--text-main) 16%, transparent); transition: background var(--transition);
+}
+.cg-sem.is-current::before, .cg-sem:hover::before { background: var(--accent); }
+.cg-sem__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cg-sem__name { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; font-weight: 600; font-size: .94rem; }
+.cg-sem__gpa { font-size: 1.05rem; font-weight: 700; }
+.cg-sem .ac-progress { height: 8px; }
+.cg-sem .ac-meta { font-size: .8rem; }
+
+/* ---------- Course rows ---------- */
+.cg-list { display: grid; gap: 12px; }
+.cg-row {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    align-items: center; gap: 18px; padding: 14px 14px 14px 20px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-card); box-shadow: var(--shadow-card);
+    transition: border-color var(--transition), background var(--transition);
+}
+.cg-row::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--course, var(--accent)); }
+.cg-row:hover { border-color: var(--border-hover); }
+.cg-row__course { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cg-row__text { min-width: 0; display: grid; gap: 3px; }
+.cg-row__name { font-weight: 650; font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
+
+.cg-row__grade { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.cg-letter {
+    display: grid; place-items: center; flex: none; min-width: 46px; height: 46px; padding: 0 8px;
+    border-radius: 13px; font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em;
+    color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent);
+    transition: transform var(--transition);
+}
+.cg-row:hover .cg-letter { transform: scale(1.05); }
+.cg-letter--none { color: var(--text-muted); background: transparent; box-shadow: inset 0 0 0 1px var(--border); border-style: dashed; }
+.cg-row:hover .cg-letter--none { transform: none; }
+.cg-row__none { font-size: .88rem; }
+
+.cg-point { flex: 1; min-width: 80px; display: grid; gap: 6px; }
+.cg-point__value { font-size: .9rem; font-weight: 650; }
+.cg-point .ac-progress { height: 6px; }
+
+.cg-row__actions { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+.cg-row__actions .cg-remove { border-color: transparent; background: transparent; }
+.cg-row__actions .cg-remove:hover { color: var(--ac-danger); border-color: var(--border-hover); background: var(--bg-surface); }
+
+/* ---------- Form hint ---------- */
+.cg-edit { --card-accent: var(--course, var(--accent)); }
+.cg-hint { min-height: 1.4em; margin-top: -4px; color: var(--text-muted); font-size: .84rem; transition: color var(--transition); }
+.cg-hint.is-warn { color: var(--ac-warning); }
+.cg-hint.is-pop { animation: cg-in .25s var(--ac-ease); }
+
+/* ---------- Motion ---------- */
+@keyframes cg-in { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) {
+    .cg-hint.is-pop { animation: none; }
+    .cg-row:hover .cg-letter { transform: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+    .cg-row { grid-template-columns: minmax(0, 1fr) auto; gap: 14px; }
+    .cg-row__course { grid-column: 1 / -1; }
+    .cg-row__actions { grid-column: 2; grid-row: 2; }
+}
+@media (max-width: 520px) {
+    .cg-hero { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .cg-hero .ac-ring { --size: 116px; --stroke: 10px; }
+}

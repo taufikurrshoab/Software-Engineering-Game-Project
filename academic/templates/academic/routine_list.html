@@ -1,0 +1,188 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Routine{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/routine.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div data-routine data-sem-start="{{ semester.start_date|date:'Y-m-d' }}" data-sem-end="{{ semester.end_date|date:'Y-m-d' }}">
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Weekly routine</h1>
+            <p class="ac-subtitle">Your classes repeat every week. Cancel a single day whenever a class is called off; the routine stays as it is.</p>
+        </div>
+        <div class="ac-head-actions">
+            {% if has_courses %}
+            <button type="button" class="ac-btn ac-btn--primary" data-ac-open="class-dialog">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Add class</button>
+            {% else %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:course_list' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg>Add a course first</a>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if routine_days %}
+    <div data-ac-filter-group>
+        <div class="rt-toolbar" data-reveal>
+            <p class="ac-meta">
+                <span><strong>{{ routine_days|length }}</strong> day{{ routine_days|length|pluralize }} a week</span>
+                <span data-rt-classes hidden></span>
+                <span data-rt-hours hidden></span>
+            </p>
+            {% if routine_days|length > 1 %}
+            <div class="ac-chips" role="group" aria-label="Show one day">
+                <button type="button" class="ac-chip" data-ac-filter="all" aria-pressed="true">All days</button>
+                {% for day_name, items in routine_days %}
+                <button type="button" class="ac-chip" data-ac-filter="d{{ items.0.day_of_week }}" data-day="{{ items.0.day_of_week }}" aria-pressed="false">{{ day_name|slice:":3" }}</button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="rt-board" data-rt-board>
+            {% for day_name, items in routine_days %}
+            <section class="ac-card rt-day" data-reveal data-ac-item data-ac-status="d{{ items.0.day_of_week }}" data-day="{{ items.0.day_of_week }}" aria-labelledby="rt-day-{{ items.0.day_of_week }}">
+                <header class="rt-day__head">
+                    <h2 class="rt-day__name" id="rt-day-{{ items.0.day_of_week }}">{{ day_name }}</h2>
+                    <span class="ac-badge ac-badge--accent" data-rt-today hidden>Today</span>
+                    <span class="rt-day__count">{{ items|length }} class{{ items|length|pluralize:"es" }}</span>
+                </header>
+
+                <ul class="rt-classes">
+                    {% for c in items %}
+                    <li class="ac-item rt-class"{% if c.course.color %} style="--course: {{ c.course.color }}"{% endif %}
+                        data-rt-class data-day="{{ c.day_of_week }}"
+                        data-start="{{ c.start_time|time:'H:i' }}" data-end="{{ c.end_time|time:'H:i' }}">
+                        <div class="ac-item__time">
+                            <span>{{ c.start_time|time:"g:i A" }}</span>
+                            <small>{{ c.end_time|time:"g:i A" }}</small>
+                        </div>
+
+                        <div class="ac-item__body">
+                            <p class="ac-item__title">{{ c.course_name }}</p>
+                            <p class="ac-item__meta">
+                                {% if c.course.code %}<span class="ac-mono">{{ c.course.code }}</span>{% endif %}
+                                {% if c.room %}<span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pin"/></svg>Room {{ c.room }}</span>{% endif %}
+                                {% if c.course.teacher %}<span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-user"/></svg>{{ c.course.teacher }}</span>{% endif %}
+                                <span data-rt-duration hidden></span>
+                            </p>
+                        </div>
+
+                        <span class="ac-badge rt-live" data-rt-live hidden></span>
+
+                        <div class="rt-class__actions">
+                            <a class="ac-btn ac-btn--icon ac-btn--ghost" href="{% url 'academic:routine_edit' c.pk %}"
+                               aria-label="Edit {{ c.course_name }} on {{ day_name }}" title="Edit">
+                                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pencil"/></svg></a>
+                            <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-open="cancel-dialog"
+                                    data-fill-action="{% url 'academic:routine_cancel' c.pk %}"
+                                    data-fill-label="{{ c.course_name }}, {{ day_name }} {{ c.start_time|time:'g:i A' }}"
+                                    data-restore-url="{% url 'academic:routine_restore' c.pk %}"
+                                    data-weekday="{{ c.day_of_week }}"
+                                    aria-label="Cancel or restore {{ c.course_name }} on one date" title="Cancel or restore one day">
+                                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-ban"/></svg></button>
+                            <form method="post" action="{% url 'academic:routine_delete' c.pk %}" class="ac-inline-form"
+                                  data-ac-confirm="Remove {{ c.course_name }} on {{ day_name }}s from your routine? Classes already held and their attendance are kept."
+                                  data-ac-confirm-title="Remove class?" data-ac-confirm-label="Remove">
+                                {% csrf_token %}
+                                <button type="submit" class="ac-btn ac-btn--icon ac-btn--ghost rt-remove"
+                                        aria-label="Remove {{ c.course_name }} on {{ day_name }}" title="Remove">
+                                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg></button>
+                            </form>
+                        </div>
+
+                        <span class="rt-class__progress" aria-hidden="true"><i></i></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% elif has_courses %}
+    <div class="ac-empty" data-reveal>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clock"/></svg></span>
+        <p class="ac-empty__title">No classes in your routine</p>
+        <p class="ac-empty__text">Add each class once with its day and time. It then repeats every week of the semester.</p>
+        <button type="button" class="ac-btn ac-btn--primary" data-ac-open="class-dialog">Add your first class</button>
+    </div>
+
+    {% else %}
+    <div class="ac-empty" data-reveal>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg></span>
+        <p class="ac-empty__title">Add your courses first</p>
+        <p class="ac-empty__text">Each class in the routine belongs to a course. Add your courses, then come back to build the week.</p>
+        <a class="ac-btn ac-btn--primary" href="{% url 'academic:course_list' %}">Go to courses</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block academic_dialogs %}
+{% if has_courses %}
+<dialog class="ac-dialog" id="class-dialog" aria-labelledby="class-dialog-title"{% if form.errors %} data-ac-open-on-load{% endif %}>
+    <div class="ac-dialog__head">
+        <h2 class="ac-dialog__title" id="class-dialog-title">Add class</h2>
+        <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-close aria-label="Close">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg></button>
+    </div>
+    <form method="post" class="ac-dialog__body ac-form" data-rt-form>
+        {% include 'academic/_form_body.html' with form=form wide_fields="course day_of_week room" %}
+        <p class="rt-hint" data-rt-hint role="status" aria-live="polite"></p>
+        <div class="ac-form__actions">
+            <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Cancel</button>
+            <button type="submit" class="ac-btn ac-btn--primary">Add class</button>
+        </div>
+    </form>
+</dialog>
+{% endif %}
+
+{% if routine_days %}
+<dialog class="ac-dialog" id="cancel-dialog" aria-labelledby="cancel-dialog-title">
+    <div class="ac-dialog__head">
+        <h2 class="ac-dialog__title" id="cancel-dialog-title">Cancel or restore a day</h2>
+        <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-close aria-label="Close">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg></button>
+    </div>
+    <form method="post" class="ac-dialog__body ac-form" data-rt-cancel-form>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'academic:routine_list' %}">
+        <p class="ac-dialog__text"><strong data-ac-label></strong></p>
+
+        <div class="rt-seg" data-mode="cancel" role="group" aria-label="Action">
+            <button type="button" data-rt-mode="cancel" aria-pressed="true">Cancel a day</button>
+            <button type="button" data-rt-mode="restore" aria-pressed="false">Restore a day</button>
+        </div>
+
+        <div class="ac-field">
+            <label for="cancel-date">Date</label>
+            <input type="date" id="cancel-date" name="date" required>
+            <span class="ac-field__help rt-help" data-rt-date-help></span>
+        </div>
+
+        <div class="rt-collapse" data-open="true" data-rt-reason>
+            <div class="ac-field">
+                <label for="cancel-reason">Reason <span class="ac-muted">(optional)</span></label>
+                <input type="text" id="cancel-reason" name="reason" maxlength="200" autocomplete="off" placeholder="e.g. Teacher is away">
+            </div>
+        </div>
+
+        <div class="ac-form__actions">
+            <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Close</button>
+            <button type="submit" class="ac-btn ac-btn--primary" data-rt-submit>Cancel class</button>
+        </div>
+    </form>
+</dialog>
+{% endif %}
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/routine.js' %}" defer></script>
+{% endblock %}

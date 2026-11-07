@@ -1,0 +1,177 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}CGPA{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/cgpa.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div data-cgpa>
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">CGPA &amp; grades</h1>
+            <p class="ac-subtitle">Enter the final grade of each course. GPA and CGPA are weighted by course credit.</p>
+        </div>
+    </header>
+
+    <!-- Overview -->
+    {% if summary.cgpa is not None %}
+    {% widthratio summary.cgpa 4 100 as cgpa_fill %}
+    <section class="ac-card cg-hero" data-reveal aria-label="Cumulative GPA">
+        <div class="ac-ring-wrap cg-hero__ring">
+            <div class="ac-ring cg-ring" data-cg-ring="{{ cgpa_fill }}" style="--value: {{ cgpa_fill }}"></div>
+            <div class="cg-hero__value">
+                <strong data-count="{{ summary.cgpa|stringformat:'.2f' }}" data-decimals="2">{{ summary.cgpa }}</strong>
+                <span>CGPA</span>
+            </div>
+        </div>
+        <div class="cg-hero__body">
+            <p class="cg-hero__label">Cumulative GPA</p>
+            <p class="cg-hero__title">Across {{ summary.courses }} graded course{{ summary.courses|pluralize }}</p>
+            <p class="ac-meta">
+                <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-award"/></svg><strong>{{ summary.credits }}</strong> credits graded</span>
+                <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-layers"/></svg><strong>{{ summary.semesters|length }}</strong> semester{{ summary.semesters|length|pluralize }}</span>
+            </p>
+        </div>
+    </section>
+    {% else %}
+    <section class="ac-empty" data-reveal>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-award"/></svg></span>
+        <p class="ac-empty__title">No grades yet</p>
+        <p class="ac-empty__text">Add the final grade of a course below and your GPA and CGPA will appear here.</p>
+    </section>
+    {% endif %}
+
+    <!-- Semester GPAs (only useful when there is more than one) -->
+    {% if summary.semesters|length > 1 %}
+    <section class="ac-section" aria-labelledby="cg-sem-title">
+        <div class="ac-section__head" data-reveal>
+            <h2 class="ac-section__title" id="cg-sem-title">By semester</h2>
+        </div>
+        <ul class="ac-card cg-semesters" data-reveal>
+            {% for s in summary.semesters %}
+            {% widthratio s.gpa 4 100 as gpa_fill %}
+            <li class="cg-sem{% if s.semester.pk == semester.pk %} is-current{% endif %}">
+                <div class="cg-sem__head">
+                    <span class="cg-sem__name">{{ s.semester.name }}
+                        {% if s.semester.pk == semester.pk %}<span class="ac-badge ac-badge--accent">Current</span>{% endif %}</span>
+                    <span class="cg-sem__gpa ac-mono">{{ s.gpa }}</span>
+                </div>
+                <div class="ac-progress"><div class="ac-progress__bar" style="--value: {{ gpa_fill }}"></div></div>
+                <p class="ac-meta"><span>{{ s.credits }} credits</span><span>{{ s.courses }} course{{ s.courses|pluralize }}</span></p>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <!-- Courses of the active semester -->
+    <section class="ac-section" aria-labelledby="cg-courses-title">
+        <div class="ac-section__head" data-reveal>
+            <h2 class="ac-section__title" id="cg-courses-title">Courses this semester</h2>
+        </div>
+
+        {% if rows %}
+        <ul class="cg-list">
+            {% for course, grade in rows %}
+            <li class="cg-row{% if grade %} is-graded{% endif %}" data-reveal
+                {% if course.color %}style="--course: {{ course.color }}"{% endif %}>
+                <div class="cg-row__course">
+                    <i class="ac-swatch" aria-hidden="true"></i>
+                    <div class="cg-row__text">
+                        <p class="cg-row__name">{{ course.name }}</p>
+                        <p class="ac-meta">
+                            {% if course.code %}<span class="ac-mono">{{ course.code }}</span>{% endif %}
+                            <span>{{ course.credit }} credit{{ course.credit|pluralize }}</span>
+                        </p>
+                    </div>
+                </div>
+
+                {% if grade %}
+                {% widthratio grade.grade_point 4 100 as point_fill %}
+                <div class="cg-row__grade">
+                    <span class="cg-letter" aria-label="Grade {{ grade.grade }}">{{ grade.grade }}</span>
+                    <div class="cg-point">
+                        <span class="cg-point__value ac-mono">{{ grade.grade_point|stringformat:'.2f' }}</span>
+                        <div class="ac-progress"><div class="ac-progress__bar" style="--value: {{ point_fill }}"></div></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="cg-row__grade">
+                    <span class="cg-letter cg-letter--none" aria-label="Not graded">&ndash;</span>
+                    <span class="ac-muted cg-row__none">Not graded</span>
+                </div>
+                {% endif %}
+
+                <div class="cg-row__actions">
+                    <a class="ac-btn ac-btn--sm {% if grade %}ac-btn--ghost{% else %}ac-btn--primary{% endif %}"
+                       href="{% url 'academic:grade_edit' course.pk %}"
+                       data-ac-open="grade-dialog"
+                       data-fill-action="{% url 'academic:grade_edit' course.pk %}"
+                       data-fill-label="{{ course.name }}"
+                       data-fill-grade="{% if grade %}{{ grade.grade }}{% endif %}"
+                       data-fill-grade_point="{% if grade %}{{ grade.grade_point|stringformat:'.2f' }}{% endif %}">
+                        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-{% if grade %}pencil{% else %}plus{% endif %}"/></svg>{% if grade %}Edit{% else %}Add grade{% endif %}</a>
+                    {% if grade %}
+                    <form method="post" action="{% url 'academic:grade_delete' course.pk %}" class="ac-inline-form"
+                          data-ac-confirm="Remove the grade for {{ course.name }}? Your GPA and CGPA will be recalculated."
+                          data-ac-confirm-title="Remove grade?" data-ac-confirm-label="Remove">
+                        {% csrf_token %}
+                        <button type="submit" class="ac-btn ac-btn--icon ac-btn--ghost cg-remove"
+                                aria-label="Remove grade for {{ course.name }}" title="Remove grade">
+                            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="ac-empty" data-reveal>
+            <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg></span>
+            <p class="ac-empty__title">No courses in this semester</p>
+            <p class="ac-empty__text">Grades belong to courses. Add your courses first, then enter their final grades here.</p>
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:course_list' %}">Add a course</a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block academic_dialogs %}
+{% if rows %}
+<dialog class="ac-dialog" id="grade-dialog" aria-labelledby="grade-dialog-title">
+    <div class="ac-dialog__head">
+        <h2 class="ac-dialog__title" id="grade-dialog-title">Grade &middot; <span data-ac-label></span></h2>
+        <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-close aria-label="Close">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg></button>
+    </div>
+    <form method="post" class="ac-dialog__body ac-form" data-cg-form>
+        {% csrf_token %}
+        <div class="ac-form__grid">
+            <div class="ac-field">
+                <label for="cg-grade">Letter grade</label>
+                <input type="text" id="cg-grade" name="grade" maxlength="5" required autocomplete="off" placeholder="e.g. A-">
+            </div>
+            <div class="ac-field">
+                <label for="cg-point">Grade point</label>
+                <input type="number" id="cg-point" name="grade_point" step="0.01" min="0" max="4" required inputmode="decimal" placeholder="e.g. 3.70">
+            </div>
+        </div>
+        <p class="cg-hint" data-cg-hint role="status" aria-live="polite">Use your university&rsquo;s letter and grade point for this course.</p>
+        <div class="ac-form__actions">
+            <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Cancel</button>
+            <button type="submit" class="ac-btn ac-btn--primary">Save grade</button>
+        </div>
+    </form>
+</dialog>
+{% endif %}
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/cgpa.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Edit assignment{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/assignment.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+{% now "Y-m-d" as today_iso %}
+<div class="ac-form-page">
+    <a class="ac-back" href="{% url 'academic:assignment_list' %}">
+        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chevron"/></svg>Assignments</a>
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Edit {{ assignment.title }}</h1>
+            <p class="ac-subtitle">Update the details or move the deadline. Your timeline and dashboard follow along.</p>
+        </div>
+    </header>
+
+    <section class="ac-card ac-card--accent as-edit" style="--course: {{ assignment.course.color }}" data-reveal>
+        <form method="post" class="ac-form" data-as-form data-as-editing="{{ assignment.pk }}" data-today="{{ today_iso }}"
+              data-sem-start="{{ semester.start_date|date:'Y-m-d' }}" data-sem-end="{{ semester.end_date|date:'Y-m-d' }}">
+            {% include 'academic/_form_body.html' with form=form wide_fields="course title" %}
+            <p class="as-hint" data-as-hint role="status" aria-live="polite">Pick the day it is due.</p>
+            <div class="ac-form__actions">
+                <a class="ac-btn ac-btn--ghost" href="{% url 'academic:assignment_list' %}">Cancel</a>
+                <button type="submit" class="ac-btn ac-btn--primary">Save changes</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/assignment.js' %}" defer></script>
+{% endblock %}
