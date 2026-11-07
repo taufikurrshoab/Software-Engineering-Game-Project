@@ -153,3 +153,118 @@ class Project(models.Model):
         if self.screenshot:
             self.screenshot.delete(save=False)
         super().delete(*args, **kwargs)
+
+
+class Assessment(models.Model):
+    """One adaptive AI assessment attempt for a user's skill."""
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        COMPLETED = "completed", "Completed"
+
+    DIFFICULTY_CHOICES = [
+        ("beginner", "Beginner"),
+        ("intermediate", "Intermediate"),
+        ("advanced", "Advanced"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="skill_assessments",
+    )
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name="assessments",
+    )
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.ACTIVE)
+    total_questions = models.PositiveSmallIntegerField(default=5)
+    answered_questions = models.PositiveSmallIntegerField(default=0)
+    next_difficulty = models.CharField(
+        max_length=20, choices=DIFFICULTY_CHOICES, default="beginner"
+    )
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+        indexes = [models.Index(fields=["user", "skill", "status"], name="sk_assess_usr_skill_status")]
+
+    def __str__(self):
+        return f"{self.user} - {self.skill.name} ({self.status})"
+
+
+class AssessmentQuestion(models.Model):
+    DIFFICULTY_CHOICES = Assessment.DIFFICULTY_CHOICES
+
+    assessment = models.ForeignKey(
+        Assessment, on_delete=models.CASCADE, related_name="questions"
+    )
+    question_number = models.PositiveSmallIntegerField()
+    topic = models.CharField(max_length=100, blank=True)
+    question_text = models.TextField()
+    options = models.JSONField()
+    correct_index = models.PositiveSmallIntegerField()
+    explanation = models.TextField()
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES)
+    selected_index = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_correct = models.BooleanField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["question_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["assessment", "question_number"],
+                name="unique_skill_assessment_question",
+            )
+        ]
+
+    @property
+    def selected_answer(self):
+        if self.selected_index is None:
+            return "Not answered"
+        if isinstance(self.options, list) and self.selected_index < len(self.options):
+            return self.options[self.selected_index]
+        return "Unavailable"
+
+    @property
+    def correct_answer(self):
+        if isinstance(self.options, list) and self.correct_index < len(self.options):
+            return self.options[self.correct_index]
+        return "Unavailable"
+
+    def __str__(self):
+        return f"{self.assessment} - Q{self.question_number}"
+
+class LearningRecommendation(models.Model):
+    """Cached AI-generated next-step suggestions for one user's skill."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="learning_recommendations",
+    )
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name="learning_recommendations",
+    )
+    suggestions = models.JSONField(default=list, blank=True)
+    based_on_progress = models.PositiveSmallIntegerField(default=0)
+    generated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "skill"],
+                name="unique_learning_recommendation_per_skill",
+            ),
+        ]
+        ordering = ["skill_id"]
+
+    def __str__(self):
+        return f"Next steps for {self.skill.name}"
+

@@ -2,3 +2,6 @@ asgiref==3.12.1
 Django==6.1.1
 sqlparse==0.6.0
 tzdata==2026.3
+groq>=0.31.0
+python-dotenv>=1.0.1
+Pillow>=10.0.0

@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'skill/skill-home.css' %}">
+<link rel="stylesheet" href="{% static 'skill/assessment.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -21,7 +22,7 @@
                 <div>
                     <span class="skill-eyebrow">Skill dashboard</span>
                     <h1 class="skill-title">Welcome back, {{ user.first_name|default:user.username }}</h1>
-                    <p class="skill-lead">Click any node in your tree to see details and update progress.</p>
+                    <p class="skill-lead">Select a skill to see its proficiency, then take an adaptive AI assessment or retest whenever you want.</p>
                 </div>
                 <a href="{% url 'skill:skill_create' %}" class="skill-btn skill-btn--primary">+ Add skill</a>
             </header>
@@ -104,16 +105,14 @@
                                 </div>
                             </div>
 
-                            <form method="post" class="sk-detail__form" data-d-form>
+                            <p class="skill-muted" data-d-assessment-note>
+                                Take an assessment to establish or refresh this proficiency score.
+                            </p>
+                            <form method="post" class="sk-detail__form" data-d-assess-form>
                                 {% csrf_token %}
-                                <label for="detail-progress">Progress</label>
-                                <div class="sk-detail__row">
-                                    <input type="range" min="0" max="100" step="5" class="skill-range-live"
-                                           data-d-range aria-label="Progress slider">
-                                    <input type="number" id="detail-progress" name="progress" min="0" max="100" step="5"
-                                           class="skill-input skill-input--small" data-d-number>
-                                </div>
-                                <button type="submit" class="skill-btn skill-btn--primary skill-btn--small">Save progress</button>
+                                <button type="submit" class="skill-btn skill-btn--primary skill-btn--small">
+                                    Start assessment / Retest
+                                </button>
                             </form>
 
                             <div class="sk-detail__links">
@@ -143,29 +142,105 @@
                         </div>
                     </div>
                     <div class="skill-panel" data-reveal>
-                        <h2 class="sk-side-title">What to learn next</h2>
+                        <header class="skill-panel__head">
+                            <h2 class="sk-side-title">What to learn next</h2>
+                            <form method="post" action="{% url 'skill:recommendations_refresh' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="skill-link-btn">Refresh AI suggestions</button>
+                            </form>
+                        </header>
                         {% if recommendations %}
                         <ul class="skill-recs">
                             {% for rec in recommendations %}
                             <li class="skill-rec">
-                                <span class="skill-rec__from">After <strong>{{ rec.skill.name }}</strong></span>
-                                <div class="skill-chips">
-                                    {% for name in rec.names %}
-                                    <a href="{% url 'skill:skill_create' %}?name={{ name|urlencode }}&amp;parent={{ rec.skill.pk }}"
-                                       class="skill-chip">+ {{ name }}</a>
+                                <span class="skill-rec__from">Based on <strong>{{ rec.skill.name }}</strong>
+                                    <span class="skill-rec__level">{{ rec.skill.get_status_display }} · {{ rec.skill.progress }}%</span>
+                                </span>
+                                {% if rec.items %}
+                                <div class="skill-rec__items">
+                                    {% for item in rec.items %}
+                                    <div class="skill-rec__item">
+                                        <div>
+                                            <strong>{{ item.name }}</strong>
+                                            <p>{{ item.reason }}</p>
+                                        </div>
+                                        <a href="{% url 'skill:skill_create' %}?name={{ item.name|urlencode }}&amp;parent={{ rec.skill.pk }}"
+                                           class="skill-chip" aria-label="Add {{ item.name }} under {{ rec.skill.name }}">+ Add</a>
+                                    </div>
                                     {% endfor %}
                                 </div>
+                                {% else %}
+                                <p class="skill-muted">No suggestions available yet. Try refreshing AI suggestions.</p>
+                                {% endif %}
                             </li>
                             {% endfor %}
                         </ul>
-                        <p class="skill-hint">Suggestions only. Nothing is added unless you choose it.</p>
+                        <p class="skill-hint">AI-generated next steps based on each skill and its current proficiency. Nothing is added unless you choose it.</p>
                         {% else %}
-                        <p class="skill-muted">Complete a skill (100%) and suggestions for what comes next will appear here.</p>
+                        <p class="skill-muted">Add a skill to get personalized AI suggestions for what to learn next.</p>
                         {% endif %}
                     </div>
 
                 </aside>
             </div>
+
+            <!-- AI skill assessments -->
+            <div class="skill-panel" data-reveal>
+                <header class="skill-panel__head">
+                    <h2>AI skill assessments</h2>
+                    <span class="skill-muted">5 adaptive questions per attempt</span>
+                </header>
+                <div class="skill-assessment-list">
+                    {% for item in skill_assessments %}
+                    <article class="skill-assessment-row">
+                        <div class="skill-assessment-row__info">
+                            <strong>{{ item.skill.name }}</strong>
+                            <span class="skill-muted">
+                                {% if item.latest %}
+                                    Latest score: {{ item.latest.score|floatformat:0 }}%
+                                    · {{ item.latest.completed_at|date:"M d, Y" }}
+                                    · {{ item.attempt_count }} attempt{{ item.attempt_count|pluralize }}
+                                {% else %}
+                                    Not assessed yet
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="skill-assessment-row__actions">
+                            {% if item.attempt_count %}
+                            <a class="skill-btn skill-btn--ghost skill-btn--small"
+                               href="{% url 'skill:assessment_history' item.skill.pk %}">History</a>
+                            {% endif %}
+                            <form method="post" action="{% url 'skill:assessment_start' item.skill.pk %}">
+                                {% csrf_token %}
+                                <button class="skill-btn skill-btn--primary skill-btn--small" type="submit">
+                                    {% if item.active %}Continue assessment{% elif item.latest %}Retest{% else %}Assess now{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <p class="skill-muted">Add a skill to start your first AI assessment.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if assessment_history %}
+            <div class="skill-panel" data-reveal>
+                <header class="skill-panel__head">
+                    <h2>Recent assessment history</h2>
+                </header>
+                <div class="skill-assessment-history">
+                    {% for attempt in assessment_history %}
+                    <a class="skill-history-row" href="{% url 'skill:assessment_result' attempt.pk %}">
+                        <span><strong>{{ attempt.skill.name }}</strong>
+                            <small>{{ attempt.completed_at|date:"M d, Y · g:i A" }}</small></span>
+                        <span class="skill-history-score">{{ attempt.score|floatformat:0 }}%</span>
+                        <span class="skill-history-arrow" aria-hidden="true">›</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Project showcase -->
             <div class="skill-panel" data-reveal>

@@ -140,9 +140,7 @@
         var nameOut = panel.querySelector("[data-d-name]");
         var categoryOut = panel.querySelector("[data-d-category]");
         var statusOut = panel.querySelector("[data-d-status]");
-        var form = panel.querySelector("[data-d-form]");
-        var range = panel.querySelector("[data-d-range]");
-        var number = panel.querySelector("[data-d-number]");
+        var assessForm = panel.querySelector("[data-d-assess-form]");
         var editLink = panel.querySelector("[data-d-edit]");
         var childLink = panel.querySelector("[data-d-child]");
 
@@ -195,10 +193,7 @@
             ring.className = "sk-ring sk-ring--lg" + (data.status === "completed" ? " sk-ring--completed" : "");
 
             showProgress(progress);
-            range.value = progress;
-            number.value = progress;
-
-            form.action = data.progressUrl;
+            assessForm.action = data.assessUrl;
             editLink.href = data.editUrl;
             childLink.href = data.childUrl;
 
@@ -264,28 +259,6 @@
             }
         });
 
-        range.addEventListener("input", function () {
-            number.value = range.value;
-            showProgress(clamp(range.value));
-        });
-        number.addEventListener("input", function () {
-            var value = clamp(number.value);
-            range.value = value;
-            showProgress(value);
-        });
     }
 
-    /* ---------- Progress slider on the add/edit form ---------- */
-
-    all("[data-progress-range]").forEach(function (slider) {
-        var field = slider.closest(".skill-field");
-        var input = field && field.querySelector('input[name="progress"]');
-        if (!input) { return; }
-
-        slider.addEventListener("input", function () { input.value = slider.value; });
-        input.addEventListener("input", function () {
-            var n = parseInt(input.value, 10);
-            if (!isNaN(n)) { slider.value = Math.min(100, Math.max(0, n)); }
-        });
-    });
 })();

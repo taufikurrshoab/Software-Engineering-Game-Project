@@ -5,13 +5,15 @@
            class="sk-node sk-node--{{ s.status }}" data-node
            data-name="{{ s.name }}"
            data-category="{{ s.get_category_display }}"
-           data-status="{{ s.status }}"
-           data-status-label="{{ s.get_status_display }}"
-           data-progress="{{ s.progress }}"
+           data-status="{% if s.has_assessment %}{{ s.status }}{% else %}not_started{% endif %}"
+           data-status-label="{% if s.has_assessment %}{{ s.get_status_display }}{% else %}Not assessed{% endif %}"
+           data-progress="{% if s.has_assessment %}{{ s.progress }}{% else %}0{% endif %}"
            data-edit-url="{% url 'skill:skill_edit' s.pk %}"
-           data-progress-url="{% url 'skill:skill_progress' s.pk %}"
+           data-assess-url="{% url 'skill:assessment_start' s.pk %}"
            data-child-url="{% url 'skill:skill_create' %}?parent={{ s.pk }}">
-            <span class="sk-ring" style="--sk-value: {{ s.progress }}"><b>{{ s.progress }}</b></span>
+            <span class="sk-ring" style="--sk-value: {% if s.has_assessment %}{{ s.progress }}{% else %}0{% endif %}">
+                <b>{% if s.has_assessment %}{{ s.progress }}{% else %}—{% endif %}</b>
+            </span>
             <span class="sk-node__text">
                 <strong>{{ s.name }}</strong>
                 <small>{{ s.get_category_display }}</small>
