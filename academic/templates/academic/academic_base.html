@@ -49,7 +49,9 @@ Icons: <svg class="ac-icon"><use href="#ac-i-NAME"/></svg>
             {% with page=request.resolver_match.url_name %}
             <div class="ac-nav__links">
                 <a class="ac-nav__link" href="{% url 'academic:home' %}"{% if page == 'home' %} aria-current="page"{% endif %}>
-                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-home"/></svg>Dashboard</a>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-home"/></svg>Home</a>
+                <a class="ac-nav__link" href="{% url 'academic:dashboard' %}"{% if page == 'dashboard' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Dashboard</a>
                 <a class="ac-nav__link" href="{% url 'academic:timeline' %}"{% if page == 'timeline' %} aria-current="page"{% endif %}>
                     <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-calendar"/></svg>Timeline</a>
                 <a class="ac-nav__link" href="{% url 'academic:routine_list' %}"{% if page == 'routine_list' or page == 'routine_edit' %} aria-current="page"{% endif %}>
@@ -62,7 +64,7 @@ Icons: <svg class="ac-icon"><use href="#ac-i-NAME"/></svg>
                     <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-check"/></svg>Attendance</a>
                 <a class="ac-nav__link" href="{% url 'academic:holiday_list' %}"{% if page == 'holiday_list' or page == 'holiday_edit' %} aria-current="page"{% endif %}>
                     <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-sun"/></svg>Holidays</a>
-                <a class="ac-nav__link" href="{% url 'academic:cgpa' %}"{% if page == 'cgpa' or page == 'grade_edit' %} aria-current="page"{% endif %}>
+                <a class="ac-nav__link" href="{% url 'academic:cgpa' %}"{% if page == 'cgpa' or page == 'grade_edit' or page == 'gpa_add' or page == 'gpa_edit' %} aria-current="page"{% endif %}>
                     <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-award"/></svg>CGPA</a>
                 <a class="ac-nav__link" href="{% url 'academic:semester_list' %}"{% if page == 'semester_list' or page == 'setup' or page == 'semester_edit' %} aria-current="page"{% endif %}>
                     <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-layers"/></svg>Semesters</a>

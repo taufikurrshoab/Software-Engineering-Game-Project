@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.db.models import F, Q
 
@@ -377,3 +378,63 @@ class CourseGrade(models.Model):
 
     def __str__(self):
         return f"{self.course} - {self.grade}"
+
+
+class SemesterGPA(models.Model):
+    """The GPA of one semester, entered by the student.
+
+    This is the semester-wise record behind the GPA history, trend charts and the
+    CGPA across semesters. It is separate from CourseGrade, which keeps the
+    course-wise grades of semesters tracked in the app. `credits` is optional,
+    but a credit-weighted CGPA is only calculated when every record has it:
+        CGPA = sum(gpa * credits) / sum(credits)
+    """
+
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="gpa_records",
+    )
+    name = models.CharField(max_length=100)
+    term = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(99)],
+    )  # position in the degree (1 = first semester); records are ordered by it
+    gpa = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("4"))],
+    )
+    credits = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.1"))],
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["term", "id"]
+        verbose_name = "semester GPA"
+        verbose_name_plural = "semester GPAs"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "term"],
+                name="academic_gpa_unique_term_per_student",
+                violation_error_message="You already have a record for this semester number.",
+            ),
+            models.CheckConstraint(
+                condition=Q(gpa__gte=0, gpa__lte=4),
+                name="academic_gpa_range",
+                violation_error_message="GPA must be between 0 and 4.",
+            ),
+            models.CheckConstraint(
+                condition=Q(credits__isnull=True) | Q(credits__gt=0),
+                name="academic_gpa_credits_positive",
+                violation_error_message="Credits must be greater than zero.",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.gpa}"

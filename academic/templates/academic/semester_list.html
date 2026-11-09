@@ -37,7 +37,7 @@
 
         <div class="ac-card-actions">
             {% if s.is_active %}
-            <a class="ac-btn ac-btn--ghost ac-btn--sm" href="{% url 'academic:home' %}">Open dashboard</a>
+            <a class="ac-btn ac-btn--ghost ac-btn--sm" href="{% url 'academic:dashboard' %}">Open dashboard</a>
             {% else %}
             <form method="post" action="{% url 'academic:semester_activate' s.pk %}" class="ac-inline-form">
                 {% csrf_token %}

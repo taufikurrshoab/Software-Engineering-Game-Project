@@ -19,6 +19,7 @@ from .forms import (
     CourseGradeForm,
     HolidayForm,
     SemesterForm,
+    SemesterGPAForm,
 )
 from .models import (
     Assignment,
@@ -29,7 +30,17 @@ from .models import (
     CourseGrade,
     Holiday,
     Semester,
+    SemesterGPA,
 )
+from .insights import (
+    analyse,
+    grade_distribution,
+    history_entries,
+    history_summary,
+    next_term,
+    suggestions,
+)
+from .journey import DEMO_SEMESTER, build_journey, home_features
 from .services import (
     attendance_stats,
     build_semester_timeline,
@@ -208,18 +219,23 @@ def group_routine(schedules):
 
 @login_required
 def home(request):
-    semester = get_active_semester(request.user)
+    """Academic landing page. Works with or without a semester."""
+    return render(request, "academic/home.html", {
+        "semester": get_active_semester(request.user),
+        "features": home_features(),
+        "demo": DEMO_SEMESTER,
+    })
 
-    # State A: no semester yet
-    if semester is None:
-        return render(request, "academic/home.html", {"semester": None})
 
+@semester_view
+def dashboard(request, semester):
     now = timezone.localtime()
     today = now.date()
 
     schedules = list(semester.class_schedules.select_related("course"))
     stats = build_stats(semester, today)
-    holiday = holiday_for(today, get_holidays(semester))
+    holidays = get_holidays(semester)
+    holiday = holiday_for(today, holidays)
 
     if holiday:
         todays_classes = []  # no classes on a holiday
@@ -235,10 +251,19 @@ def home(request):
     # Dashboard numbers
     sync_sessions(semester)  # keeps attendance up to date
     pending = semester.assignments.filter(is_completed=False)
-    deadlines = list(pending.select_related("course")[:5])  # soonest (overdue first)
+    pending_list = list(pending.select_related("course"))  # soonest first (overdue first)
+    deadlines = pending_list[:5]
     for assignment in deadlines:
         assignment.days_left = (assignment.due_date - today).days
     summary = cgpa_summary(request.user)
+    history = history_summary(history_entries(SemesterGPA.objects.filter(student=request.user)))
+
+    # CGPA shown: from the semester records when every record has credits,
+    # otherwise from the course grades (the original calculation).
+    if history["cgpa"] is not None:
+        cgpa_value, cgpa_source = history["cgpa"], "semester records"
+    else:
+        cgpa_value, cgpa_source = summary["cgpa"], "course grades"
 
     context = {
         "semester": semester,
@@ -247,23 +272,22 @@ def home(request):
         "stats": stats,
         "status": status,
         "has_routine": bool(schedules),
-        "routine_days": group_routine(schedules),
         "todays_classes": todays_classes,
-        "timeline": build_timeline(semester, today, stats, status),
+        "journey": build_journey(semester, today, stats, pending_list, holidays),
         "weekly_class_count": len(schedules),
         "course_count": semester.courses.count(),
-        "pending_count": pending.count(),
-        "overdue_count": pending.filter(due_date__lt=today).count(),
+        "pending_count": len(pending_list),
+        "overdue_count": sum(1 for a in pending_list if a.due_date < today),
         "deadlines": deadlines,
         "attendance": attendance_stats(semester),
-        "cgpa": summary,
+        "cgpa_value": cgpa_value,
+        "cgpa_source": cgpa_source,
         "semester_gpa": next(
             (row["gpa"] for row in summary["semesters"] if row["semester"].pk == semester.pk),
             None,
         ),
     }
-    return render(request, "academic/home.html", context)
-    
+    return render(request, "academic/dashboard.html", context)
 
 
 # --------------------------------------------------------------- semesters
@@ -604,14 +628,33 @@ def attendance_mark(request, semester, pk):
 
 # ------------------------------------------------------------------- grades
 
-@semester_view
-def cgpa(request, semester):
-    """Saved grades of the active semester plus per-semester GPA and overall CGPA."""
-    courses = semester.courses.select_related("grade")
+@login_required
+def cgpa(request):
+    """Semester-wise GPA history and analysis, plus the course grades of the active semester.
+
+    The page works without a semester: the history is kept per student.
+    """
+    semester = get_active_semester(request.user)
+    rows = []
+    attendance_percentage = None
+    if semester is not None:
+        rows = [(course, getattr(course, "grade", None)) for course in semester.courses.select_related("grade")]
+        attendance_percentage = attendance_stats(semester)["overall"]["percentage"]
+
+    records = list(SemesterGPA.objects.filter(student=request.user))
+    entries = history_entries(records)
+    history = history_summary(entries)
+    summary = cgpa_summary(request.user)
     return render(request, "academic/cgpa.html", {
         "semester": semester,
-        "rows": [(course, getattr(course, "grade", None)) for course in courses],
-        "summary": cgpa_summary(request.user),
+        "rows": rows,
+        "summary": summary,
+        "entries": entries,
+        "history": history,
+        "analysis": analyse(entries, history, rows, attendance_percentage),
+        "distribution": grade_distribution(rows),
+        "suggestions": suggestions(summary, entries),
+        "next_term": next_term(records),
     })
 
 
@@ -640,4 +683,51 @@ def grade_delete(request, semester, pk):
     course = get_object_or_404(Course, pk=pk, semester=semester)
     CourseGrade.objects.filter(course=course).delete()
     messages.success(request, "Grade removed.")
+    return redirect("academic:cgpa")
+
+
+# --------------------------------------------------------- semester GPA records
+
+def _gpa_form_page(request, form, record):
+    return render(request, "academic/gpa_form.html", {
+        "semester": get_active_semester(request.user),
+        "form": form,
+        "record": record,
+    })
+
+
+@login_required
+def gpa_add(request):
+    if request.method == "POST":
+        form = SemesterGPAForm(request.POST, student=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Semester GPA saved.")
+            return redirect("academic:cgpa")
+    else:
+        records = SemesterGPA.objects.filter(student=request.user)
+        form = SemesterGPAForm(student=request.user, initial={"term": next_term(records)})
+    return _gpa_form_page(request, form, None)
+
+
+@login_required
+def gpa_edit(request, pk):
+    record = get_object_or_404(SemesterGPA, pk=pk, student=request.user)
+    if request.method == "POST":
+        form = SemesterGPAForm(request.POST, instance=record, student=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Semester GPA updated.")
+            return redirect("academic:cgpa")
+    else:
+        form = SemesterGPAForm(instance=record, student=request.user)
+    return _gpa_form_page(request, form, record)
+
+
+@login_required
+@require_POST
+def gpa_delete(request, pk):
+    record = get_object_or_404(SemesterGPA, pk=pk, student=request.user)
+    record.delete()
+    messages.success(request, "Semester GPA removed.")
     return redirect("academic:cgpa")

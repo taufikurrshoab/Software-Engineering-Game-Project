@@ -6,6 +6,7 @@ app_name = "academic"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("dashboard/", views.dashboard, name="dashboard"),
 
     # Semesters
     path("setup/", views.semester_setup, name="setup"),
@@ -21,6 +22,9 @@ urlpatterns = [
     path("courses/<int:pk>/grade/", views.grade_edit, name="grade_edit"),
     path("courses/<int:pk>/grade/delete/", views.grade_delete, name="grade_delete"),
     path("cgpa/", views.cgpa, name="cgpa"),
+    path("cgpa/semesters/add/", views.gpa_add, name="gpa_add"),
+    path("cgpa/semesters/<int:pk>/edit/", views.gpa_edit, name="gpa_edit"),
+    path("cgpa/semesters/<int:pk>/delete/", views.gpa_delete, name="gpa_delete"),
 
     # Weekly routine
     path("routine/", views.routine_list, name="routine_list"),

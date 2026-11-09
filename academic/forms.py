@@ -11,6 +11,7 @@ from .models import (
     CourseGrade,
     Holiday,
     Semester,
+    SemesterGPA,
 )
 from .services import get_holidays, holiday_for
 
@@ -230,3 +231,58 @@ class CourseGradeForm(forms.ModelForm):
     def __init__(self, *args, course, **kwargs):
         super().__init__(*args, **kwargs)
         self.instance.course = course
+
+
+class SemesterGPAForm(forms.ModelForm):
+    """Add or edit the GPA of one semester (the semester-wise record)."""
+
+    class Meta:
+        model = SemesterGPA
+        fields = ["name", "term", "gpa", "credits"]
+        labels = {
+            "name": "Semester name",
+            "term": "Semester number",
+            "gpa": "Semester GPA",
+            "credits": "Credits (optional)",
+        }
+        help_texts = {
+            "term": "Its position in your degree: 1 for the first semester, 2 for the second...",
+            "credits": "Needed to calculate a credit-weighted CGPA across semesters.",
+        }
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": "e.g. 2nd Year - 1st Semester", "autocomplete": "off"}),
+            "term": forms.NumberInput(attrs={"min": "1", "max": "99"}),
+            "gpa": forms.NumberInput(attrs={"step": "0.01", "min": "0", "max": "4"}),
+            "credits": forms.NumberInput(attrs={"step": "0.5", "min": "0.5", "placeholder": "optional"}),
+        }
+
+    def __init__(self, *args, student, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.student = student
+        self.instance.student = student
+
+    def _others(self):
+        records = SemesterGPA.objects.filter(student=self.student)
+        if self.instance.pk:
+            records = records.exclude(pk=self.instance.pk)
+        return records
+
+    def clean_name(self):
+        name = " ".join(self.cleaned_data["name"].split())
+        if not name:
+            raise ValidationError("Enter a name for this semester.")
+        if self._others().filter(name__iexact=name).exists():
+            raise ValidationError("You already have a record with this name.")
+        return name
+
+    def clean_term(self):
+        term = self.cleaned_data["term"]
+        if self._others().filter(term=term).exists():
+            raise ValidationError("You already have a record for this semester number.")
+        return term
+
+    def clean_credits(self):
+        credits = self.cleaned_data.get("credits")
+        if credits is not None and credits <= 0:
+            raise ValidationError("Credits must be greater than zero.")
+        return credits

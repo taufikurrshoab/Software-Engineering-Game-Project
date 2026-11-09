@@ -3,11 +3,11 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from . import services
+from . import insights, journey, services, views
 from .models import (
     Assignment,
     Attendance,
@@ -17,6 +17,7 @@ from .models import (
     CourseGrade,
     Holiday,
     Semester,
+    SemesterGPA,
 )
 
 User = get_user_model()
@@ -28,6 +29,7 @@ TEMPLATE_NAMES = [
     "home", "semester_setup", "semester_list", "course_list", "course_form",
     "routine_list", "routine_form", "holiday_list", "holiday_form",
     "assignment_list", "assignment_form", "timeline", "attendance", "cgpa", "grade_form",
+    "dashboard", "gpa_form",
 ]
 TEST_TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -581,3 +583,362 @@ class GradeTests(AcademicTestCase):
         response = self.client.post(url, {"grade": "A+", "grade_point": "5.00"})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(CourseGrade.objects.exists())
+
+
+# ------------------------------------------------------- home and dashboard
+
+class HomeAndDashboardTests(AcademicTestCase):
+    def test_login_required(self):
+        self.client.logout()
+        for name in ["home", "dashboard"]:
+            self.assertEqual(self.client.get(reverse(f"academic:{name}")).status_code, 302, name)
+
+    def test_home_works_without_a_semester(self):
+        self.client.login(username="bob", password=PASSWORD)
+        response = self.client.get(reverse("academic:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["semester"])
+        self.assertEqual(len(response.context["features"]), 9)
+        self.assertEqual(response.context["demo"]["cgpa"], "3.75")
+
+    def test_home_and_dashboard_are_separate_pages(self):
+        self.assertNotEqual(reverse("academic:home"), reverse("academic:dashboard"))
+        home = self.client.get(reverse("academic:home"))
+        dashboard = self.client.get(reverse("academic:dashboard"))
+        self.assertEqual(home.status_code, 200)
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertEqual(home.context["semester"], self.semester)
+        self.assertNotIn("journey", home.context)
+        self.assertIn("journey", dashboard.context)
+
+    def test_dashboard_needs_a_semester(self):
+        self.client.login(username="bob", password=PASSWORD)
+        response = self.client.get(reverse("academic:dashboard"))
+        self.assertRedirects(response, reverse("academic:setup"), fetch_redirect_response=False)
+
+    def test_dashboard_journey_comes_from_real_data(self):
+        Assignment.objects.create(
+            semester=self.semester, course=self.course, title="HW", due_date=date(2025, 10, 10),
+        )
+        response = self.client.get(reverse("academic:dashboard"))
+        events = response.context["journey"]["events"]
+        kinds = [event["kind"] for event in events]
+        for kind in ("start", "half", "end", "assignment"):
+            self.assertIn(kind, kinds)
+        self.assertEqual(response.context["pending_count"], 1)
+
+    def test_dashboard_cgpa_prefers_complete_semester_records(self):
+        CourseGrade.objects.create(course=self.course, grade="B", grade_point=Decimal("3.00"))
+        response = self.client.get(reverse("academic:dashboard"))
+        self.assertEqual(response.context["cgpa_value"], Decimal("3.00"))
+        self.assertEqual(response.context["cgpa_source"], "course grades")
+
+        SemesterGPA.objects.create(student=self.alice, name="Old", term=1, gpa=Decimal("4.00"), credits=Decimal("10"))
+        response = self.client.get(reverse("academic:dashboard"))
+        self.assertEqual(response.context["cgpa_value"], Decimal("4.00"))
+        self.assertEqual(response.context["cgpa_source"], "semester records")
+
+
+class JourneyTests(AcademicTestCase):
+    def build(self, today, pending=(), holidays=()):
+        stats = views.build_stats(self.semester, today)
+        return journey.build_journey(self.semester, today, stats, list(pending), list(holidays)), stats
+
+    def test_milestones_use_the_semester_dates(self):
+        result, _stats = self.build(date(2025, 10, 20))
+        by_kind = {event["kind"]: event for event in result["events"]}
+        self.assertEqual(by_kind["start"]["date"], START)
+        self.assertEqual(by_kind["end"]["date"], END)
+        self.assertEqual(by_kind["half"]["date"], START + (END - START) // 2)
+        self.assertEqual(by_kind["start"]["state"], "past")
+        self.assertEqual(by_kind["end"]["state"], "upcoming")
+
+    def test_week_counts_follow_today(self):
+        result, stats = self.build(date(2025, 10, 20))
+        self.assertEqual(result["weeks_done"], stats["current_week"] - 1)
+        self.assertEqual(result["weeks_left"], stats["total_weeks"] - stats["current_week"])
+        self.assertIn(f"Week {stats['current_week']}", result["now_label"])
+
+    def test_deadline_branch_has_title_course_and_remaining_time(self):
+        assignment = Assignment.objects.create(
+            semester=self.semester, course=self.course, title="Report", due_date=date(2025, 10, 22),
+        )
+        result, _stats = self.build(date(2025, 10, 20), pending=[assignment])
+        event = next(e for e in result["events"] if e["kind"] == "assignment")
+        self.assertEqual(event["title"], "Report")
+        self.assertEqual(event["course"], "Machine Learning")
+        self.assertEqual(event["relative"], "Due in 2 days")
+        self.assertEqual(event["anchor"], f"#assignment-{assignment.pk}")
+        self.assertTrue(result["has_deadlines"])
+
+    def test_no_pending_assignments_gives_an_empty_branch(self):
+        result, _stats = self.build(date(2025, 10, 20))
+        ghosts = [e for e in result["events"] if e["kind"] == "empty"]
+        self.assertEqual(len(ghosts), 1)
+        self.assertFalse(result["has_deadlines"])
+
+    def test_overdue_assignment_is_flagged_and_sorted_first(self):
+        old = Assignment.objects.create(semester=self.semester, course=self.course, title="Old", due_date=date(2025, 10, 1))
+        new = Assignment.objects.create(semester=self.semester, course=self.course, title="New", due_date=date(2025, 10, 25))
+        result, _stats = self.build(date(2025, 10, 20), pending=[old, new])
+        deadlines = [e for e in result["events"] if e["kind"] == "assignment"]
+        self.assertEqual([e["title"] for e in deadlines], ["Old", "New"])
+        self.assertEqual(deadlines[0]["state"], "overdue")
+        self.assertTrue(deadlines[0]["relative"].startswith("Overdue by"))
+
+    def test_only_current_and_upcoming_holidays_are_shown(self):
+        past = Holiday.objects.create(semester=self.semester, title="Past", start_date=date(2025, 9, 10), end_date=date(2025, 9, 11))
+        soon = Holiday.objects.create(semester=self.semester, title="Soon", start_date=date(2025, 11, 1), end_date=date(2025, 11, 3))
+        result, _stats = self.build(date(2025, 10, 20), holidays=[past, soon])
+        titles = [e["title"] for e in result["events"] if e["kind"] == "holiday"]
+        self.assertEqual(titles, ["Soon"])
+
+    def test_events_are_ordered_and_today_sits_on_the_line(self):
+        result, _stats = self.build(date(2025, 10, 20))
+        dates = [e["sort_date"] for e in result["events"]]
+        self.assertEqual(dates, sorted(dates))
+        self.assertTrue(0 < result["now"] < 100)
+        self.assertEqual([e["side"] for e in result["events"][:3]], ["up", "down", "up"])
+
+    def test_before_start_and_after_end(self):
+        before, _s = self.build(date(2025, 8, 15))
+        self.assertEqual(before["weeks_done"], 0)
+        after, _s = self.build(date(2026, 2, 1))
+        self.assertEqual(after["weeks_left"], 0)
+        self.assertEqual(after["now"], 100.0)
+        self.assertEqual(after["now_label"], "Semester complete")
+
+    def test_home_branches_are_complete(self):
+        features = journey.home_features()
+        self.assertEqual(len(features), 9)
+        for feature in features:
+            self.assertTrue(feature["path"].startswith("M"))
+            self.assertTrue(feature["title"] and feature["text"])
+
+
+# --------------------------------------------------- semester GPA records
+
+class SemesterGPATests(AcademicTestCase):
+    def payload(self, **overrides):
+        data = {"name": "1st Year 1st Semester", "term": 1, "gpa": "3.45", "credits": "15"}
+        data.update(overrides)
+        return data
+
+    def add(self, **overrides):
+        return self.client.post(reverse("academic:gpa_add"), self.payload(**overrides))
+
+    def test_login_required(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse("academic:gpa_add")).status_code, 302)
+
+    def test_add_a_semester_gpa(self):
+        response = self.add()
+        self.assertRedirects(response, reverse("academic:cgpa"), fetch_redirect_response=False)
+        record = SemesterGPA.objects.get()
+        self.assertEqual((record.student, record.term, record.gpa), (self.alice, 1, Decimal("3.45")))
+        self.assertEqual(record.credits, Decimal("15.0"))
+        self.assertEqual(texts(response), ["Semester GPA saved."])
+
+    def test_credits_are_optional(self):
+        self.add(credits="")
+        self.assertIsNone(SemesterGPA.objects.get().credits)
+
+    def test_gpa_must_be_between_zero_and_four(self):
+        for bad in ("4.5", "-0.1"):
+            response = self.add(gpa=bad)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("gpa", response.context["form"].errors)
+        self.assertFalse(SemesterGPA.objects.exists())
+
+    def test_credits_must_be_positive(self):
+        response = self.add(credits="0")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("credits", response.context["form"].errors)
+
+    def test_duplicate_name_or_number_is_rejected(self):
+        self.add()
+        self.assertIn("name", self.add(term=2).context["form"].errors)
+        self.assertIn("term", self.add(name="Another one").context["form"].errors)
+        self.assertEqual(SemesterGPA.objects.count(), 1)
+
+    def test_the_add_form_suggests_the_next_number(self):
+        self.add()
+        response = self.client.get(reverse("academic:gpa_add"))
+        self.assertEqual(response.context["form"].initial["term"], 2)
+
+    def test_edit(self):
+        self.add()
+        record = SemesterGPA.objects.get()
+        url = reverse("academic:gpa_edit", args=[record.pk])
+        self.assertEqual(self.client.get(url).status_code, 200)
+        response = self.client.post(url, self.payload(gpa="3.80"))
+        self.assertRedirects(response, reverse("academic:cgpa"), fetch_redirect_response=False)
+        record.refresh_from_db()
+        self.assertEqual(record.gpa, Decimal("3.80"))
+
+    def test_editing_keeps_its_own_name_and_number(self):
+        self.add()
+        record = SemesterGPA.objects.get()
+        response = self.client.post(reverse("academic:gpa_edit", args=[record.pk]), self.payload())
+        self.assertEqual(response.status_code, 302)
+
+    def test_delete(self):
+        self.add()
+        record = SemesterGPA.objects.get()
+        url = reverse("academic:gpa_delete", args=[record.pk])
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertEqual(self.client.post(url).status_code, 302)
+        self.assertFalse(SemesterGPA.objects.exists())
+
+    def test_other_users_records_are_not_reachable(self):
+        record = SemesterGPA.objects.create(student=self.bob, name="Bob", term=1, gpa=Decimal("3.0"))
+        for url in (reverse("academic:gpa_edit", args=[record.pk]),):
+            self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.post(reverse("academic:gpa_delete", args=[record.pk])).status_code, 404)
+        self.assertTrue(SemesterGPA.objects.filter(pk=record.pk).exists())
+        self.assertEqual(self.client.get(reverse("academic:cgpa")).context["entries"], [])
+
+
+class CGPAPageTests(AcademicTestCase):
+    def record(self, term, gpa, credits=None, user=None):
+        return SemesterGPA.objects.create(
+            student=user or self.alice, name=f"Sem {term}", term=term,
+            gpa=Decimal(gpa), credits=None if credits is None else Decimal(credits),
+        )
+
+    def test_cgpa_is_credit_weighted_when_every_record_has_credits(self):
+        self.record(1, "3.00", "10")
+        self.record(2, "4.00", "30")
+        history = self.client.get(reverse("academic:cgpa")).context["history"]
+        self.assertEqual(history["cgpa"], Decimal("3.75"))
+        self.assertEqual(history["average"], Decimal("3.50"))
+
+    def test_cgpa_is_not_guessed_when_credits_are_missing(self):
+        self.record(1, "3.00", "10")
+        self.record(2, "4.00")
+        history = self.client.get(reverse("academic:cgpa")).context["history"]
+        self.assertIsNone(history["cgpa"])
+        self.assertEqual(history["missing_credits"], 1)
+        self.assertEqual(history["average"], Decimal("3.50"))
+
+    def test_entries_are_ordered_with_changes(self):
+        self.record(2, "3.60")
+        self.record(1, "3.45")
+        entries = self.client.get(reverse("academic:cgpa")).context["entries"]
+        self.assertEqual([e["term"] for e in entries], [1, 2])
+        self.assertEqual(entries[1]["delta"], Decimal("0.15"))
+        self.assertEqual(entries[1]["direction"], "up")
+
+    def test_analysis_waits_for_enough_records(self):
+        self.record(1, "3.00")
+        analysis = self.client.get(reverse("academic:cgpa")).context["analysis"]
+        self.assertIsNone(analysis["trend"])
+        self.assertFalse(analysis["enough"])
+        self.assertEqual(analysis["observations"], [])
+
+    def test_page_works_without_a_semester(self):
+        self.record(1, "3.20", user=self.bob)
+        self.client.login(username="bob", password=PASSWORD)
+        response = self.client.get(reverse("academic:cgpa"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["semester"])
+        self.assertEqual(response.context["rows"], [])
+        self.assertEqual(len(response.context["entries"]), 1)
+
+    def test_course_grades_are_untouched_by_semester_records(self):
+        CourseGrade.objects.create(course=self.course, grade="A-", grade_point=Decimal("3.50"))
+        before = services.cgpa_summary(self.alice)
+        self.record(1, "2.00", "10")
+        after = services.cgpa_summary(self.alice)
+        self.assertEqual(before["cgpa"], Decimal("3.50"))
+        self.assertEqual(after["cgpa"], before["cgpa"])
+        response = self.client.get(reverse("academic:cgpa"))
+        self.assertEqual(response.context["summary"]["cgpa"], Decimal("3.50"))
+        self.assertEqual(response.context["rows"][0][1].grade, "A-")
+
+    def test_unrecorded_semesters_with_grades_are_suggested_once(self):
+        CourseGrade.objects.create(course=self.course, grade="A", grade_point=Decimal("4.00"))
+        suggestions = self.client.get(reverse("academic:cgpa")).context["suggestions"]
+        self.assertEqual([s["name"] for s in suggestions], ["Fall 2025"])
+        self.assertEqual(suggestions[0]["gpa"], Decimal("4.00"))
+        SemesterGPA.objects.create(student=self.alice, name="fall 2025", term=1, gpa=Decimal("4.00"))
+        self.assertEqual(self.client.get(reverse("academic:cgpa")).context["suggestions"], [])
+
+
+class InsightRuleTests(SimpleTestCase):
+    """The advice rules, on plain records (no database)."""
+
+    @staticmethod
+    def records(gpas, credits=None):
+        from types import SimpleNamespace
+        return [
+            SimpleNamespace(
+                name=f"Sem {i + 1}", term=i + 1, gpa=Decimal(str(g)),
+                credits=None if credits is None else Decimal(str(credits[i])),
+            )
+            for i, g in enumerate(gpas)
+        ]
+
+    def run_rules(self, gpas, credits=None, rows=(), attendance=None):
+        entries = insights.history_entries(self.records(gpas, credits))
+        summary = insights.history_summary(entries)
+        return summary, insights.analyse(entries, summary, rows, attendance)
+
+    def test_improving_over_several_semesters(self):
+        summary, analysis = self.run_rules([3.45, 3.60, 3.72, 3.55, 3.80, 3.85])
+        self.assertEqual(analysis["trend"], "improving")
+        self.assertEqual(summary["average"], Decimal("3.66"))
+        self.assertEqual(summary["best"]["name"], "Sem 6")
+
+    def test_consecutive_improvement_advice(self):
+        _summary, analysis = self.run_rules([3.0, 3.2, 3.4, 3.6])
+        texts_ = [a["text"] for a in analysis["advice"]]
+        self.assertTrue(any("improved for 3 consecutive semesters" in t for t in texts_))
+
+    def test_declining(self):
+        _summary, analysis = self.run_rules([3.9, 3.7, 3.5, 3.2])
+        self.assertEqual(analysis["trend"], "declining")
+        self.assertTrue(any("declined for 3 consecutive semesters" in o["text"] for o in analysis["observations"]))
+        self.assertTrue(any("declining" in a["text"] for a in analysis["advice"]))
+
+    def test_stable_and_consistent(self):
+        _summary, analysis = self.run_rules([3.50, 3.52, 3.49, 3.51])
+        self.assertEqual(analysis["trend"], "stable")
+        self.assertTrue(any("consistent" in o["text"] for o in analysis["observations"]))
+
+    def test_not_enough_records_gives_no_trend(self):
+        for gpas in ([], [3.2], [3.2, 3.4]):
+            _summary, analysis = self.run_rules(gpas)
+            self.assertIsNone(analysis["trend"])
+        _summary, analysis = self.run_rules([3.2, 3.4])
+        self.assertIn("not entered enough", analysis["advice"][0]["text"])
+
+    def test_credit_weighted_cgpa_needs_every_credit(self):
+        summary, _analysis = self.run_rules([3.0, 4.0], credits=[10, 30])
+        self.assertEqual(summary["cgpa"], Decimal("3.75"))
+        summary, _analysis = self.run_rules([3.0, 4.0])
+        self.assertIsNone(summary["cgpa"])
+
+    def test_course_and_attendance_advice_use_real_values(self):
+        from types import SimpleNamespace as NS
+        rows = [
+            (NS(name="Math", credit=Decimal("3.0")), NS(grade="C", grade_point=Decimal("2.0"))),
+            (NS(name="Art", credit=Decimal("1.5")), NS(grade="A", grade_point=Decimal("4.0"))),
+            (NS(name="Unfinished", credit=Decimal("3.0")), None),
+        ]
+        _summary, analysis = self.run_rules([3.0, 3.2, 3.4], [15, 15, 15], rows, attendance=62.5)
+        texts_ = [a["text"] for a in analysis["advice"]]
+        self.assertTrue(any("lowest grade this semester is C in Math (3 credits)" in t for t in texts_))
+        self.assertTrue(any("62.5%" in t for t in texts_))
+
+    def test_grade_distribution_groups_letters(self):
+        from types import SimpleNamespace as NS
+        rows = [
+            (NS(), NS(grade="a", grade_point=Decimal("4.0"))),
+            (NS(), NS(grade="A", grade_point=Decimal("4.0"))),
+            (NS(), NS(grade="B", grade_point=Decimal("3.0"))),
+            (NS(), None),
+        ]
+        distribution = insights.grade_distribution(rows)
+        self.assertEqual([(d["grade"], d["count"]) for d in distribution], [("A", 2), ("B", 1)])
+        self.assertEqual(distribution[0]["fill"], 100)

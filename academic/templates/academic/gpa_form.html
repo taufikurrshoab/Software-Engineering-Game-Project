@@ -1,0 +1,49 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}{% if record %}Edit semester GPA{% else %}Add semester GPA{% endif %}{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/cgpa.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div class="ac-form-page">
+    <a class="ac-back" href="{% url 'academic:cgpa' %}">
+        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chevron"/></svg>CGPA</a>
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">Semester GPA</span>
+            <h1 class="ac-title">{% if record %}Edit {{ record.name }}{% else %}Add semester GPA{% endif %}</h1>
+            <p class="ac-subtitle">Enter the GPA you earned in one semester. Add its credits too and your CGPA is calculated credit-weighted across semesters.</p>
+        </div>
+        {% if record %}
+        <div class="ac-head-actions">
+            <form method="post" action="{% url 'academic:gpa_delete' record.pk %}" class="ac-inline-form"
+                  data-ac-confirm="Remove &ldquo;{{ record.name }}&rdquo; from your semester history? Your CGPA and trend will be recalculated."
+                  data-ac-confirm-title="Remove semester?" data-ac-confirm-label="Remove">
+                {% csrf_token %}
+                <button type="submit" class="ac-btn ac-btn--danger">
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg>Remove</button>
+            </form>
+        </div>
+        {% endif %}
+    </header>
+
+    <section class="ac-card ac-card--accent" data-reveal>
+        <form method="post" class="ac-form" data-cg-gpa-form>
+            {% include 'academic/_form_body.html' with form=form wide_fields="name credits" %}
+            <p class="cg-hint" data-cg-hint role="status" aria-live="polite">Credits on every semester let CGPA be credit-weighted. Without them you still get your average and trend.</p>
+            <div class="ac-form__actions">
+                <a class="ac-btn ac-btn--ghost" href="{% url 'academic:cgpa' %}">Cancel</a>
+                <button type="submit" class="ac-btn ac-btn--primary">Save semester</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/cgpa.js' %}" defer></script>
+{% endblock %}
