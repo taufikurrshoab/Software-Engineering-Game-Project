@@ -1,8 +1,11 @@
 from datetime import date, datetime, time
 from decimal import Decimal
+from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.contrib.messages import get_messages
+from django.shortcuts import resolve_url
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -29,7 +32,7 @@ TEMPLATE_NAMES = [
     "home", "semester_setup", "semester_list", "course_list", "course_form",
     "routine_list", "routine_form", "holiday_list", "holiday_form",
     "assignment_list", "assignment_form", "timeline", "attendance", "cgpa", "grade_form",
-    "dashboard", "gpa_form",
+    "dashboard", "gpa_form", "feature_preview",
 ]
 TEST_TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -78,12 +81,15 @@ class AcademicTestCase(TestCase):
 
 
 class AccessTests(AcademicTestCase):
-    def test_login_required(self):
+    def test_visitors_get_a_read_only_preview_not_a_login_redirect(self):
+        # (this used to assert 302: every feature page is now readable as a guest preview;
+        #  GuestAccessTests below covers that a visitor still cannot change anything)
         self.client.logout()
         for name in ["semester_list", "course_list", "routine_list", "holiday_list",
                      "assignment_list", "timeline", "attendance_overview", "cgpa"]:
             response = self.client.get(reverse(f"academic:{name}"))
-            self.assertEqual(response.status_code, 302, name)
+            self.assertEqual(response.status_code, 200, name)
+            self.assertTemplateUsed(response, "academic/feature_preview.html")
 
     def test_user_without_semester_is_sent_to_setup(self):
         self.client.login(username="bob", password=PASSWORD)
@@ -588,10 +594,15 @@ class GradeTests(AcademicTestCase):
 # ------------------------------------------------------- home and dashboard
 
 class HomeAndDashboardTests(AcademicTestCase):
-    def test_login_required(self):
+    def test_home_and_dashboard_are_open_to_visitors(self):
+        # (this used to assert 302; visitors now see the home page and a labelled demo dashboard)
         self.client.logout()
-        for name in ["home", "dashboard"]:
-            self.assertEqual(self.client.get(reverse(f"academic:{name}")).status_code, 302, name)
+        home = self.client.get(reverse("academic:home"))
+        dashboard = self.client.get(reverse("academic:dashboard"))
+        self.assertEqual((home.status_code, dashboard.status_code), (200, 200))
+        self.assertTrue(home.context["is_guest"])
+        self.assertIsNone(home.context["semester"])
+        self.assertTrue(dashboard.context["is_demo"])
 
     def test_home_works_without_a_semester(self):
         self.client.login(username="bob", password=PASSWORD)
@@ -942,3 +953,273 @@ class InsightRuleTests(SimpleTestCase):
         distribution = insights.grade_distribution(rows)
         self.assertEqual([(d["grade"], d["count"]) for d in distribution], [("A", 2), ("B", 1)])
         self.assertEqual(distribution[0]["fill"], 100)
+
+
+# ------------------------------------------------------------ guest access
+
+def row_counts():
+    return {model.__name__: model.objects.count() for model in (
+        Semester, Course, ClassSchedule, ClassSession, Attendance, Holiday, Assignment, CourseGrade, SemesterGPA)}
+
+
+class GuestAccessTests(AcademicTestCase):
+    """A visitor can READ every Academic page, and can never change anything."""
+
+    PAGES = ["semester_list", "setup", "course_list", "routine_list", "holiday_list",
+             "assignment_list", "timeline", "attendance_overview", "cgpa"]
+
+    def setUp(self):
+        super().setUp()
+        self.client.logout()
+
+    def test_every_feature_page_opens_without_logging_in(self):
+        for name in self.PAGES:
+            response = self.client.get(reverse(f"academic:{name}"))
+            self.assertEqual(response.status_code, 200, name)
+            self.assertTemplateUsed(response, "academic/feature_preview.html")
+            self.assertTrue(response.context["is_guest"], name)
+            self.assertEqual(len(response.context["points"]), 3, name)
+
+    def test_the_preview_sends_you_back_to_the_same_page_after_signing_in(self):
+        url = reverse("academic:course_list")
+        login_url = self.client.get(url).context["login_url"]
+        self.assertTrue(login_url.startswith(resolve_url(settings.LOGIN_URL)))
+        self.assertIn("next=" + url, login_url)
+
+    def test_a_visitor_cannot_create_anything(self):
+        before = row_counts()
+        posts = {
+            "setup": {"name": "Hack", "start_date": "2025-09-01", "end_date": "2025-12-31"},
+            "course_list": {"name": "Hack", "code": "H1", "credit": "3"},
+            "routine_list": {"course": self.course.pk, "day_of_week": 1, "start_time": "09:00", "end_time": "10:00"},
+            "holiday_list": {"title": "Hack", "start_date": "2025-10-01", "end_date": "2025-10-02"},
+            "assignment_list": {"course": self.course.pk, "title": "Hack", "due_date": "2025-10-10"},
+            "cgpa": {"name": "Hack", "term": 1, "gpa": "4.0", "credits": "10"},
+            "semester_list": {"name": "Hack"},
+        }
+        for name, data in posts.items():
+            response = self.client.post(reverse(f"academic:{name}"), data)
+            self.assertEqual(response.status_code, 302, name)
+            self.assertTrue(response["Location"].startswith(resolve_url(settings.LOGIN_URL)), name)
+        self.assertEqual(row_counts(), before)
+
+    def test_other_http_methods_are_refused_too(self):
+        before = row_counts()
+        url = reverse("academic:course_list")
+        for method in (self.client.put, self.client.patch, self.client.delete):
+            self.assertEqual(method(url).status_code, 302)
+        self.assertEqual(row_counts(), before)
+
+    def test_edit_delete_and_toggle_routes_still_need_login(self):
+        before = row_counts()
+        assignment = Assignment.objects.create(
+            semester=self.semester, course=self.course, title="HW", due_date=date(2025, 10, 10))
+        before = row_counts()
+        routes = [
+            reverse("academic:course_edit", args=[self.course.pk]),
+            reverse("academic:course_delete", args=[self.course.pk]),
+            reverse("academic:routine_edit", args=[self.schedule.pk]),
+            reverse("academic:routine_cancel", args=[self.schedule.pk]),
+            reverse("academic:assignment_edit", args=[assignment.pk]),
+            reverse("academic:assignment_toggle", args=[assignment.pk]),
+            reverse("academic:assignment_delete", args=[assignment.pk]),
+            reverse("academic:semester_edit", args=[self.semester.pk]),
+            reverse("academic:semester_delete", args=[self.semester.pk]),
+            reverse("academic:semester_activate", args=[self.semester.pk]),
+            reverse("academic:attendance_mark", args=[1]),
+            reverse("academic:grade_edit", args=[self.course.pk]),
+            reverse("academic:gpa_add"),
+        ]
+        for url in routes:
+            self.assertEqual(self.client.get(url).status_code, 302, url)
+            self.assertEqual(self.client.post(url, {"date": "2025-09-15"}).status_code, 302, url)
+        self.assertEqual(row_counts(), before)
+        assignment.refresh_from_db()
+        self.assertFalse(assignment.is_completed)
+
+    def test_visiting_as_a_guest_writes_nothing(self):
+        before = row_counts()
+        for name in self.PAGES + ["home", "dashboard"]:
+            self.client.get(reverse(f"academic:{name}"))
+        self.assertEqual(row_counts(), before)
+
+
+class GuestDemoDataTests(AcademicTestCase):
+    """Demo data is built in memory, is labelled, and never mixes with real records."""
+
+    def setUp(self):
+        super().setUp()
+        Course.objects.create(semester=self.semester, name="Private Quantum Course", code="PQ1", credit=Decimal("3.0"))
+        Assignment.objects.create(semester=self.semester, course=self.course, title="Private HW secret",
+                                  due_date=date(2025, 10, 10))
+        Holiday.objects.create(semester=self.semester, title="Private holiday",
+                               start_date=date(2025, 10, 1), end_date=date(2025, 10, 2))
+        SemesterGPA.objects.create(student=self.alice, name="Private GPA", term=1, gpa=Decimal("3.99"), credits=Decimal("12"))
+
+    def test_the_guest_dashboard_is_labelled_and_in_memory(self):
+        self.client.logout()
+        before = row_counts()
+        response = self.client.get(reverse("academic:dashboard"))
+        context = response.context
+        self.assertTrue(context["is_demo"])
+        self.assertTrue(context["is_guest"])
+        self.assertNotIsInstance(context["semester"], Semester)
+        self.assertEqual(context["stats"]["current_week"], 12)
+        self.assertEqual(context["course_count"], 5)
+        self.assertEqual(len(context["snake"]["nodes"]), len(context["journey"]["events"]))
+        self.assertEqual(row_counts(), before)
+
+    def test_no_real_record_ever_appears_in_guest_pages(self):
+        self.client.logout()
+        for name in ["home", "dashboard", "course_list", "assignment_list", "holiday_list", "cgpa", "timeline"]:
+            response = self.client.get(reverse(f"academic:{name}"))
+            shown = repr(response.context.flatten() if hasattr(response.context, "flatten") else response.context)
+            for secret in ("Private Quantum Course", "Private HW secret", "Private holiday", "Private GPA", "alice"):
+                self.assertNotIn(secret, shown, f"{secret} leaked into {name}")
+
+    def test_a_signed_in_user_never_gets_the_demo(self):
+        response = self.client.get(reverse("academic:dashboard"))
+        self.assertFalse(response.context["is_demo"])
+        self.assertEqual(response.context["semester"], self.semester)
+        self.assertEqual(response.context["course_count"], 2)
+        for name in ["course_list", "assignment_list", "cgpa"]:
+            self.assertTemplateNotUsed(self.client.get(reverse(f"academic:{name}")), "academic/feature_preview.html")
+
+
+class DashboardSnakeTests(AcademicTestCase):
+    """The dashboard timeline is built from the signed-in user's own data, and every node goes somewhere real."""
+
+    def test_nodes_come_from_the_users_own_semester_only(self):
+        Assignment.objects.create(semester=self.semester, course=self.course, title="Alice only",
+                                  due_date=date(2025, 10, 10))
+        bob_semester = Semester.objects.create(student=self.bob, name="Bob Sem", start_date=START, end_date=END)
+        bob_course = Course.objects.create(semester=bob_semester, name="Bob Course", code="B1", credit=Decimal("3.0"))
+        Assignment.objects.create(semester=bob_semester, course=bob_course, title="Bob only", due_date=date(2025, 10, 11))
+
+        alice_titles = [n["title"] for n in self.client.get(reverse("academic:dashboard")).context["snake"]["nodes"]]
+        self.assertIn("Alice only", alice_titles)
+        self.assertNotIn("Bob only", alice_titles)
+
+        self.client.login(username="bob", password=PASSWORD)
+        bob_titles = [n["title"] for n in self.client.get(reverse("academic:dashboard")).context["snake"]["nodes"]]
+        self.assertIn("Bob only", bob_titles)
+        self.assertNotIn("Alice only", bob_titles)
+
+    def test_every_node_reverses_to_a_real_url(self):
+        assignment = Assignment.objects.create(semester=self.semester, course=self.course, title="HW",
+                                               due_date=date(2025, 10, 10))
+        holiday = Holiday.objects.create(semester=self.semester, title="Break",
+                                         start_date=date(2025, 10, 20), end_date=date(2025, 10, 21))
+        # pin "now" to the suite's usual date: a holiday only appears on the journey while it is still ahead
+        with mock.patch("django.utils.timezone.localtime", return_value=NOW):
+            nodes = self.client.get(reverse("academic:dashboard")).context["snake"]["nodes"]
+        by_kind = {n["kind"]: n for n in nodes}
+        for node in nodes:
+            self.assertTrue(reverse(node["url_name"]))
+            self.assertTrue(node["anchor"] == "" or node["anchor"].startswith("#"))
+        self.assertEqual(by_kind["assignment"]["anchor"], f"#assignment-{assignment.pk}")
+        self.assertEqual(by_kind["holiday"]["anchor"], f"#holiday-{holiday.pk}")
+        self.assertEqual(by_kind["assignment"]["url_name"], "academic:assignment_list")
+        self.assertEqual(by_kind["holiday"]["url_name"], "academic:holiday_list")
+
+    def test_the_today_marker_matches_the_journey(self):
+        context = self.client.get(reverse("academic:dashboard")).context
+        self.assertAlmostEqual(float(context["snake"]["now"]["at_w"]), context["journey"]["now"] / 100, places=4)
+
+    def test_home_timeline_has_one_clickable_node_per_feature(self):
+        snake = self.client.get(reverse("academic:home")).context["snake"]
+        self.assertEqual(len(snake["nodes"]), 9)
+        for node in snake["nodes"]:
+            self.assertTrue(reverse(node["url_name"]))
+
+
+# ------------------------------------------------- the real templates render
+
+BASE_STUB = "{% block title %}{% endblock %}{% block extra_css %}{% endblock %}{% block content %}{% endblock %}{% block extra_js %}{% endblock %}"
+REAL_TEMPLATES = [{
+    "BACKEND": "django.template.backends.django.DjangoTemplates",
+    "OPTIONS": {
+        "loaders": [
+            ("django.template.loaders.locmem.Loader", {"base.html": BASE_STUB}),   # the site's own layout is not needed here
+            "django.template.loaders.app_directories.Loader",                       # the REAL Academic templates
+        ],
+        "context_processors": [
+            "django.template.context_processors.request",
+            "django.contrib.auth.context_processors.auth",
+            "django.contrib.messages.context_processors.messages",
+        ],
+    },
+}]
+
+
+@override_settings(TEMPLATES=REAL_TEMPLATES)
+class RealTemplateTests(TestCase):
+    """Renders the actual home, dashboard and preview templates (with a stand-in for the site layout)."""
+
+    def setUp(self):
+        self.alice = User.objects.create_user("alice", password=PASSWORD)
+        self.semester = Semester.objects.create(student=self.alice, name="Fall 2025", start_date=START, end_date=END)
+        self.course = Course.objects.create(semester=self.semester, name="Machine Learning", code="CS401", credit=Decimal("3.0"))
+
+    def assert_snake_links(self, response, nodes):
+        self.assertContains(response, "data-snk")
+        self.assertContains(response, "snk__svg--wide")
+        self.assertContains(response, "snk__svg--tall")
+        for node in nodes:
+            self.assertContains(response, f'href="{reverse(node["url_name"])}{node["anchor"]}"')
+
+    def test_guest_home(self):
+        response = self.client.get(reverse("academic:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assert_snake_links(response, response.context["snake"]["nodes"])
+        self.assertContains(response, "Explore the demo dashboard")
+        self.assertContains(response, "academic-snake.js")
+        self.assertNotContains(response, "academic-dashboard.js")
+
+    def test_guest_dashboard_says_demo_data_and_links_every_node(self):
+        response = self.client.get(reverse("academic:dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Demo data")
+        self.assertContains(response, "snk--journey")
+        self.assert_snake_links(response, response.context["snake"]["nodes"])
+        self.assertNotContains(response, "Fall 2025")
+
+    def test_guest_preview_pages_are_labelled_and_have_no_forms(self):
+        for name in ["course_list", "routine_list", "assignment_list", "holiday_list", "cgpa", "timeline",
+                     "attendance_overview", "semester_list", "setup"]:
+            response = self.client.get(reverse(f"academic:{name}"))
+            self.assertContains(response, "Demo data", msg_prefix=name)
+            self.assertContains(response, "Sign in", msg_prefix=name)
+            self.assertNotContains(response, "<form", msg_prefix=name)
+            self.assertNotContains(response, "csrfmiddlewaretoken", msg_prefix=name)
+
+    def test_signed_in_dashboard_is_real_and_not_labelled_demo(self):
+        Assignment.objects.create(semester=self.semester, course=self.course, title="Real HW", due_date=date(2025, 10, 10))
+        self.client.login(username="alice", password=PASSWORD)
+        response = self.client.get(reverse("academic:dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "ac-demo")
+        self.assertContains(response, "Fall 2025")
+        self.assertContains(response, "Real HW")
+        self.assert_snake_links(response, response.context["snake"]["nodes"])
+
+    def test_home_timeline_comes_before_the_hero_and_the_hero_waits_for_it(self):
+        html = self.client.get(reverse("academic:home")).content.decode()
+        self.assertLess(html.index("data-snk role="), html.index('id="hm-title"'))
+        self.assertIn("data-snk-gate", html)
+        self.assertIn("data-after-snake", html)
+
+    def test_dashboard_timeline_comes_before_heading_and_statistics(self):
+        self.client.login(username="alice", password=PASSWORD)
+        html = self.client.get(reverse("academic:dashboard")).content.decode()
+        timeline = html.index("data-snk role=")
+        self.assertLess(timeline, html.index('class="ac-page-head"'))
+        self.assertLess(timeline, html.index('class="db-strip"'))
+        self.assertLess(html.index('class="ac-page-head"'), html.index('class="db-strip"'))
+        self.assertIn("data-snk-gate", html)
+
+    def test_signed_in_home_has_no_guest_wording(self):
+        self.client.login(username="alice", password=PASSWORD)
+        response = self.client.get(reverse("academic:home"))
+        self.assertContains(response, "Open dashboard")
+        self.assertNotContains(response, "exploring as a guest")

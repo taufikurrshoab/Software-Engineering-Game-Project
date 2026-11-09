@@ -1,9 +1,11 @@
 import math
 from datetime import timedelta
+from decimal import Decimal
 from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.db.models import RestrictedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -40,7 +42,9 @@ from .insights import (
     next_term,
     suggestions,
 )
+from .guest import FEATURE_PREVIEW, demo_semester, feature_for, preview_sample
 from .journey import DEMO_SEMESTER, build_journey, home_features
+from .snake import home_snake, journey_snake
 from .services import (
     attendance_stats,
     build_semester_timeline,
@@ -217,16 +221,106 @@ def group_routine(schedules):
     return list(days.items())
 
 
-@login_required
-def home(request):
-    """Academic landing page. Works with or without a semester."""
-    return render(request, "academic/home.html", {
-        "semester": get_active_semester(request.user),
+# ------------------------------------------------------------------ guests
+#
+# A visitor who is not signed in can READ every Academic page, but only as
+# in-memory sample content (guest.py): nothing here touches the database, and
+# nothing a visitor can send (POST, PUT, DELETE...) is ever accepted. Signed-in
+# users always get the real view, with its own login and ownership checks.
+
+def login_url_for(request):
+    """The sign-in URL that brings the visitor back to this page afterwards."""
+    return redirect_to_login(request.get_full_path()).url
+
+
+def guest_access(guest_handler):
+    """Let a visitor read a page; signed-in users get the real view untouched.
+
+    A visitor gets guest_handler(request) for GET/HEAD. Any other method is sent
+    to sign in, so no write can start from a guest page.
+    """
+    def decorator(view):
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            if request.user.is_authenticated:
+                return view(request, *args, **kwargs)
+            if request.method not in ("GET", "HEAD"):
+                return redirect_to_login(request.get_full_path())
+            return guest_handler(request)
+        return wrapper
+    return decorator
+
+
+def feature_preview(request, key):
+    """Read-only page about one feature, with clearly labelled sample rows."""
+    return render(request, "academic/feature_preview.html", {
+        "semester": None,
+        "is_guest": True,
+        "login_url": login_url_for(request),
+        "feature": feature_for(key),
+        "points": FEATURE_PREVIEW[key],
+        "sample": preview_sample(key, timezone.localdate()),
         "features": home_features(),
-        "demo": DEMO_SEMESTER,
     })
 
 
+def guest_preview(key):
+    return guest_access(lambda request: feature_preview(request, key))
+
+
+def demo_dashboard(request):
+    """The dashboard for a visitor: a sample semester, built in memory, labelled DEMO DATA."""
+    now = timezone.localtime()
+    today = now.date()
+    semester, courses, schedules, pending, holidays = demo_semester(today)
+    stats = build_stats(semester, today)
+    todays_classes = get_todays_classes(schedules, today, now.time(), stats)
+    status = get_current_status(stats, todays_classes)
+    deadlines = pending[:5]
+    for assignment in deadlines:
+        assignment.days_left = (assignment.due_date - today).days
+    journey = build_journey(semester, today, stats, pending, holidays)
+    return render(request, "academic/dashboard.html", {
+        "is_demo": True,
+        "is_guest": True,
+        "login_url": login_url_for(request),
+        "semester": semester,
+        "today": today,
+        "holiday": None,
+        "stats": stats,
+        "status": status,
+        "has_routine": True,
+        "todays_classes": todays_classes,
+        "journey": journey,
+        "snake": journey_snake(journey, semester, today, stats["total_weeks"]),
+        "weekly_class_count": len(schedules),
+        "course_count": len(courses),
+        "pending_count": len(pending),
+        "overdue_count": 0,
+        "deadlines": deadlines,
+        "attendance": {"overall": {"percentage": DEMO_SEMESTER["attendance"]}},
+        "cgpa_value": Decimal(DEMO_SEMESTER["cgpa"]),
+        "cgpa_source": "the sample records",
+        "semester_gpa": None,
+    })
+
+
+def home(request):
+    """Academic landing page. Public: works signed in or not, with or without a semester."""
+    signed_in = request.user.is_authenticated
+    context = {
+        "semester": get_active_semester(request.user) if signed_in else None,
+        "features": home_features(),
+        "snake": home_snake(),
+        "demo": DEMO_SEMESTER,
+        "is_guest": not signed_in,
+    }
+    if not signed_in:
+        context["login_url"] = login_url_for(request)
+    return render(request, "academic/home.html", context)
+
+
+@guest_access(demo_dashboard)
 @semester_view
 def dashboard(request, semester):
     now = timezone.localtime()
@@ -265,7 +359,9 @@ def dashboard(request, semester):
     else:
         cgpa_value, cgpa_source = summary["cgpa"], "course grades"
 
+    journey = build_journey(semester, today, stats, pending_list, holidays)
     context = {
+        "is_demo": False,
         "semester": semester,
         "today": today,
         "holiday": holiday,
@@ -273,7 +369,8 @@ def dashboard(request, semester):
         "status": status,
         "has_routine": bool(schedules),
         "todays_classes": todays_classes,
-        "journey": build_journey(semester, today, stats, pending_list, holidays),
+        "journey": journey,
+        "snake": journey_snake(journey, semester, today, stats["total_weeks"]),
         "weekly_class_count": len(schedules),
         "course_count": semester.courses.count(),
         "pending_count": len(pending_list),
@@ -292,6 +389,7 @@ def dashboard(request, semester):
 
 # --------------------------------------------------------------- semesters
 
+@guest_preview("semester")
 @login_required
 def semester_list(request):
     semesters = (
@@ -308,6 +406,7 @@ def semester_list(request):
     })
 
 
+@guest_preview("semester")
 @login_required
 def semester_setup(request):
     if request.method == "POST":
@@ -364,6 +463,7 @@ def semester_delete(request, pk):
 
 # ----------------------------------------------------------------- courses
 
+@guest_preview("courses")
 @semester_view
 def course_list(request, semester):
     form, saved = save_form(request, CourseForm, semester, "Course added.")
@@ -412,6 +512,7 @@ def course_delete(request, semester, pk):
 
 # ----------------------------------------------------------------- routine
 
+@guest_preview("routine")
 @semester_view
 def routine_list(request, semester):
     form, saved = save_form(request, ClassScheduleForm, semester, "Class added to the routine.")
@@ -482,6 +583,7 @@ def routine_restore(request, semester, pk):
 
 # ---------------------------------------------------------------- holidays
 
+@guest_preview("holidays")
 @semester_view
 def holiday_list(request, semester):
     form, saved = save_form(request, HolidayForm, semester, "Holiday added.")
@@ -518,6 +620,7 @@ def holiday_delete(request, semester, pk):
 
 # --------------------------------------------------------------- assignments
 
+@guest_preview("assignments")
 @semester_view
 def assignment_list(request, semester):
     form, saved = save_form(request, AssignmentForm, semester, "Assignment added.")
@@ -569,6 +672,7 @@ def assignment_delete(request, semester, pk):
 
 # ----------------------------------------------------------------- timeline
 
+@guest_preview("timeline")
 @semester_view
 def timeline(request, semester):
     sync_sessions(semester)
@@ -582,6 +686,7 @@ def timeline(request, semester):
 
 # --------------------------------------------------------------- attendance
 
+@guest_preview("attendance")
 @semester_view
 def attendance_overview(request, semester):
     sync_sessions(semester)
@@ -628,6 +733,7 @@ def attendance_mark(request, semester, pk):
 
 # ------------------------------------------------------------------- grades
 
+@guest_preview("cgpa")
 @login_required
 def cgpa(request):
     """Semester-wise GPA history and analysis, plus the course grades of the active semester.

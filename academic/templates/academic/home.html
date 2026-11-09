@@ -4,116 +4,59 @@
 {% block academic_title %}Academic{% endblock %}
 
 {% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/academic-snake.css' %}">
 <link rel="stylesheet" href="{% static 'academic/academic-landing.css' %}">
 {% endblock %}
 
 {% block academic_content %}
-<div class="hm" data-landing>
+<div class="hm snk-gate" data-landing data-snk-gate>
 
-    <!-- Hero -->
-    <section class="hm-hero" aria-labelledby="hm-title">
-        <span class="ac-eyebrow" data-reveal>Academic</span>
-        <h1 class="hm-hero__title" id="hm-title" data-reveal>Your semester, <span class="hm-grad">mapped and in motion</span>.</h1>
-        <p class="hm-hero__lead" data-reveal>Classes, deadlines, attendance, holidays and GPA in one calm place, so you always know what comes next.</p>
-
-        <div class="hm-hero__cta" data-reveal>
-            {% if semester %}
-            <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">
-                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Open dashboard</a>
-            <a class="ac-btn ac-btn--ghost" href="#features">Explore features</a>
-            {% else %}
-            <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">
-                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Set up your semester</a>
-            <a class="ac-btn ac-btn--ghost" href="#features">See how it works</a>
-            {% endif %}
-        </div>
-
-        <ol class="hm-how" data-reveal>
-            <li><b>1</b> Create a semester</li>
-            <li><b>2</b> Add courses and routine</li>
-            <li><b>3</b> Track everything as it happens</li>
-        </ol>
-    </section>
-
-    <!-- Branching feature timeline -->
-    <section class="hm-stage" id="features" aria-labelledby="hm-features-title" data-hm-stage>
+    <!-- Branching feature timeline: plays first. Every node links to its feature page. -->
+    <section class="hm-stage" id="features" aria-labelledby="hm-features-title">
         <h2 class="ac-sr-only" id="hm-features-title">What you can do with Academic</h2>
 
-        <div class="hm-canvas">
-            <svg class="hm-svg" viewBox="0 0 1200 460" role="group" aria-label="Academic features branching from a timeline" focusable="false">
-                <defs>
-                    <linearGradient id="hm-line" gradientUnits="userSpaceOnUse" x1="24" y1="0" x2="1176" y2="0">
-                        <stop offset="0" stop-color="#22d3ee" stop-opacity="0"/>
-                        <stop offset=".12" stop-color="#22d3ee"/>
-                        <stop offset=".55" stop-color="#60a5fa"/>
-                        <stop offset=".9" stop-color="#818cf8"/>
-                        <stop offset="1" stop-color="#818cf8" stop-opacity="0"/>
-                    </linearGradient>
-                    <filter id="hm-blur" x="-5%" y="-400%" width="110%" height="900%">
-                        <feGaussianBlur stdDeviation="7"/>
-                    </filter>
-                </defs>
-
-                <path class="hm-glow" d="M24 230 H1176" pathLength="1"/>
-                <path class="hm-main" d="M24 230 H1176" pathLength="1"/>
-                <path class="hm-flow" d="M24 230 H1176" pathLength="1"/>
-
-                {% for f in features %}
-                {% url f.url_name as feature_url %}
-                <g class="hm-branch" data-hm-branch tabindex="0" role="button"
-                   style="--i: {{ f.index }}"
-                   aria-label="{{ f.title }}: {{ f.text }}"
-                   data-icon="ac-i-{{ f.icon }}" data-title="{{ f.title }}" data-text="{{ f.text }}"
-                   data-href="{{ feature_url }}{{ f.anchor }}" data-index="{{ f.index }}">
-                    <path class="hm-twig" d="{{ f.twig }}" pathLength="1"/>
-                    <path class="hm-stem" d="{{ f.path }}" pathLength="1"/>
-                    <circle class="hm-junction" cx="{{ f.x }}" cy="{{ f.main_y }}" r="4"/>
-                    <g class="hm-node">
-                        <circle class="hm-halo" cx="{{ f.end_x }}" cy="{{ f.end_y }}" r="31"/>
-                        <circle class="hm-core" cx="{{ f.end_x }}" cy="{{ f.end_y }}" r="22"/>
-                        <use class="hm-ico" href="#ac-i-{{ f.icon }}" x="{{ f.icon_x }}" y="{{ f.icon_y }}" width="22" height="22"/>
-                    </g>
-                    <text class="hm-label" x="{{ f.end_x }}" y="{{ f.label_y }}" text-anchor="middle">{{ f.title }}</text>
-                    <circle class="hm-hit" cx="{{ f.end_x }}" cy="{{ f.end_y }}" r="38"/>
-                </g>
-                {% endfor %}
-            </svg>
-        </div>
-
-        {% with first=features.0 %}
-        {% url first.url_name as first_url %}
-        <div class="hm-panel" data-hm-panel aria-live="polite">
-            <span class="hm-panel__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-{{ first.icon }}" data-hm-panel-icon/></svg></span>
-            <div class="hm-panel__body">
-                <h3 class="hm-panel__title" data-hm-panel-title>{{ first.title }}</h3>
-                <p class="hm-panel__text" data-hm-panel-text>{{ first.text }}</p>
-            </div>
-            <a class="ac-btn ac-btn--ghost ac-btn--sm" href="{{ first_url }}{{ first.anchor }}" data-hm-panel-link>
-                Open <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-arrow"/></svg></a>
-        </div>
-        {% endwith %}
-
-        <!-- Phones: the same branches as a vertical timeline -->
-        <ol class="hm-steps">
-            {% for f in features %}
-            {% url f.url_name as feature_url %}
-            <li class="hm-step" style="--i: {{ f.index }}" data-reveal>
-                <a href="{{ feature_url }}{{ f.anchor }}">
-                    <span class="hm-step__node"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-{{ f.icon }}"/></svg></span>
-                    <span class="hm-step__body"><strong>{{ f.title }}</strong><span>{{ f.text }}</span></span>
-                </a>
-            </li>
-            {% endfor %}
-        </ol>
+        {% include "academic/_snake.html" with snake=snake mode="home" label="Academic features, each linking to its page" %}
 
         <!-- Compact index -->
-        <nav class="hm-chips" aria-label="All Academic features">
+        <nav class="hm-chips" aria-label="All Academic features" data-after-snake>
             {% for f in features %}
             {% url f.url_name as feature_url %}
             <a class="hm-chip" href="{{ feature_url }}{{ f.anchor }}">
                 <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-{{ f.icon }}"/></svg>{{ f.title }}</a>
             {% endfor %}
         </nav>
+    </section>
+
+    <!-- Hero: opens after the timeline has finished (data-after-snake) -->
+    <section class="hm-hero" aria-labelledby="hm-title">
+        <span class="ac-eyebrow" data-after-snake>Academic</span>
+        <h1 class="hm-hero__title" id="hm-title" data-after-snake>Your semester, <span class="hm-grad">mapped and in motion</span>.</h1>
+        <p class="hm-hero__lead" data-after-snake>Classes, deadlines, attendance, holidays and GPA in one calm place, so you always know what comes next.</p>
+
+        <div class="hm-hero__cta" data-after-snake>
+            {% if semester %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Open dashboard</a>
+            <a class="ac-btn ac-btn--ghost" href="#features">Explore features</a>
+            {% elif is_guest %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Explore the demo dashboard</a>
+            <a class="ac-btn ac-btn--ghost" href="{{ login_url }}">Sign in to get started</a>
+            {% else %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Set up your semester</a>
+            <a class="ac-btn ac-btn--ghost" href="#features">See how it works</a>
+            {% endif %}
+        </div>
+        {% if is_guest %}
+        <p class="ac-muted hm-guest-note" data-after-snake>You are exploring as a guest. Every page is open to look at, and sample data is clearly labelled. Sign in only when you want to save your own semester.</p>
+        {% endif %}
+
+        <ol class="hm-how" data-after-snake>
+            <li><b>1</b> Create a semester</li>
+            <li><b>2</b> Add courses and routine</li>
+            <li><b>3</b> Track everything as it happens</li>
+        </ol>
     </section>
 
     <!-- Sample preview -->
@@ -166,9 +109,11 @@
     <!-- Closing call to action -->
     <section class="hm-final" data-reveal>
         <h2 class="hm-final__title">{% if semester %}Pick up where you left off{% else %}Ready to map your semester?{% endif %}</h2>
-        <p class="ac-muted">{% if semester %}Your dashboard has today&rsquo;s classes, upcoming deadlines and your semester journey.{% else %}It takes a minute: a name and two dates, then add your courses.{% endif %}</p>
+        <p class="ac-muted">{% if semester %}Your dashboard has today&rsquo;s classes, upcoming deadlines and your semester journey.{% elif is_guest %}Sign in to keep your own semester, courses, routine, deadlines and GPA.{% else %}It takes a minute: a name and two dates, then add your courses.{% endif %}</p>
         {% if semester %}
         <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">Open dashboard</a>
+        {% elif is_guest %}
+        <a class="ac-btn ac-btn--primary" href="{{ login_url }}">Sign in to get started</a>
         {% else %}
         <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">Get started</a>
         {% endif %}
@@ -177,5 +122,6 @@
 {% endblock %}
 
 {% block academic_js %}
+<script src="{% static 'academic/academic-snake.js' %}" defer></script>
 <script src="{% static 'academic/academic-landing.js' %}" defer></script>
 {% endblock %}

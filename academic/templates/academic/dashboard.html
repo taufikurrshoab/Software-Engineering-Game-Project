@@ -4,15 +4,46 @@
 {% block academic_title %}Dashboard{% endblock %}
 
 {% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/academic-snake.css' %}">
 <link rel="stylesheet" href="{% static 'academic/academic-dashboard.css' %}">
 {% endblock %}
 
 {% block academic_content %}
-<div class="db" data-dashboard>
+<div class="db snk-gate" data-dashboard data-snk-gate{% if is_demo %} data-demo{% endif %}>
 
-    <header class="ac-page-head" data-reveal>
+    {% if is_demo %}
+    <div class="ac-demo" role="note" aria-label="Demo data notice" data-after-snake>
+        <span class="ac-demo__badge">Demo data</span>
+        <p><strong>You are looking at a made-up sample semester.</strong> It is generated in memory for visitors, is never saved, and is not anyone&rsquo;s real records.
+           <a class="ac-link" href="{{ login_url }}">Sign in</a> to see your own semester here.</p>
+    </div>
+    {% endif %}
+
+    <!-- 1. Semester journey: the branching timeline plays first (nodes link to their pages) -->
+    <section class="dj-section" aria-labelledby="dj-title">
+        <div class="dj-head" data-after-snake>
+            <div>
+                <h2 class="dj-head__title" id="dj-title">Semester journey</h2>
+                <p class="ac-muted dj-head__sub">{{ journey.progress_line|capfirst }} &middot; the bright line stops at today. Select any point to open it.</p>
+            </div>
+            <ul class="dj-legend" aria-hidden="true">
+                <li class="is-past">Past</li>
+                <li class="is-current">Today</li>
+                <li class="is-upcoming">Upcoming</li>
+            </ul>
+        </div>
+
+        {% include "academic/_snake.html" with snake=snake mode="journey" label="Semester journey. Each milestone and event links to its page." %}
+
+        {% if journey.more_pending %}
+        <p class="dj-more" data-after-snake><a class="ac-link" href="{% url 'academic:assignment_list' %}">+{{ journey.more_pending }} more pending assignment{{ journey.more_pending|pluralize }}</a></p>
+        {% endif %}
+    </section>
+
+    <!-- After the line, branches and nodes: journey heading and legend, dashboard heading, statistics, the rest (all data-after-snake, in page order) -->
+    <header class="ac-page-head" data-after-snake>
         <div>
-            <span class="ac-eyebrow">Dashboard</span>
+            <span class="ac-eyebrow">Dashboard{% if is_demo %} &middot; demo{% endif %}</span>
             <h1 class="ac-title">{{ semester.name }}</h1>
             <p class="ac-subtitle">{{ semester.start_date|date:"d M Y" }} &ndash; {{ semester.end_date|date:"d M Y" }}</p>
         </div>
@@ -27,14 +58,14 @@
     </header>
 
     {% if holiday %}
-    <div class="ac-banner" role="status" data-reveal>
+    <div class="ac-banner" role="status" data-after-snake>
         <span class="ac-badge ac-badge--holiday">Holiday</span>
         <span><strong>{{ holiday.title }}</strong> &middot; {{ holiday.start_date|date:"d M" }}{% if holiday.end_date != holiday.start_date %} &ndash; {{ holiday.end_date|date:"d M" }}{% endif %}. No classes are held today.</span>
     </div>
     {% endif %}
 
     <!-- Compact numbers -->
-    <ul class="db-strip" data-reveal aria-label="Semester at a glance">
+    <ul class="db-strip" data-after-snake aria-label="Semester at a glance">
         <li>
             <a href="{% url 'academic:timeline' %}" class="db-stat">
                 <span class="db-stat__label"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-calendar"/></svg>Semester</span>
@@ -84,67 +115,9 @@
         </li>
     </ul>
 
-    <!-- Semester journey -->
-    <section class="dj-section" aria-labelledby="dj-title">
-        <div class="dj-head" data-reveal>
-            <div>
-                <h2 class="dj-head__title" id="dj-title">Semester journey</h2>
-                <p class="ac-muted dj-head__sub">{{ journey.progress_line|capfirst }} &middot; the line fills as your semester passes.</p>
-            </div>
-            <ul class="dj-legend" aria-hidden="true">
-                <li class="is-past">Past</li>
-                <li class="is-current">Today</li>
-                <li class="is-upcoming">Upcoming</li>
-            </ul>
-        </div>
-
-        <div class="dj" data-journey style="--now: {{ journey.now }}; --n: {{ journey.count }}">
-            <div class="dj__line" aria-hidden="true">
-                <i class="dj__fill"></i>
-                <i class="dj__pulse"></i>
-            </div>
-            <div class="dj__now" aria-hidden="true"><span>{{ journey.now_label }}</span></div>
-
-            <ol class="dj__events">
-                {% for ev in journey.events %}
-                <li class="dj-ev dj-ev--{{ ev.side }} dj-ev--{{ ev.kind }} is-{{ ev.state }}"
-                    style="--i: {{ ev.index }}{% if ev.color %}; --course: {{ ev.color }}{% endif %}" data-dj-event>
-                    <span class="dj-node" aria-hidden="true">
-                        <svg class="ac-icon"><use href="#ac-i-{% if ev.kind == 'assignment' %}clipboard{% elif ev.kind == 'holiday' %}sun{% elif ev.kind == 'end' %}award{% elif ev.kind == 'half' %}chart{% elif ev.kind == 'empty' %}check{% else %}calendar{% endif %}"/></svg>
-                    </span>
-                    <svg class="dj-stem" viewBox="0 0 20 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                        <path d="M10 60 C10 42 17 26 10 0" pathLength="1"/>
-                    </svg>
-
-                    <article class="dj-card" tabindex="0" data-dj-card aria-expanded="false">
-                        <p class="dj-card__kind">{% if ev.kind == 'assignment' %}Deadline{% elif ev.kind == 'holiday' %}Holiday{% elif ev.kind == 'empty' %}Deadlines{% else %}Milestone{% endif %}</p>
-                        <h3 class="dj-card__title">
-                            {% if ev.kind == 'assignment' %}<a href="{% url 'academic:assignment_list' %}{{ ev.anchor }}">{{ ev.title }}</a>
-                            {% elif ev.kind == 'holiday' %}<a href="{% url 'academic:holiday_list' %}{{ ev.anchor }}">{{ ev.title }}</a>
-                            {% else %}{{ ev.title }}{% endif %}
-                        </h3>
-                        <p class="dj-card__meta">
-                            {% if ev.kind == 'assignment' %}<i class="ac-swatch" aria-hidden="true"></i>{% endif %}{{ ev.detail }}
-                        </p>
-                        {% if ev.kind == 'assignment' and ev.date %}<p class="dj-card__meta">Due {{ ev.date|date:"D, d M" }}</p>{% endif %}
-                        {% if ev.relative %}<span class="dj-card__when">{{ ev.relative }}</span>{% endif %}
-                        {% if ev.more %}
-                        <div class="dj-card__more"><div>{% for line in ev.more %}<p>{{ line }}</p>{% endfor %}</div></div>
-                        {% endif %}
-                    </article>
-                </li>
-                {% endfor %}
-            </ol>
-        </div>
-
-        {% if journey.more_pending %}
-        <p class="dj-more"><a class="ac-link" href="{% url 'academic:assignment_list' %}">+{{ journey.more_pending }} more pending assignment{{ journey.more_pending|pluralize }}</a></p>
-        {% endif %}
-    </section>
-
     <!-- Today and deadlines -->
     <div class="db-cols">
-        <section class="ac-card" aria-labelledby="today-heading" data-reveal>
+        <section class="ac-card" aria-labelledby="today-heading" data-after-snake>
             <div class="ac-card__head">
                 <h2 class="ac-card__title" id="today-heading">Today&rsquo;s classes</h2>
                 <span class="ac-muted">{{ today|date:"l, d M" }}</span>
@@ -180,7 +153,7 @@
             {% endif %}
         </section>
 
-        <section class="ac-card" aria-labelledby="deadlines-heading" data-reveal>
+        <section class="ac-card" aria-labelledby="deadlines-heading" data-after-snake>
             <div class="ac-card__head">
                 <h2 class="ac-card__title" id="deadlines-heading">Upcoming deadlines</h2>
                 <a class="ac-link" href="{% url 'academic:assignment_list' %}">View all</a>
@@ -215,5 +188,5 @@
 {% endblock %}
 
 {% block academic_js %}
-<script src="{% static 'academic/academic-dashboard.js' %}" defer></script>
+<script src="{% static 'academic/academic-snake.js' %}" defer></script>
 {% endblock %}

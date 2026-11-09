@@ -1,15 +1,13 @@
 /* ==========================================================================
    Academic home / landing page behaviour (academic-landing.js).
    Vanilla JS, no network requests. Needs academic.js to load first
-   (window.AcademicUI, reveal animations).
+   (window.AcademicUI).
 
-     - opening sequence: when the timeline scrolls into view the line draws,
-       light starts to flow along it and the branches grow one after another
-       (CSS does the animating; this only adds the .is-live class)
-     - hover, focus or click on a branch highlights it and shows its
-       description in the panel; the panel link opens that feature
      - the sample preview: a slider moves through a SAMPLE semester. Nothing
        here reads or writes the user's records.
+
+   The winding feature timeline and its opening animation live in
+   academic-snake.js (shared with the dashboard).
    ========================================================================== */
 (function () {
     "use strict";
@@ -19,71 +17,6 @@
 
     var root = document.querySelector("[data-landing]");
     if (!root) { return; }
-
-    /* ---------- opening sequence ---------- */
-
-    function initStage() {
-        var stage = root.querySelector("[data-hm-stage]");
-        if (!stage) { return; }
-
-        if (ui.reduceMotion || !("IntersectionObserver" in window)) {
-            stage.classList.add("is-live");
-            return;
-        }
-        var observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (!entry.isIntersecting) { return; }
-                stage.classList.add("is-live");
-                observer.disconnect();
-            });
-        }, { threshold: 0.25 });
-        observer.observe(stage);
-    }
-
-    /* ---------- branches and info panel ---------- */
-
-    function initBranches() {
-        var branches = ui.all("[data-hm-branch]", root);
-        var panel = root.querySelector("[data-hm-panel]");
-        if (!branches.length || !panel) { return; }
-
-        var title = panel.querySelector("[data-hm-panel-title]");
-        var text = panel.querySelector("[data-hm-panel-text]");
-        var link = panel.querySelector("[data-hm-panel-link]");
-        var icon = panel.querySelector("[data-hm-panel-icon]");
-        var current = null;
-
-        function activate(branch, animate) {
-            if (branch === current) { return; }
-            current = branch;
-            branches.forEach(function (item) { item.classList.toggle("is-active", item === branch); });
-
-            title.textContent = branch.getAttribute("data-title");
-            text.textContent = branch.getAttribute("data-text");
-            link.setAttribute("href", branch.getAttribute("data-href"));
-            icon.setAttribute("href", "#" + branch.getAttribute("data-icon"));
-
-            if (animate && !ui.reduceMotion) {
-                panel.classList.remove("is-swap");
-                void panel.offsetWidth;                       // restart the animation
-                panel.classList.add("is-swap");
-            }
-        }
-
-        branches.forEach(function (branch) {
-            branch.addEventListener("mouseenter", function () { activate(branch, true); });
-            branch.addEventListener("focus", function () { activate(branch, true); });
-            branch.addEventListener("click", function () { activate(branch, true); });
-            branch.addEventListener("keydown", function (event) {
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    activate(branch, true);
-                }
-            });
-        });
-
-        activate(branches[0], false);
-    }
 
     /* ---------- sample preview ---------- */
 
@@ -125,7 +58,5 @@
         update();
     }
 
-    initStage();
-    initBranches();
     initDemo();
 }());

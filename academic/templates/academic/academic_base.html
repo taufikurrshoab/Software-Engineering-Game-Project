@@ -71,9 +71,15 @@ Icons: <svg class="ac-icon"><use href="#ac-i-NAME"/></svg>
             </div>
             {% endwith %}
 
-            {% if semester %}
+            {% if semester and not is_demo %}
             <a class="ac-semester-chip" href="{% url 'academic:semester_list' %}" title="Switch semester">
                 <i class="ac-dot" aria-hidden="true"></i><span>{{ semester.name }}</span>
+            </a>
+            {% endif %}
+
+            {% if is_guest %}
+            <a class="ac-semester-chip ac-guest-chip" href="{{ login_url }}" title="Sign in to use your own data">
+                <i class="ac-dot" aria-hidden="true"></i><span>Guest &middot; Sign in</span>
             </a>
             {% endif %}
         </div>

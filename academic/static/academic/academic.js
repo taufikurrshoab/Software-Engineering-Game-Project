@@ -254,7 +254,18 @@
             });
         }, { threshold: 0.12 });
 
-        reveals.concat(bars, counters).forEach(function (el) { observer.observe(el); });
+        reveals.concat(bars, counters).forEach(function (el) {
+            // numbers and bars inside a page that waits for its timeline start when that content opens
+            var waiting = el.closest("[data-after-snake]");
+            var gate = waiting && waiting.closest("[data-snk-gate]");
+            if (gate && !gate.classList.contains("is-open")) {
+                var start = function () { observer.observe(el); };
+                gate.addEventListener("snk:open", start, { once: true });
+                setTimeout(start, 10000);          // failsafe: never leave a bar empty
+            } else {
+                observer.observe(el);
+            }
+        });
     }
 
     /* ---------- Filters and search over server-rendered lists ---------- */

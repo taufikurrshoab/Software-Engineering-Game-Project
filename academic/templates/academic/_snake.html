@@ -1,0 +1,88 @@
+{% comment %}
+    The winding snake timeline (academic-snake.css / academic-snake.js).
+
+    Include with:  {% include "academic/_snake.html" with snake=snake mode="home" label="..." %}
+      snake   what snake.build_snake() returns (home_snake() or journey_snake())
+      mode    "home" (feature nodes) or "journey" (semester events: bright line stops at today)
+      label   the accessible name of the timeline
+
+    Every node is a real link, laid over the SVG by percentage, so it can be clicked, tabbed to and
+    read by a screen reader. The SVG and the travelling light never take pointer events.
+    One snake per page: the gradient ids below are shared with the CSS.
+{% endcomment %}
+<div class="snk{% if mode == 'journey' %} snk--journey{% endif %}" data-snk role="group" aria-label="{{ label }}"
+     style="--ar-wide: {{ snake.wide.ratio }}; --ar-tall: {{ snake.tall.ratio }}; --tw: min({{ snake.tw }}px, {{ snake.tw_cq }}cqw)">
+
+    <svg class="snk__defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <defs>
+            <linearGradient id="snk-grad-wide" gradientUnits="userSpaceOnUse" x1="64" y1="0" x2="1040" y2="0">
+                <stop offset="0" stop-color="#22d3ee" stop-opacity=".45"/>
+                <stop offset=".5" stop-color="#60a5fa"/>
+                <stop offset="1" stop-color="#a78bfa" stop-opacity=".55"/>
+            </linearGradient>
+            <linearGradient id="snk-grad-bright-wide" gradientUnits="userSpaceOnUse" x1="64" y1="0" x2="1040" y2="0">
+                <stop offset="0" stop-color="#67e8f9"/>
+                <stop offset=".5" stop-color="#bae6fd"/>
+                <stop offset="1" stop-color="#c4b5fd"/>
+            </linearGradient>
+            <linearGradient id="snk-grad-tall" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="{{ snake.tall.h }}">
+                <stop offset="0" stop-color="#22d3ee" stop-opacity=".45"/>
+                <stop offset=".5" stop-color="#60a5fa"/>
+                <stop offset="1" stop-color="#a78bfa" stop-opacity=".55"/>
+            </linearGradient>
+            <linearGradient id="snk-grad-bright-tall" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="{{ snake.tall.h }}">
+                <stop offset="0" stop-color="#67e8f9"/>
+                <stop offset=".5" stop-color="#bae6fd"/>
+                <stop offset="1" stop-color="#c4b5fd"/>
+            </linearGradient>
+            <filter id="snk-blur" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1500" height="{{ snake.tall.h }}">
+                <feGaussianBlur stdDeviation="6"/>
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="snk__canvas">
+        <svg class="snk__svg snk__svg--wide" viewBox="{{ snake.wide.viewbox }}" aria-hidden="true" focusable="false">
+            <path class="snk-glow" pathLength="1" d="{{ snake.wide.path }}"/>
+            <path class="snk-base" pathLength="1" d="{{ snake.wide.path }}"/>
+            <path class="snk-progress" pathLength="1" d="{{ snake.wide.path }}"/>
+            {% for item in snake.nodes %}<path class="snk-stem" pathLength="1" data-snk-stem="{{ item.index }}" d="{{ item.stem_w }}"/>
+            {% endfor %}
+        </svg>
+        <svg class="snk__svg snk__svg--tall" viewBox="{{ snake.tall.viewbox }}" aria-hidden="true" focusable="false">
+            <path class="snk-glow" pathLength="1" d="{{ snake.tall.path }}"/>
+            <path class="snk-base" pathLength="1" d="{{ snake.tall.path }}"/>
+            <path class="snk-progress" pathLength="1" d="{{ snake.tall.path }}"/>
+            {% for item in snake.nodes %}<path class="snk-stem" pathLength="1" data-snk-stem="{{ item.index }}" d="{{ item.stem_t }}"/>
+            {% endfor %}
+        </svg>
+
+        <span class="snk__head" aria-hidden="true"></span>
+
+        <ol class="snk__items">
+            {% for tick in snake.ticks %}
+            <li class="snk-item snk-tick is-{{ tick.state }}{% if tick.quiet %} snk-tick--quiet{% endif %}" aria-hidden="true"
+                style="--x: {{ tick.x }}; --y: {{ tick.y }}; --mx: {{ tick.mx }}; --my: {{ tick.my }}"
+                data-at-w="{{ tick.at_w }}" data-at-t="{{ tick.at_t }}"><i></i><span>{{ tick.label }}</span></li>
+            {% endfor %}
+
+            {% for item in snake.nodes %}
+            {% url item.url_name as target %}
+            <li class="snk-item snk-item--{{ item.side }} snk-item--right snk-item--{{ item.kind }}{% if item.state %} is-{{ item.state }}{% endif %}"
+                style="--x: {{ item.x }}; --y: {{ item.y }}; --mx: {{ item.mx }}; --my: {{ item.my }}{% if item.color %}; --node-c: {{ item.color }}{% endif %}"
+                data-at-w="{{ item.at_w }}" data-at-t="{{ item.at_t }}" data-snk-i="{{ item.index }}">
+                <a class="snk-node" href="{{ target }}{{ item.anchor }}" aria-label="{{ item.aria }}">
+                    <span class="snk-node__dot" aria-hidden="true"><svg class="ac-icon"><use href="#ac-i-{{ item.icon }}"/></svg></span>
+                    <span class="snk-node__text"><strong>{{ item.title }}</strong>{% if item.kind != "feature" %}<span>{{ item.text }}</span>{% endif %}</span>
+                </a>
+            </li>
+            {% endfor %}
+
+            {% if snake.now %}
+            <li class="snk-item snk-now{% if snake.now.edge %} snk-now--{{ snake.now.edge }}{% endif %}"
+                style="--x: {{ snake.now.x }}; --y: {{ snake.now.y }}; --mx: {{ snake.now.mx }}; --my: {{ snake.now.my }}"
+                data-at-w="{{ snake.now.at_w }}" data-at-t="{{ snake.now.at_t }}"><i></i><span>{{ snake.now.label }}</span></li>
+            {% endif %}
+        </ol>
+    </div>
+</div>
