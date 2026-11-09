@@ -1,334 +1,127 @@
-{% extends 'base.html' %}
+{% extends 'academic/academic_base.html' %}
 {% load static %}
 
-{% block title %}Academic | Student Platform{% endblock %}
+{% block academic_title %}Academic{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'academic/academic-home.css' %}">
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/academic-snake.css' %}">
+<link rel="stylesheet" href="{% static 'academic/academic-landing.css' %}">
 {% endblock %}
 
-{% block content %}
-<div class="academic-home">
+{% block academic_content %}
+<div class="hm snk-gate" data-landing data-snk-gate>
 
-    {% if semester %}
+    <!-- Branching feature timeline: plays first. Every node links to its feature page. -->
+    <section class="hm-stage" id="features" aria-labelledby="hm-features-title">
+        <h2 class="ac-sr-only" id="hm-features-title">What you can do with Academic</h2>
 
-    <!-- Hero (dashboard) -->
-    <section class="academic-hero">
-        <div class="academic-hero__glow" aria-hidden="true"></div>
-        <div class="academic-container academic-hero__inner">
+        {% include "academic/_snake.html" with snake=snake mode="home" label="Academic features, each linking to its page" %}
 
-            <div class="academic-hero__content" data-reveal>
-                <span class="academic-eyebrow">Academic Workspace</span>
-                <h1 class="academic-hero__title">Stay on top of <span class="academic-gradient-text">your semester.</span></h1>
-                <p class="academic-hero__text">
-                    {{ semester.name }} &middot; {{ semester.start_date|date:"d M Y" }} &ndash; {{ semester.end_date|date:"d M Y" }}
-                </p>
+        <!-- Compact index -->
+        <nav class="hm-chips" aria-label="All Academic features" data-after-snake>
+            {% for f in features %}
+            {% url f.url_name as feature_url %}
+            <a class="hm-chip" href="{{ feature_url }}{{ f.anchor }}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-{{ f.icon }}"/></svg>{{ f.title }}</a>
+            {% endfor %}
+        </nav>
+    </section>
 
-                <div class="academic-now academic-now--{{ status.kind }}">
-                    <span class="academic-now__label">Now</span>
-                    <div class="academic-now__body">
-                        <strong>{{ status.title }}</strong>
-                        <p>
-                            {% if status.kind == "class" %}
-                                {{ status.schedule.get_day_of_week_display }} &middot;
-                                {{ status.schedule.start_time|time:"g:i A" }} &ndash; {{ status.schedule.end_time|time:"g:i A" }}{% if status.schedule.room %} &middot; Room {{ status.schedule.room }}{% endif %}
-                            {% elif status.kind == "regular" %}
-                                Week {{ stats.current_week }} of {{ stats.total_weeks }} &middot; {{ stats.days_remaining }} day{{ stats.days_remaining|pluralize }} remaining
-                            {% elif status.kind == "upcoming" %}
-                                Starts in {{ stats.days_until_start }} day{{ stats.days_until_start|pluralize }}
-                            {% else %}
-                                {{ semester.name }} is complete
-                            {% endif %}
-                        </p>
-                    </div>
+    <!-- Hero: opens after the timeline has finished (data-after-snake) -->
+    <section class="hm-hero" aria-labelledby="hm-title">
+        <span class="ac-eyebrow" data-after-snake>Academic</span>
+        <h1 class="hm-hero__title" id="hm-title" data-after-snake>Your semester, <span class="hm-grad">mapped and in motion</span>.</h1>
+        <p class="hm-hero__lead" data-after-snake>Classes, deadlines, attendance, holidays and GPA in one calm place, so you always know what comes next.</p>
+
+        <div class="hm-hero__cta" data-after-snake>
+            {% if semester %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Open dashboard</a>
+            <a class="ac-btn ac-btn--ghost" href="#features">Explore features</a>
+            {% elif is_guest %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Explore the demo dashboard</a>
+            <a class="ac-btn ac-btn--ghost" href="{{ login_url }}">Sign in to get started</a>
+            {% else %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Set up your semester</a>
+            <a class="ac-btn ac-btn--ghost" href="#features">See how it works</a>
+            {% endif %}
+        </div>
+        {% if is_guest %}
+        <p class="ac-muted hm-guest-note" data-after-snake>You are exploring as a guest. Every page is open to look at, and sample data is clearly labelled. Sign in only when you want to save your own semester.</p>
+        {% endif %}
+
+        <ol class="hm-how" data-after-snake>
+            <li><b>1</b> Create a semester</li>
+            <li><b>2</b> Add courses and routine</li>
+            <li><b>3</b> Track everything as it happens</li>
+        </ol>
+    </section>
+
+    <!-- Sample preview -->
+    <section class="hm-demo" aria-labelledby="hm-demo-title" data-hm-demo>
+        <div class="hm-demo__head" data-reveal>
+            <div>
+                <span class="ac-eyebrow">A quick look</span>
+                <h2 class="hm-demo__title" id="hm-demo-title">What your dashboard feels like</h2>
+            </div>
+            <span class="hm-sample"><i aria-hidden="true"></i>Sample data</span>
+        </div>
+
+        <div class="hm-demo__card" data-reveal>
+            <div class="hm-demo__top">
+                <div>
+                    <p class="hm-demo__name">{{ demo.name }}</p>
+                    <p class="ac-muted hm-demo__week">Week <b data-hm-week-out>{{ demo.week }}</b> of {{ demo.weeks }}</p>
                 </div>
-
-                <div class="academic-hero__actions">
-                    <a href="{% url 'academic:setup' %}" class="academic-btn academic-btn--ghost">Set up a new semester</a>
-                </div>
+                <label class="hm-slider">
+                    <span class="ac-sr-only">Move through the sample semester</span>
+                    <input type="range" min="1" max="{{ demo.weeks }}" value="{{ demo.week }}" data-hm-week
+                           data-weeks="{{ demo.weeks }}">
+                </label>
             </div>
 
-            <div class="academic-hero__visual" data-reveal>
-                <div class="academic-timeline-card">
-                    <div class="academic-timeline-card__bar">
-                        <i></i><i></i><i></i>
-                        <span>semester.timeline</span>
-                    </div>
+            <div class="hm-demo__line" aria-hidden="true"><i data-hm-line></i></div>
 
-                    <div class="academic-timeline-card__scroll" data-timeline-scroll tabindex="0" aria-label="Semester timeline">
-                        <ol class="academic-timeline">
-                            {% for item in timeline %}
-                            <li class="academic-timeline__item is-{{ item.state }}"{% if item.kind == "now" %} data-timeline-now aria-current="step"{% endif %}>
-                                <div class="academic-timeline__main">
-                                    {% if item.kind == "now" %}
-                                        <span class="academic-timeline__label">NOW &middot; {{ item.label }}</span>
-                                        <small>{% if stats.phase == "running" %}Week {{ stats.current_week }}{% else %}{{ item.date|date:"d M" }}{% endif %}</small>
-                                    {% else %}
-                                        <span class="academic-timeline__label">{{ item.label }}</span>
-                                        <small>{{ item.date|date:"d M" }}</small>
-                                    {% endif %}
-                                </div>
-                                {% if item.kind == "now" and item.schedule %}
-                                <p class="academic-timeline__detail">
-                                    {{ item.schedule.get_day_of_week_display }} &middot;
-                                    {{ item.schedule.start_time|time:"g:i A" }} &ndash; {{ item.schedule.end_time|time:"g:i A" }}{% if item.schedule.room %} &middot; Room {{ item.schedule.room }}{% endif %}
-                                </p>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ol>
-                    </div>
-                </div>
-            </div>
+            <ul class="hm-demo__stats">
+                <li><span>Courses</span><b>{{ demo.courses }}</b></li>
+                <li><span>Weekly classes</span><b>{{ demo.weekly_classes }}</b></li>
+                <li><span>Attendance</span><b>{{ demo.attendance }}%</b></li>
+                <li><span>Pending</span><b data-hm-pending>{{ demo.pending }}</b></li>
+                <li><span>Semester CGPA</span><b>{{ demo.cgpa }}</b></li>
+            </ul>
 
+            <ul class="hm-demo__deadlines">
+                {% for d in demo.deadlines %}
+                <li data-hm-deadline data-week="{{ d.week }}">
+                    <span class="hm-demo__dot" aria-hidden="true"></span>
+                    <span class="hm-demo__dl"><strong>{{ d.title }}</strong><small>{{ d.course }}</small></span>
+                    <span class="ac-badge ac-badge--info" data-hm-deadline-state>Due in week {{ d.week }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <p class="hm-demo__note">Illustrative sample values. Nothing here is saved or comes from your records.</p>
         </div>
     </section>
 
-    <!-- Semester overview -->
-    <section class="academic-section academic-section--tight" aria-labelledby="semester-heading">
-        <div class="academic-container">
-            <div class="academic-semester" data-reveal>
-                <div class="academic-semester__head">
-                    <div>
-                        <span class="academic-eyebrow">Current semester</span>
-                        <h2 class="academic-semester__name" id="semester-heading">{{ semester.name }}</h2>
-                    </div>
-                    <div class="academic-semester__percent">
-                        <strong data-count-to="{{ stats.progress }}">{{ stats.progress }}</strong><span>%</span>
-                        <small>complete</small>
-                    </div>
-                </div>
-
-                <dl class="academic-semester__dates">
-                    <div>
-                        <dt>Start date</dt>
-                        <dd>{{ semester.start_date|date:"d M Y" }}</dd>
-                    </div>
-                    <div>
-                        <dt>End date</dt>
-                        <dd>{{ semester.end_date|date:"d M Y" }}</dd>
-                    </div>
-                    <div>
-                        <dt>Current week</dt>
-                        <dd>
-                            {% if stats.phase == "running" %}Week {{ stats.current_week }} of {{ stats.total_weeks }}
-                            {% elif stats.phase == "upcoming" %}Not started
-                            {% else %}Completed{% endif %}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt>Days remaining</dt>
-                        <dd>{{ stats.days_remaining }} day{{ stats.days_remaining|pluralize }}</dd>
-                    </div>
-                </dl>
-
-                <div class="academic-meter" data-progress-bar>
-                    <div class="academic-meter__track"
-                         role="progressbar" aria-label="Semester progress"
-                         aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ stats.progress }}">
-                        <span class="academic-meter__fill" style="--progress: {{ stats.progress }}%"></span>
-                        <span class="academic-meter__knob" style="--progress: {{ stats.progress }}%"></span>
-                    </div>
-                    <div class="academic-meter__labels">
-                        <span>{{ stats.days_elapsed }} day{{ stats.days_elapsed|pluralize }} elapsed</span>
-                        <span>{{ stats.total_days }} days total</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Closing call to action -->
+    <section class="hm-final" data-reveal>
+        <h2 class="hm-final__title">{% if semester %}Pick up where you left off{% else %}Ready to map your semester?{% endif %}</h2>
+        <p class="ac-muted">{% if semester %}Your dashboard has today&rsquo;s classes, upcoming deadlines and your semester journey.{% elif is_guest %}Sign in to keep your own semester, courses, routine, deadlines and GPA.{% else %}It takes a minute: a name and two dates, then add your courses.{% endif %}</p>
+        {% if semester %}
+        <a class="ac-btn ac-btn--primary" href="{% url 'academic:dashboard' %}">Open dashboard</a>
+        {% elif is_guest %}
+        <a class="ac-btn ac-btn--primary" href="{{ login_url }}">Sign in to get started</a>
+        {% else %}
+        <a class="ac-btn ac-btn--primary" href="{% url 'academic:setup' %}">Get started</a>
+        {% endif %}
     </section>
-
-    <!-- Today's classes and weekly routine -->
-    <section class="academic-section academic-section--alt">
-        <div class="academic-container academic-split">
-
-            <div class="academic-panel" data-reveal aria-labelledby="classes-heading">
-                <header class="academic-panel__head">
-                    <h2 id="classes-heading">Today's classes</h2>
-                    <span class="academic-panel__hint">{{ today|date:"l, d M" }}</span>
-                </header>
-
-                {% if not has_routine %}
-                    <p class="academic-empty__text">Add your class routine to see today's classes here.</p>
-                {% elif todays_classes %}
-                <ul class="academic-classes">
-                    {% for c in todays_classes %}
-                    <li class="academic-class academic-class--{{ c.status }}">
-                        <time class="academic-class__time">{{ c.start_time|time:"g:i A" }}</time>
-                        <div class="academic-class__body">
-                            <h3>{{ c.course_name }}</h3>
-                            <p>{% if c.room %}Room {{ c.room }} &middot; {% endif %}{{ c.get_day_of_week_display }}</p>
-                        </div>
-                        <span class="academic-class__status">{{ c.status|capfirst }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                    <p class="academic-empty__text">No classes scheduled today.</p>
-                {% endif %}
-            </div>
-
-            <div class="academic-panel" data-reveal aria-labelledby="routine-heading">
-                <header class="academic-panel__head">
-                    <h2 id="routine-heading">Weekly routine</h2>
-                    {% if has_routine %}<span class="academic-panel__hint">Repeats every week</span>{% endif %}
-                </header>
-
-                {% if has_routine %}
-                <div class="academic-routine">
-                    {% for day, classes in routine_days %}
-                    <div class="academic-routine__day">
-                        <h3>{{ day }}</h3>
-                        <ul>
-                            {% for c in classes %}
-                            <li>
-                                <time>{{ c.start_time|time:"g:i A" }} &ndash; {{ c.end_time|time:"g:i A" }}</time>
-                                <span>{{ c.course_name }}</span>
-                                {% if c.room %}<small>Room {{ c.room }}</small>{% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="academic-empty">
-                    <p class="academic-empty__text">Your class routine is empty.</p>
-                    {# TODO: link to a routine edit page once it exists; setup creates a new semester #}
-                    <a href="{% url 'academic:setup' %}" class="academic-btn academic-btn--primary">Add Routine</a>
-                </div>
-                {% endif %}
-            </div>
-
-        </div>
-    </section>
-
-    {% else %}
-
-    <!-- Hero (welcome) -->
-    <section class="academic-hero">
-        <div class="academic-hero__glow" aria-hidden="true"></div>
-        <div class="academic-container academic-hero__inner">
-
-            <div class="academic-hero__content" data-reveal>
-                <span class="academic-eyebrow">Academic Workspace</span>
-                <h1 class="academic-hero__title">Organize <span class="academic-gradient-text">your semester.</span></h1>
-                <p class="academic-hero__text">
-                    Set up your semester, routine, assignments and exams in one place.
-                </p>
-                <div class="academic-hero__actions">
-                    <a href="{% url 'academic:setup' %}" class="academic-btn academic-btn--primary">Set Up Your Semester</a>
-                </div>
-            </div>
-
-            <div class="academic-hero__visual" data-reveal aria-hidden="true">
-                <div class="academic-timeline-card academic-timeline-card--preview">
-                    <div class="academic-timeline-card__bar">
-                        <i></i><i></i><i></i>
-                        <span>semester.timeline</span>
-                        <em>Preview</em>
-                    </div>
-                    <ol class="academic-timeline academic-timeline--preview">
-                        <li class="academic-timeline__item is-future"><div class="academic-timeline__main"><span class="academic-timeline__label">Semester start</span></div></li>
-                        <li class="academic-timeline__item is-future"><div class="academic-timeline__main"><span class="academic-timeline__label">Weekly classes</span></div></li>
-                        <li class="academic-timeline__item is-future"><div class="academic-timeline__main"><span class="academic-timeline__label">Assignment deadlines</span></div></li>
-                        <li class="academic-timeline__item is-future"><div class="academic-timeline__main"><span class="academic-timeline__label">Exams</span></div></li>
-                        <li class="academic-timeline__item is-future"><div class="academic-timeline__main"><span class="academic-timeline__label">Semester end</span></div></li>
-                    </ol>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    {% endif %}
-
-    <!-- Modules -->
-    <section class="academic-section" aria-labelledby="access-heading">
-        <div class="academic-container">
-            <header class="academic-section__head" data-reveal>
-                <span class="academic-eyebrow">{% if semester %}More to come{% else %}What you can track{% endif %}</span>
-                <h2 class="academic-section__title" id="access-heading">Everything for your semester</h2>
-            </header>
-
-            <div class="academic-feature-grid">
-
-                <div class="academic-feature-card academic-feature-card--routine" data-reveal>
-                    <span class="academic-feature-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
-                    </span>
-                    <h3>Class Routine</h3>
-                    <p>Your weekly class schedule</p>
-                    <span class="academic-badge academic-badge--live">Available</span>
-                </div>
-
-                <div class="academic-feature-card academic-feature-card--courses" data-reveal>
-                    <span class="academic-feature-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H20v14H5.5A1.5 1.5 0 0 0 4 19.5v-14Z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20v-3"/></svg>
-                    </span>
-                    <h3>Courses</h3>
-                    <p>Manage your semester courses</p>
-                    <span class="academic-badge">Coming soon</span>
-                </div>
-
-                <div class="academic-feature-card academic-feature-card--attendance" data-reveal>
-                    <span class="academic-feature-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.4 2.4 4.6-5"/></svg>
-                    </span>
-                    <h3>Attendance</h3>
-                    <p>Track your class attendance</p>
-                    <span class="academic-badge">Coming soon</span>
-                </div>
-
-                <div class="academic-feature-card academic-feature-card--assignments" data-reveal>
-                    <span class="academic-feature-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M7 3.5h8l3.5 3.5V20.5H7z"/><path d="M14.5 3.5V7H18M10 12h5M10 15.5h5"/></svg>
-                    </span>
-                    <h3>Assignments</h3>
-                    <p>Keep track of deadlines</p>
-                    <span class="academic-badge">Coming soon</span>
-                </div>
-
-                <div class="academic-feature-card academic-feature-card--exams" data-reveal>
-                    <span class="academic-feature-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4"/></svg>
-                    </span>
-                    <h3>Exams</h3>
-                    <p>View upcoming exams</p>
-                    <span class="academic-badge">Coming soon</span>
-                </div>
-
-                <div class="academic-feature-card academic-feature-card--results" data-reveal>
-                    <span class="academic-feature-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M4 19.5h16"/><path d="M6.5 16V11M12 16V6M17.5 16v-7"/></svg>
-                    </span>
-                    <h3>Results &amp; GPA</h3>
-                    <p>Track your academic performance</p>
-                    <span class="academic-badge">Coming soon</span>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    {% if not semester %}
-    <!-- CTA -->
-    <section class="academic-section academic-section--tight">
-        <div class="academic-container">
-            <div class="academic-cta" data-reveal>
-                <div class="academic-cta__text">
-                    <h2>Plan your semester with confidence.</h2>
-                    <p>Add your dates and weekly routine once, and your dashboard builds itself.</p>
-                </div>
-                <a href="{% url 'academic:setup' %}" class="academic-btn academic-btn--primary">Set Up Your Semester</a>
-            </div>
-        </div>
-    </section>
-    {% endif %}
-
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'academic/academic-home.js' %}" defer></script>
+{% block academic_js %}
+<script src="{% static 'academic/academic-snake.js' %}" defer></script>
+<script src="{% static 'academic/academic-landing.js' %}" defer></script>
 {% endblock %}

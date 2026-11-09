@@ -1,0 +1,207 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Attendance{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/attendance.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+{% with overall=stats.overall %}
+<div data-attendance data-target="75">
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Attendance</h1>
+            <p class="ac-subtitle">Classes you attend are counted automatically once they end. Change a class if you were absent, late or excused. Cancelled classes and holidays are never counted.</p>
+        </div>
+    </header>
+
+    {% if not courses %}
+    <div class="ac-empty" data-reveal>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg></span>
+        <p class="ac-empty__title">No courses yet</p>
+        <p class="ac-empty__text">Attendance is tracked per course. Add your courses and weekly routine, and classes will appear here as they happen.</p>
+        <a class="ac-btn ac-btn--primary" href="{% url 'academic:course_list' %}">Add a course</a>
+    </div>
+
+    {% else %}
+
+    <!-- Overall -->
+    <section class="ac-card at-overall" data-reveal data-at-metric
+             data-attended="{{ overall.attended }}" data-counted="{{ overall.counted }}" aria-label="Overall attendance">
+        {% if overall.percentage is None %}
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-check"/></svg></span>
+        <div class="at-overall__body">
+            <p class="at-overall__label">Overall attendance</p>
+            <p class="at-overall__title">No classes recorded yet</p>
+            <p class="ac-muted at-hint">Your attendance starts counting after your first class has ended.</p>
+        </div>
+        {% else %}
+        <div class="ac-ring-wrap">
+            <div class="ac-ring at-ring {% if overall.percentage >= 85 %}tone-good{% elif overall.percentage >= 75 %}tone-mid{% else %}tone-low{% endif %}"
+                 data-at-ring="{{ overall.percentage|stringformat:'.1f' }}" style="--value: {{ overall.percentage|stringformat:'.1f' }}"></div>
+            <span class="ac-ring-wrap__label"><span data-count="{{ overall.percentage|stringformat:'.1f' }}" data-decimals="1">{{ overall.percentage }}</span>%</span>
+        </div>
+        <div class="at-overall__body">
+            <p class="at-overall__label">Overall attendance</p>
+            <p class="at-overall__title">{{ overall.attended }} of {{ overall.counted }} classes attended</p>
+            <p class="at-hint {% if overall.percentage >= 75 %}is-good{% else %}is-low{% endif %}" data-at-hint role="status"></p>
+            <ul class="at-counts">
+                <li class="at-count at-count--present"><strong>{{ overall.present }}</strong> Present</li>
+                {% if overall.late %}<li class="at-count at-count--late"><strong>{{ overall.late }}</strong> Late</li>{% endif %}
+                <li class="at-count at-count--absent"><strong>{{ overall.absent }}</strong> Absent</li>
+                {% if overall.excused %}<li class="at-count at-count--excused"><strong>{{ overall.excused }}</strong> Excused</li>{% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- By course -->
+    <section class="ac-section" aria-labelledby="at-courses-title">
+        <div class="ac-section__head" data-reveal>
+            <h2 class="ac-section__title" id="at-courses-title">By course</h2>
+            <span class="ac-muted at-note">Select a course to see its history</span>
+        </div>
+
+        <div class="at-courses">
+            {% for row in stats.courses %}
+            <a class="ac-card ac-card--interactive ac-card--accent at-course{% if request.GET.course == row.course.pk|stringformat:'d' %} is-selected{% endif %}{% if row.percentage is not None %}{% if row.percentage >= 85 %} tone-good{% elif row.percentage >= 75 %} tone-mid{% else %} tone-low{% endif %}{% endif %}"
+               href="?course={{ row.course.pk }}#at-history" style="--course: {{ row.course.color }}"
+               data-reveal data-at-metric data-attended="{{ row.attended }}" data-counted="{{ row.counted }}"
+               {% if request.GET.course == row.course.pk|stringformat:'d' %}aria-current="true"{% endif %}>
+                <div class="at-course__head">
+                    <div class="at-course__title">
+                        {% if row.course.code %}<span class="ac-course__code">{{ row.course.code }}</span>{% endif %}
+                        <h3 class="at-course__name">{{ row.course.name }}</h3>
+                    </div>
+                    {% if row.percentage is None %}
+                    <span class="at-pct at-pct--none">&ndash;</span>
+                    {% else %}
+                    <span class="at-pct ac-mono"><span data-count="{{ row.percentage|stringformat:'.1f' }}" data-decimals="1">{{ row.percentage }}</span>%</span>
+                    {% endif %}
+                </div>
+
+                <div class="at-track" title="Target: 75%">
+                    <div class="ac-progress"><div class="ac-progress__bar" style="--value: {% if row.percentage is None %}0{% else %}{{ row.percentage|stringformat:'.1f' }}{% endif %}"></div></div>
+                    <i class="at-marker" aria-hidden="true"></i>
+                </div>
+
+                {% if row.percentage is None %}
+                <p class="at-hint ac-muted">No classes recorded yet</p>
+                {% else %}
+                <p class="at-hint" data-at-hint></p>
+                <p class="ac-meta at-course__counts">
+                    <span><strong>{{ row.attended }}</strong> of {{ row.counted }} attended</span>
+                    {% if row.absent %}<span class="at-tag at-tag--absent">{{ row.absent }} absent</span>{% endif %}
+                    {% if row.late %}<span class="at-tag at-tag--late">{{ row.late }} late</span>{% endif %}
+                    {% if row.excused %}<span class="at-tag at-tag--excused">{{ row.excused }} excused</span>{% endif %}
+                </p>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- History -->
+    <section class="ac-section at-history" id="at-history" aria-labelledby="at-history-title" data-at-history>
+        <div class="ac-section__head" data-reveal>
+            <h2 class="ac-section__title" id="at-history-title">History</h2>
+            {% if request.GET.course %}
+            <a class="at-clear" href="{% url 'academic:attendance_overview' %}#at-history">
+                {% for row in stats.courses %}{% if request.GET.course == row.course.pk|stringformat:'d' %}{{ row.course.name }}{% endif %}{% endfor %}
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg>
+                <span class="ac-sr-only">Show all courses</span>
+            </a>
+            {% endif %}
+        </div>
+
+        {% if sessions %}
+        <div class="at-toolbar" data-reveal>
+            <div class="ac-chips" role="group" aria-label="Filter history" data-at-chips>
+                <button type="button" class="ac-chip" data-at-filter="all" aria-pressed="true">All <span class="at-chip__n" data-at-count="all"></span></button>
+                <button type="button" class="ac-chip" data-at-filter="present" aria-pressed="false" data-at-chip>Present <span class="at-chip__n" data-at-count="present"></span></button>
+                <button type="button" class="ac-chip" data-at-filter="absent" aria-pressed="false" data-at-chip>Absent <span class="at-chip__n" data-at-count="absent"></span></button>
+                <button type="button" class="ac-chip" data-at-filter="late" aria-pressed="false" data-at-chip>Late <span class="at-chip__n" data-at-count="late"></span></button>
+                <button type="button" class="ac-chip" data-at-filter="excused" aria-pressed="false" data-at-chip>Excused <span class="at-chip__n" data-at-count="excused"></span></button>
+                <button type="button" class="ac-chip" data-at-filter="cancelled" aria-pressed="false" data-at-chip>Cancelled <span class="at-chip__n" data-at-count="cancelled"></span></button>
+            </div>
+        </div>
+
+        <ul class="at-list">
+            {% for s in sessions %}
+            <li class="at-session{% if s.is_cancelled %} is-cancelled{% endif %}" id="session-{{ s.pk }}"
+                style="--course: {{ s.course.color }}"
+                data-reveal data-at-item
+                data-at-status="{% if s.is_cancelled %}cancelled{% elif s.attendance %}{{ s.attendance.status }}{% else %}pending{% endif %}">
+
+                <div class="at-date" aria-hidden="true">
+                    <span>{{ s.date|date:"D" }}</span>
+                    <strong>{{ s.date|date:"j" }}</strong>
+                    <span>{{ s.date|date:"M" }}</span>
+                </div>
+
+                <div class="at-session__body">
+                    <h3 class="at-session__title">{{ s.course.name }}</h3>
+                    <p class="ac-meta">
+                        <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clock"/></svg>{{ s.start_time|time:"g:i A" }} &ndash; {{ s.end_time|time:"g:i A" }}</span>
+                        {% if s.room %}<span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pin"/></svg>Room {{ s.room }}</span>{% endif %}
+                        <span class="ac-sr-only">{{ s.date|date:"l, j F Y" }}</span>
+                    </p>
+                    {% if s.is_cancelled and s.cancel_reason %}<p class="at-session__note">{{ s.cancel_reason }}</p>
+                    {% elif s.attendance.note %}<p class="at-session__note">{{ s.attendance.note }}</p>{% endif %}
+                </div>
+
+                {% if s.is_cancelled %}
+                <span class="ac-badge ac-badge--cancelled">Cancelled</span>
+                {% else %}
+                <form method="post" action="{% url 'academic:attendance_mark' s.pk %}" class="at-mark" data-at-mark>
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}#session-{{ s.pk }}">
+                    <input type="hidden" name="note" value="{{ s.attendance.note }}">
+                    <div class="at-seg" role="group" aria-label="Attendance for {{ s.course.name }} on {{ s.date|date:'j M' }}">
+                        {% for value, label in status_choices %}
+                        <button type="submit" name="status" value="{{ value }}"
+                                class="at-seg__btn at-seg__btn--{{ value }}"
+                                aria-pressed="{% if s.attendance.status == value %}true{% else %}false{% endif %}">{{ label }}</button>
+                        {% endfor %}
+                    </div>
+                </form>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="at-more" data-at-more-wrap hidden>
+            <button type="button" class="ac-btn ac-btn--ghost" data-at-more>Show more</button>
+        </div>
+
+        <div class="ac-empty" data-at-empty hidden>
+            <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-check"/></svg></span>
+            <p class="ac-empty__title">Nothing here</p>
+            <p class="ac-empty__text">No classes match this filter. Choose &ldquo;All&rdquo; to see everything.</p>
+        </div>
+
+        {% else %}
+        <div class="ac-empty" data-reveal>
+            <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clock"/></svg></span>
+            <p class="ac-empty__title">No classes held yet</p>
+            <p class="ac-empty__text">{% if request.GET.course %}This course has no classes on record yet.{% else %}Once a class from your routine has taken place, it shows up here and you can adjust its attendance.{% endif %}</p>
+            {% if request.GET.course %}
+            <a class="ac-btn ac-btn--ghost" href="{% url 'academic:attendance_overview' %}#at-history">Show all courses</a>
+            {% else %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:routine_list' %}">Open routine</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/attendance.js' %}" defer></script>
+{% endblock %}

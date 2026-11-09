@@ -1,0 +1,135 @@
+/* ==========================================================================
+   Routine (routine.css)
+   Loaded after academic.css on the routine pages only. Uses the shared tokens,
+   buttons, chips, badges, dialogs and .ac-item rows; everything here is .rt-*.
+   ========================================================================== */
+
+/* ---------- Toolbar: summary + day filter ---------- */
+.rt-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 12px 20px; margin-bottom: 18px;
+}
+.rt-toolbar .ac-meta strong { font-variant-numeric: tabular-nums; }
+
+/* A small dot marks today's tab */
+.ac-chip[data-day].is-today::after {
+    content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 7px;
+    border-radius: 50%; vertical-align: middle; background: var(--accent);
+}
+
+/* ---------- Week agenda: one row per day, day label left, classes right ---------- */
+.rt-board { display: grid; gap: var(--ac-gap); grid-template-columns: minmax(0, 1fr); }
+.rt-board.is-switching .rt-day:not([hidden]) { animation: rt-in .34s var(--ac-ease) both; }
+
+.rt-day { display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+.rt-day.is-today {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    background: linear-gradient(170deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 55%), var(--bg-card);
+}
+.rt-day__head { display: grid; gap: 6px; justify-items: start; padding-top: 2px; }
+.rt-day__name { font-size: 1.05rem; font-weight: 650; letter-spacing: -.005em; }
+.rt-day__count { color: var(--text-muted); font-size: .8rem; }
+.rt-classes { display: grid; gap: 10px; }
+
+/* ---------- Class rows (built on .ac-item) ---------- */
+.rt-class { overflow: hidden; padding-right: 8px; }
+.rt-class .ac-item__title { white-space: normal; }
+.rt-class.is-done { opacity: .55; }
+.rt-class.is-now {
+    border-color: color-mix(in srgb, var(--ac-success) 50%, var(--border));
+    background: linear-gradient(90deg, color-mix(in srgb, var(--ac-success) 9%, transparent), transparent 70%), var(--bg-card);
+}
+.rt-class.is-next { border-color: color-mix(in srgb, var(--ac-info) 40%, var(--border)); }
+
+.rt-live { flex: none; }
+.rt-class.is-now .rt-live::before { animation: rt-pulse 2s ease-in-out infinite; }
+
+.rt-class__actions { display: flex; align-items: center; gap: 2px; flex: none; }
+.rt-class__actions .ac-btn--icon { border-color: transparent; background: transparent; }
+.rt-class__actions .ac-btn--icon:hover { border-color: var(--border-hover); background: var(--bg-card); }
+.rt-class__actions .rt-remove:hover { color: var(--ac-danger); }
+@media (hover: hover) {
+    .rt-class__actions { opacity: .5; transition: opacity var(--transition); }
+    .rt-class:hover .rt-class__actions,
+    .rt-class:focus-within .rt-class__actions { opacity: 1; }
+}
+
+/* Thin bar along the bottom edge of the class that is running */
+.rt-class__progress { position: absolute; inset: auto 0 0 0; height: 2px; opacity: 0; transition: opacity .3s; }
+.rt-class__progress i {
+    display: block; height: 100%; width: calc(var(--value, 0) * 1%);
+    background: var(--ac-success); transition: width .8s var(--ac-ease);
+}
+.rt-class.is-now .rt-class__progress { opacity: 1; }
+
+/* Feedback after a class was added or edited */
+.rt-class.is-flash { animation: rt-flash 1.8s var(--ac-ease); }
+
+/* ---------- Form hint (duration / overlap) ---------- */
+.rt-hint {
+    min-height: 1.4em; margin-top: -4px; color: var(--text-muted); font-size: .84rem;
+    transition: color var(--transition);
+}
+.rt-hint.is-warn { color: var(--ac-warning); }
+.rt-hint.is-pop { animation: rt-in .25s var(--ac-ease); }
+
+/* ---------- Cancel / restore dialog ---------- */
+.rt-seg {
+    position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 3px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+}
+.rt-seg::before {
+    content: ""; position: absolute; inset: 3px auto 3px 3px; width: calc(50% - 3px);
+    border-radius: 999px; transition: transform .28s var(--ac-ease);
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+.rt-seg[data-mode="restore"]::before { transform: translateX(100%); }
+.rt-seg button {
+    position: relative; z-index: 1; padding: 8px 10px; border: 0; border-radius: 999px; background: none;
+    color: var(--text-muted); font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer;
+    transition: color var(--transition);
+}
+.rt-seg button:hover, .rt-seg button[aria-pressed="true"] { color: var(--text-main); }
+
+.rt-help.is-error { color: var(--ac-danger); font-weight: 550; }
+
+/* The reason field slides away when restoring */
+.rt-collapse {
+    display: grid; grid-template-rows: 1fr; opacity: 1;
+    transition: grid-template-rows .28s var(--ac-ease), opacity .2s ease;
+}
+.rt-collapse > .ac-field { overflow: hidden; min-height: 0; }
+.rt-collapse[data-open="false"] { grid-template-rows: 0fr; opacity: 0; }
+
+/* ---------- Motion ---------- */
+@keyframes rt-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes rt-pulse { 50% { opacity: .35; } }
+@keyframes rt-flash {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 20%, var(--bg-card)); }
+    60%  { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rt-class.is-now .rt-live::before { animation: none; }
+    .rt-board.is-switching .rt-day:not([hidden]),
+    .rt-hint.is-pop, .rt-class.is-flash { animation: none; }
+    .rt-seg::before, .rt-collapse, .rt-class__progress i { transition: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+    .rt-day { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .rt-day__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .rt-day__count { margin-left: auto; }
+}
+@media (max-width: 640px) {
+    .rt-toolbar { align-items: flex-start; }
+    .rt-class { flex-wrap: wrap; }
+    .rt-class .ac-item__body { flex-basis: calc(100% - 100px); }
+    .rt-class__actions { margin-left: auto; }
+    .rt-class .rt-live:not([hidden]) { margin-left: auto; }
+    .rt-class .rt-live:not([hidden]) + .rt-class__actions { margin-left: 0; }
+}

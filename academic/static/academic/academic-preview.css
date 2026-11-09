@@ -1,0 +1,24 @@
+/* ==========================================================================
+   Guest feature preview (academic-preview.css)
+   Loaded after academic.css on the read-only preview page only (feature_preview.html).
+   Everything is .pv-*; cards, lists and badges come from academic.css.
+   ========================================================================== */
+
+.pv-grid { display: grid; gap: var(--ac-gap); grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+
+.pv-points { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.pv-points li { display: flex; align-items: flex-start; gap: 12px; color: var(--text-main); line-height: 1.5; }
+.pv-points .ac-icon { flex: none; width: 20px; height: 20px; margin-top: 1px; color: var(--ac-success); }
+
+.pv-cta {
+    display: grid; justify-items: center; gap: 10px; margin-top: 36px; padding: 34px 20px; text-align: center;
+    border: 1px solid var(--border); border-radius: var(--radius-lg, 20px);
+    background: radial-gradient(70% 120% at 50% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 70%),
+                color-mix(in srgb, var(--bg-card) 60%, transparent);
+}
+.pv-cta__title { margin: 0; font-size: clamp(1.2rem, 2.4vw, 1.55rem); letter-spacing: -.015em; }
+.pv-cta__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+
+@media (max-width: 860px) {
+    .pv-grid { grid-template-columns: 1fr; }
+}

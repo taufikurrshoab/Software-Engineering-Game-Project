@@ -1,0 +1,20 @@
+{% comment %}
+Renders a ModelForm's fields in the Academic style (CSRF token, non-field errors,
+two-column grid). Usage: {% include 'academic/_form_body.html' with form=form wide_fields="name title" %}
+{% endcomment %}
+{% csrf_token %}
+{% if form.non_field_errors %}
+<div class="ac-form__error" role="alert">
+    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+</div>
+{% endif %}
+<div class="ac-form__grid">
+    {% for field in form %}
+    <div class="ac-field{% if field.errors %} has-error{% endif %}{% if field.widget_type == 'checkbox' %} ac-field--check{% endif %}{% if field.widget_type == 'textarea' or field.name in wide_fields %} ac-field--wide{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<span class="ac-field__help">{{ field.help_text }}</span>{% endif %}
+        {% for error in field.errors %}<span class="ac-field__error">{{ error }}</span>{% endfor %}
+    </div>
+    {% endfor %}
+</div>

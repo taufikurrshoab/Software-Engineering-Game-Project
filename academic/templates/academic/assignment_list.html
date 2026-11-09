@@ -1,0 +1,157 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Assignments{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/assignment.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div data-assignments data-today="{{ today|date:'Y-m-d' }}">
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Assignments</h1>
+            <p class="ac-subtitle">Everything due this semester, soonest first. Tick one off when it is done.</p>
+        </div>
+        <div class="ac-head-actions">
+            {% if has_courses %}
+            <button type="button" class="ac-btn ac-btn--primary" data-ac-open="assignment-dialog">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Add assignment</button>
+            {% else %}
+            <a class="ac-btn ac-btn--primary" href="{% url 'academic:course_list' %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg>Add a course first</a>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if assignments %}
+    <section class="ac-card as-overview" data-reveal data-as-overview aria-label="Assignment progress">
+        <div class="as-overview__row">
+            <div class="as-overview__text">
+                <p class="as-overview__headline"><strong data-as-done>0</strong> of <span data-as-total>{{ assignments|length }}</span> completed</p>
+                <p class="as-overview__next" data-as-next>{{ pending_count }} pending</p>
+            </div>
+            <span class="as-overview__pct ac-mono" data-as-pct aria-hidden="true">0%</span>
+        </div>
+        <div class="ac-progress as-progress" role="presentation">
+            <div class="ac-progress__bar" data-as-bar style="--value: 0; --bar: var(--ac-success)"></div>
+        </div>
+    </section>
+
+    <div data-ac-filter-group>
+        <div class="as-toolbar" data-reveal>
+            <div class="ac-chips" role="group" aria-label="Filter assignments">
+                <button type="button" class="ac-chip" data-ac-filter="all" aria-pressed="true">All <span class="as-chip__n" data-as-count="all"></span></button>
+                <button type="button" class="ac-chip" data-ac-filter="pending" aria-pressed="false">Pending <span class="as-chip__n" data-as-count="pending"></span></button>
+                <button type="button" class="ac-chip" data-ac-filter="overdue" aria-pressed="false" data-as-chip="overdue">Overdue <span class="as-chip__n" data-as-count="overdue"></span></button>
+                <button type="button" class="ac-chip" data-ac-filter="soon" aria-pressed="false" data-as-chip="soon">Due this week <span class="as-chip__n" data-as-count="soon"></span></button>
+                <button type="button" class="ac-chip" data-ac-filter="completed" aria-pressed="false">Completed <span class="as-chip__n" data-as-count="completed"></span></button>
+            </div>
+            <label class="as-search">
+                <span class="ac-sr-only">Search assignments</span>
+                <svg class="ac-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input type="search" data-ac-search placeholder="Search title or course" autocomplete="off">
+            </label>
+        </div>
+
+        <ul class="as-list">
+            {% for a in assignments %}
+            <li class="as-item{% if a.is_completed %} is-done{% endif %}" id="assignment-{{ a.pk }}"
+                style="--course: {{ a.course.color }}"
+                data-reveal data-as-item data-ac-item
+                data-state="{% if a.is_completed %}done{% else %}open{% endif %}"
+                data-due="{{ a.due_date|date:'Y-m-d' }}" data-done="{% if a.is_completed %}1{% else %}0{% endif %}"
+                data-ac-status="{% if a.is_completed %}completed{% elif a.due_date < today %}pending overdue{% else %}pending{% endif %}">
+
+                <form method="post" action="{% url 'academic:assignment_toggle' a.pk %}" class="ac-inline-form as-toggle" data-as-toggle>
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}#assignment-{{ a.pk }}">
+                    <button type="submit" class="as-check" aria-pressed="{% if a.is_completed %}true{% else %}false{% endif %}"
+                            aria-label="{% if a.is_completed %}Mark {{ a.title }} as not completed{% else %}Mark {{ a.title }} as completed{% endif %}"
+                            title="{% if a.is_completed %}Mark as not completed{% else %}Mark as completed{% endif %}">
+                        <svg class="as-check__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>
+                    </button>
+                </form>
+
+                <div class="as-item__body">
+                    <h2 class="as-item__title">{{ a.title }}</h2>
+                    <p class="ac-meta">
+                        <span><i class="ac-swatch" aria-hidden="true"></i>{{ a.course.name }}</span>
+                        <span>
+                            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-calendar"/></svg>
+                            {{ a.due_date|date:"D, j M Y" }}
+                        </span>
+                    </p>
+                    {% if a.description %}<p class="as-item__desc">{{ a.description|truncatechars:140 }}</p>{% endif %}
+                </div>
+
+                <span class="ac-badge {% if a.is_completed %}ac-badge--done{% elif a.due_date < today %}ac-badge--overdue{% else %}ac-badge--info{% endif %} as-status" data-as-status>
+                    {% if a.is_completed %}Done{% elif a.due_date < today %}Overdue{% else %}Pending{% endif %}</span>
+
+                <div class="as-item__actions">
+                    <a class="ac-btn ac-btn--icon ac-btn--ghost" href="{% url 'academic:assignment_edit' a.pk %}"
+                       aria-label="Edit {{ a.title }}" title="Edit">
+                        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pencil"/></svg></a>
+                    <form method="post" action="{% url 'academic:assignment_delete' a.pk %}" class="ac-inline-form"
+                          data-ac-confirm="Delete &ldquo;{{ a.title }}&rdquo;? This cannot be undone."
+                          data-ac-confirm-title="Delete assignment?" data-ac-confirm-label="Delete">
+                        {% csrf_token %}
+                        <button type="submit" class="ac-btn ac-btn--icon ac-btn--ghost as-remove"
+                                aria-label="Delete {{ a.title }}" title="Delete">
+                            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg></button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="ac-empty" data-ac-filter-empty hidden>
+            <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clipboard"/></svg></span>
+            <p class="ac-empty__title">Nothing matches</p>
+            <p class="ac-empty__text">Try a different filter or search, or choose &ldquo;All&rdquo; to see every assignment.</p>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="ac-empty" data-reveal>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clipboard"/></svg></span>
+        <p class="ac-empty__title">No assignments yet</p>
+        {% if has_courses %}
+        <p class="ac-empty__text">Add your first assignment and its deadline will show up on your dashboard and timeline.</p>
+        <button type="button" class="ac-btn ac-btn--primary" data-ac-open="assignment-dialog">Add your first assignment</button>
+        {% else %}
+        <p class="ac-empty__text">Assignments belong to a course. Add a course first, then come back to track its deadlines.</p>
+        <a class="ac-btn ac-btn--primary" href="{% url 'academic:course_list' %}">Add a course</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block academic_dialogs %}
+{% if has_courses %}
+<dialog class="ac-dialog" id="assignment-dialog" aria-labelledby="assignment-dialog-title"{% if form.errors %} data-ac-open-on-load{% endif %}>
+    <div class="ac-dialog__head">
+        <h2 class="ac-dialog__title" id="assignment-dialog-title">Add assignment</h2>
+        <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-close aria-label="Close">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg></button>
+    </div>
+    <form method="post" class="ac-dialog__body ac-form" data-as-form data-today="{{ today|date:'Y-m-d' }}"
+          data-sem-start="{{ semester.start_date|date:'Y-m-d' }}" data-sem-end="{{ semester.end_date|date:'Y-m-d' }}">
+        {% include 'academic/_form_body.html' with form=form wide_fields="course title" %}
+        <p class="as-hint" data-as-hint role="status" aria-live="polite">Pick the day it is due.</p>
+        <div class="ac-form__actions">
+            <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Cancel</button>
+            <button type="submit" class="ac-btn ac-btn--primary">Add assignment</button>
+        </div>
+    </form>
+</dialog>
+{% endif %}
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/assignment.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% comment %}
+Shared layout for every Academic page.
+Child templates fill: academic_title, academic_css, academic_content,
+academic_dialogs, academic_js.
+Icons: <svg class="ac-icon"><use href="#ac-i-NAME"/></svg>
+{% endcomment %}
+
+{% block title %}{% block academic_title %}Academic{% endblock %} | ThinkSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'academic/academic.css' %}">
+{% block academic_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<script>document.documentElement.classList.add("js");</script>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="ac-i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="ac-i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></symbol>
+    <symbol id="ac-i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M19 17H6a2 2 0 0 0-2 2"/></symbol>
+    <symbol id="ac-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="ac-i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="ac-i-clipboard" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/></symbol>
+    <symbol id="ac-i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="ac-i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></symbol>
+    <symbol id="ac-i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 21l5-3 5 3-1.5-7"/></symbol>
+    <symbol id="ac-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="ac-i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
+    <symbol id="ac-i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="ac-i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="ac-i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></symbol>
+    <symbol id="ac-i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+    <symbol id="ac-i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.01"/></symbol>
+    <symbol id="ac-i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="ac-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="ac-i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="ac-i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="ac-i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></symbol>
+</svg>
+
+<div class="ac">
+
+    <nav class="ac-nav" aria-label="Academic sections">
+        <div class="ac-container ac-nav__inner">
+            {% with page=request.resolver_match.url_name %}
+            <div class="ac-nav__links">
+                <a class="ac-nav__link" href="{% url 'academic:home' %}"{% if page == 'home' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-home"/></svg>Home</a>
+                <a class="ac-nav__link" href="{% url 'academic:dashboard' %}"{% if page == 'dashboard' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chart"/></svg>Dashboard</a>
+                <a class="ac-nav__link" href="{% url 'academic:timeline' %}"{% if page == 'timeline' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-calendar"/></svg>Timeline</a>
+                <a class="ac-nav__link" href="{% url 'academic:routine_list' %}"{% if page == 'routine_list' or page == 'routine_edit' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clock"/></svg>Routine</a>
+                <a class="ac-nav__link" href="{% url 'academic:course_list' %}"{% if page == 'course_list' or page == 'course_edit' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg>Courses</a>
+                <a class="ac-nav__link" href="{% url 'academic:assignment_list' %}"{% if page == 'assignment_list' or page == 'assignment_edit' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clipboard"/></svg>Assignments</a>
+                <a class="ac-nav__link" href="{% url 'academic:attendance_overview' %}"{% if page == 'attendance_overview' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-check"/></svg>Attendance</a>
+                <a class="ac-nav__link" href="{% url 'academic:holiday_list' %}"{% if page == 'holiday_list' or page == 'holiday_edit' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-sun"/></svg>Holidays</a>
+                <a class="ac-nav__link" href="{% url 'academic:cgpa' %}"{% if page == 'cgpa' or page == 'grade_edit' or page == 'gpa_add' or page == 'gpa_edit' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-award"/></svg>CGPA</a>
+                <a class="ac-nav__link" href="{% url 'academic:semester_list' %}"{% if page == 'semester_list' or page == 'setup' or page == 'semester_edit' %} aria-current="page"{% endif %}>
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-layers"/></svg>Semesters</a>
+            </div>
+            {% endwith %}
+
+            {% if semester and not is_demo %}
+            <a class="ac-semester-chip" href="{% url 'academic:semester_list' %}" title="Switch semester">
+                <i class="ac-dot" aria-hidden="true"></i><span>{{ semester.name }}</span>
+            </a>
+            {% endif %}
+
+            {% if is_guest %}
+            <a class="ac-semester-chip ac-guest-chip" href="{{ login_url }}" title="Sign in to use your own data">
+                <i class="ac-dot" aria-hidden="true"></i><span>Guest &middot; Sign in</span>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="ac-main">
+        <div class="ac-container">
+            {% block academic_content %}{% endblock %}
+        </div>
+    </main>
+
+    {% if messages %}
+    <div class="ac-toasts" role="status" aria-live="polite">
+        {% for message in messages %}
+        <div class="ac-toast ac-toast--{{ message.level_tag }}">
+            <p>{{ message }}</p>
+            <button type="button" class="ac-toast__close" aria-label="Dismiss">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <dialog class="ac-dialog" id="ac-confirm" aria-labelledby="ac-confirm-title">
+        <div class="ac-dialog__head">
+            <h2 class="ac-dialog__title" id="ac-confirm-title" data-ac-confirm-title>Are you sure?</h2>
+        </div>
+        <div class="ac-dialog__body">
+            <p class="ac-dialog__text" data-ac-confirm-text></p>
+            <div class="ac-form__actions">
+                <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Cancel</button>
+                <button type="button" class="ac-btn ac-btn--danger" data-ac-confirm-yes>Confirm</button>
+            </div>
+        </div>
+    </dialog>
+
+    {% block academic_dialogs %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'academic/academic.js' %}" defer></script>
+{% block academic_js %}{% endblock %}
+{% endblock %}

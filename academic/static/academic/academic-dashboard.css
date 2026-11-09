@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Academic dashboard (academic-dashboard.css)
+   Loaded after academic.css and academic-snake.css on the dashboard page only.
+   .db-*  page layout and the compact statistics strip
+   .dj-*  the heading, legend and footnote around the semester journey
+          (the timeline itself is the shared snake: academic-snake.css)
+   ========================================================================== */
+.db {
+    --db-cyan: #22d3ee;
+    --db-blue: #60a5fa;
+    --db-violet: #818cf8;
+    --db-glass: color-mix(in srgb, var(--bg-card) 62%, transparent);
+}
+
+/* ---------- Header status ---------- */
+.db-status {
+    display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px;
+    border: 1px solid var(--border); border-radius: 999px; background: var(--db-glass);
+    color: var(--text-muted); font-size: .84rem;
+}
+.db-status strong { color: var(--text-main); font-weight: 650; }
+.db-status__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+.db-status__dot--class { background: var(--ac-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac-success) 25%, transparent); }
+.db-status__dot--regular { background: var(--db-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--db-blue) 25%, transparent); }
+
+/* ---------- Compact statistics ---------- */
+.db-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--border); box-shadow: var(--shadow-card);
+}
+.db-strip > li { background: var(--bg-card); }
+.db-stat { display: grid; align-content: start; gap: 3px; height: 100%; padding: 12px 16px; transition: background var(--transition); }
+.db-stat:hover { background: color-mix(in srgb, var(--db-blue) 7%, var(--bg-card)); }
+.db-stat__label {
+    display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted);
+    font-size: .66rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase;
+}
+.db-stat__label .ac-icon { width: 14px; height: 14px; }
+.db-stat__value { font-size: 1.3rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.db-stat__hint { color: var(--text-muted); font-size: .76rem; }
+.db-stat.is-alert .db-stat__hint { color: var(--ac-danger); font-weight: 600; }
+.db-stat__bar.ac-progress { display: block; height: 4px; margin-top: 3px; }
+.db-stat__bar .ac-progress__bar { display: block; }
+
+/* ---------- Journey ---------- */
+.dj-section { margin: 0 0 32px; }          /* the timeline now opens the page */
+.dj-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 20px; margin-bottom: 10px; }
+.dj-head__title { font-size: 1.15rem; font-weight: 650; letter-spacing: -.01em; }
+.dj-head__sub { margin-top: 2px; font-size: .86rem; }
+.dj-legend { display: flex; gap: 16px; color: var(--text-muted); font-size: .74rem; }
+.dj-legend li::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--db-blue); }
+.dj-legend .is-past::before { background: color-mix(in srgb, var(--text-main) 38%, transparent); }
+.dj-legend .is-current::before { background: var(--db-cyan); box-shadow: 0 0 7px var(--db-cyan); }
+.dj-more { margin-top: 10px; text-align: right; font-size: .86rem; }
+
+/* ---------- Lower cards ---------- */
+.db-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ac-gap); margin-top: 36px; align-items: start; }
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 860px) {
+    .db-cols { grid-template-columns: 1fr; margin-top: 28px; }
+    .dj-legend { display: none; }
+}

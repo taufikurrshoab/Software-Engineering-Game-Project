@@ -1,0 +1,223 @@
+/* ==========================================================================
+   Winding "snake" timeline: shared look and motion (academic-snake.css)
+   Used by the Academic home page (features) and the dashboard (semester
+   journey). Page-specific styling stays in academic-landing.css and
+   academic-dashboard.css. Everything is .snk-* / .snk__*.
+
+   Layout: one SVG per layout draws the path and the branches; the nodes are
+   ordinary HTML links laid over it by percentage, so they are real anchors
+   (keyboard, focus, screen readers) and the text wraps naturally.
+     wide  horizontal snake, branches alternate above and below
+     tall  vertical snake for phones, small branches to the right
+   ========================================================================== */
+
+.snk {
+    --snk-cyan: #22d3ee;
+    --snk-blue: #60a5fa;
+    --snk-violet: #a78bfa;
+    --snk-node: color-mix(in srgb, var(--snk-cyan), var(--snk-violet) calc(var(--x, 0) * 1%));
+    position: relative; width: 100%; container: snk / inline-size;
+}
+.snk__canvas { position: relative; width: 100%; aspect-ratio: var(--ar-wide, 1200 / 660); }
+.snk__svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.snk__svg--tall { display: none; }
+
+/* ---------- Path ---------- */
+.snk-glow, .snk-base, .snk-progress, .snk-stem { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.snk-glow { stroke: url(#snk-grad-wide); stroke-width: 14; opacity: .3; filter: url(#snk-blur); }
+.snk-base { stroke: url(#snk-grad-wide); stroke-width: 3; }
+.snk-progress { stroke: url(#snk-grad-bright-wide); stroke-width: 3.5; }
+.snk-stem { stroke: url(#snk-grad-wide); stroke-width: 1.8; opacity: .85; transition: stroke-dashoffset .7s cubic-bezier(.3, .1, .2, 1), opacity .3s ease; }
+.snk__svg--tall .snk-glow, .snk__svg--tall .snk-base, .snk__svg--tall .snk-stem { stroke: url(#snk-grad-tall); }
+.snk__svg--tall .snk-progress { stroke: url(#snk-grad-bright-tall); }
+.snk__svg--tall .snk-glow { stroke-width: 12; }
+
+/* dashboard: the future part of the line is dimmer than the part already travelled */
+.snk--journey .snk-base { opacity: .38; }
+.snk--journey .snk-glow { opacity: .22; }
+
+/* ---------- Travelling light ---------- */
+.snk__head {
+    position: absolute; z-index: 3; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+    opacity: 0; pointer-events: none; transition: opacity .35s ease;
+    background: radial-gradient(circle, #fff 0 22%, #67e8f9 50%, rgba(34, 211, 238, 0) 72%);
+    box-shadow: 0 0 20px 7px rgba(34, 211, 238, .55), 0 0 44px 14px rgba(96, 165, 250, .25);
+}
+.snk__head.is-on { opacity: 1; }
+
+/* ---------- Items ---------- */
+.snk__items { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.snk-item { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); width: 0; height: 0; }
+
+.snk-node {
+    position: absolute; left: 0; top: 0; display: block; width: 48px; height: 48px; transform: translate(-50%, -50%);
+    color: inherit; text-decoration: none; pointer-events: auto; border-radius: 50%; outline: none; -webkit-tap-highlight-color: transparent;
+}
+.snk-node__dot {
+    position: relative; display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%;
+    color: var(--node-c, var(--snk-node));
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--node-c, var(--snk-node)) 22%, #101a33), #0b1226 75%);
+    border: 1.5px solid var(--node-c, var(--snk-node));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--node-c, var(--snk-node)) 14%, transparent), 0 0 18px color-mix(in srgb, var(--node-c, var(--snk-node)) 35%, transparent);
+    cursor: pointer; transition: transform .28s cubic-bezier(.34, 1.56, .64, 1), box-shadow .3s ease, background .3s ease;
+}
+.snk-node__dot .ac-icon { width: 20px; height: 20px; }
+.snk-node:hover .snk-node__dot, .snk-node:focus-visible .snk-node__dot {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--node-c, var(--snk-node)) 22%, transparent), 0 0 30px color-mix(in srgb, var(--node-c, var(--snk-node)) 70%, transparent);
+}
+.snk-node:active .snk-node__dot { transform: scale(.96); }
+.snk-node:focus-visible .snk-node__dot { outline: 2px solid #e0f2fe; outline-offset: 5px; }
+
+.snk-node__text {
+    position: absolute; left: 50%; width: var(--tw, 190px); transform: translateX(-50%); text-align: center;
+    display: grid; gap: 3px; transition: color .25s ease;
+}
+.snk-item--up .snk-node__text { bottom: calc(100% + 13px); }
+.snk-item--down .snk-node__text { top: calc(100% + 13px); }
+.snk-node__text strong { font-size: .92rem; font-weight: 650; line-height: 1.25; color: var(--text-main); letter-spacing: -.005em; }
+.snk-node__text span { font-size: .78rem; line-height: 1.4; color: var(--text-muted); }
+.snk-node:hover .snk-node__text strong, .snk-node:focus-visible .snk-node__text strong { color: #e0f2fe; }
+.snk-node:focus-visible .snk-node__text strong { text-decoration: underline; text-underline-offset: 3px; }
+
+/* week ticks and the "today" marker (dashboard) */
+.snk-tick { pointer-events: none; }
+.snk-tick i {
+    position: absolute; left: -3.5px; top: -3.5px; width: 7px; height: 7px; border-radius: 50%;
+    background: color-mix(in srgb, var(--snk-cyan) 60%, #0b1226); box-shadow: 0 0 8px color-mix(in srgb, var(--snk-cyan) 55%, transparent);
+    transition: opacity .35s ease, scale .35s ease;
+}
+.snk-tick span {
+    position: absolute; left: 0; top: 11px; transform: translateX(-50%); font-size: .62rem; font-weight: 650; letter-spacing: .06em;
+    color: var(--text-muted); white-space: nowrap; transition: opacity .35s ease;
+}
+.snk-tick.is-past i { background: color-mix(in srgb, var(--text-main) 45%, #0b1226); box-shadow: none; }
+.snk-tick.is-upcoming i { background: color-mix(in srgb, var(--snk-blue) 45%, #0b1226); box-shadow: none; }
+.snk-tick.is-current i { width: 9px; height: 9px; left: -4.5px; top: -4.5px; background: var(--snk-cyan); box-shadow: 0 0 12px var(--snk-cyan); }
+.snk-tick.is-current span { color: var(--snk-cyan); }
+
+.snk-now { pointer-events: none; z-index: 4; }
+.snk-now i {
+    position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; background: #e0f2fe;
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, .35), 0 0 22px 4px rgba(34, 211, 238, .75);
+    animation: snk-ping 3s ease-in-out infinite;
+}
+.snk-now span {
+    position: absolute; left: 0; bottom: 18px; transform: translateX(-50%); white-space: nowrap; padding: 3px 11px; border-radius: 999px;
+    font-size: .72rem; font-weight: 650; color: #06202b; background: var(--snk-cyan); box-shadow: 0 0 16px rgba(34, 211, 238, .45);
+}
+
+/* ---------- Opening sequence ----------
+   .is-armed is added by academic-snake.js just before it plays; without
+   JavaScript none of this applies and the finished timeline is simply shown. */
+.js .snk:not(.is-armed):not(.is-done) { visibility: hidden; animation: snk-failsafe 0s 2.5s forwards; }
+.snk.is-armed .snk-glow, .snk.is-armed .snk-base, .snk.is-armed .snk-progress { stroke-dashoffset: 1; }
+.snk.is-armed .snk-stem:not(.is-lit) { stroke-dashoffset: 1; }
+.snk.is-armed .snk-item:not(.is-lit) .snk-node { pointer-events: none; }
+.snk.is-armed .snk-item:not(.is-lit) :is(.snk-node__dot, .snk-node__text, .snk-now i, .snk-now span) { opacity: 0; }
+.snk.is-armed .snk-tick:not(.is-lit) i { opacity: 0; scale: .3; }
+.snk.is-armed .snk-tick:not(.is-lit) span { opacity: 0; }
+/* a branch grows for ~.7s; its node pops in at the tip, then the title follows */
+.snk.is-armed .snk-item.is-lit .snk-node__dot { animation: snk-dot-in .55s cubic-bezier(.34, 1.56, .64, 1) .5s backwards; }
+.snk.is-armed .snk-item.is-lit .snk-node__text { animation: snk-text-in .45s ease .85s backwards; }
+.snk.is-armed .snk-now.is-lit i, .snk.is-armed .snk-now.is-lit span { animation: snk-text-in .5s ease .1s backwards; }
+
+@keyframes snk-failsafe { to { visibility: visible; } }
+@keyframes snk-dot-in {
+    from { opacity: 0; scale: .35; }
+    55%  { box-shadow: 0 0 0 9px color-mix(in srgb, var(--node-c, var(--snk-node)) 18%, transparent), 0 0 34px color-mix(in srgb, var(--node-c, var(--snk-node)) 80%, transparent); }
+}
+@keyframes snk-text-in { from { opacity: 0; translate: 0 12px; } }
+@keyframes snk-ping {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(34, 211, 238, .35), 0 0 20px 3px rgba(34, 211, 238, .65); }
+    50%      { box-shadow: 0 0 0 9px rgba(34, 211, 238, .12), 0 0 30px 6px rgba(34, 211, 238, .85); }
+}
+
+/* ==========================================================================
+   Integration additions (added when the timeline was wired into the app).
+   Kept in one block so the supplied rules above stay recognisable.
+   ========================================================================== */
+
+/* the shared gradient/filter definitions live in one zero-size SVG; a
+   display:none SVG would break url(#...) references in some browsers */
+.snk__defs { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+
+/* fix: .snk-now is itself the list item, so the opening-sequence hide rule above
+   (which looks for .snk-now INSIDE an unlit item) never matched it */
+.snk.is-armed .snk-now:not(.is-lit) :is(i, span) { opacity: 0; }
+
+/* the today label would run off the canvas at either end of the line */
+.snk-now--start span { left: -6px; transform: none; }
+.snk-now--end span { left: 6px; transform: translateX(-100%); }
+
+/* a week label that would sit on top of a node stays out of the way */
+.snk-tick--quiet span { display: none; }
+
+/* node states on the dashboard (an inline --node-c from a course colour still wins) */
+.snk-item.is-past { --node-c: color-mix(in srgb, var(--text-main) 55%, #0b1226); }
+.snk-item.is-current { --node-c: var(--snk-cyan); }
+.snk-item.is-overdue { --node-c: #f87171; }
+.snk-item--holiday { --node-c: var(--snk-violet); }
+.snk-item.is-ghost { --node-c: color-mix(in srgb, var(--text-main) 45%, #0b1226); }
+.snk-item.is-ghost .snk-node__dot { border-style: dashed; }
+.snk-item.is-past .snk-node__text { opacity: .78; }
+
+/* the label sits on top of the glowing line, so give it a little breathing room */
+.snk-node__text strong, .snk-node__text span { text-shadow: 0 1px 10px rgba(7, 11, 22, .85); }
+
+/* ---------- Tablet: tighter text, curves unchanged ---------- */
+@container snk (max-width: 960px) {
+    .snk-node { width: 42px; height: 42px; }
+    .snk-node__dot .ac-icon { width: 18px; height: 18px; }
+    .snk-node__text strong { font-size: .84rem; }
+    .snk-node__text span { font-size: .72rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+}
+@container snk (max-width: 820px) and (min-width: 721px) {
+    .snk-node__text span { display: none; }
+}
+
+/* ---------- Phones: a vertical winding timeline ---------- */
+@container snk (max-width: 720px) {
+    .snk__canvas { aspect-ratio: var(--ar-tall, 360 / 1304); }
+    .snk__svg--wide { display: none; }
+    .snk__svg--tall { display: block; }
+    .snk-item { left: calc(var(--mx) * 1%); top: calc(var(--my) * 1%); }
+    .snk-node { width: 44px; height: 44px; }
+    .snk-node__text {
+        left: calc(100% + 14px); top: 50%; bottom: auto; transform: translateY(-50%); text-align: left;
+        width: calc((100 - var(--mx)) * 1cqw - 78px);
+    }
+    .snk-item--up .snk-node__text, .snk-item--down .snk-node__text, .snk-item--right .snk-node__text { top: 50%; bottom: auto; }
+    .snk-node__text strong { font-size: .88rem; }
+    .snk-node__text span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: .76rem; }
+    .snk-tick { left: calc(var(--mx) * 1%); top: calc(var(--my) * 1%); }
+    .snk-tick span { left: 12px; top: -8px; transform: none; }
+    .snk-now { left: calc(var(--mx) * 1%); top: calc(var(--my) * 1%); }
+    .snk-now span, .snk-now--start span, .snk-now--end span { left: 16px; bottom: auto; top: -10px; transform: none; }
+}
+
+/* ---------- Motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .snk *, .snk *::before, .snk *::after { animation: none !important; transition: none !important; }
+    .snk__head { display: none; }
+}
+
+/* ==========================================================================
+   Timeline first, page content after (home hero; dashboard heading, statistics, cards)
+   Elements marked data-after-snake wait until academic-snake.js opens the nearest
+   [data-snk-gate] (.is-open) once the line, branches, nodes and titles have played.
+   Without JavaScript they are simply visible; if the timeline script never runs
+   they fade in by themselves after 9s.
+   ========================================================================== */
+.snk-gate [data-after-snake] {
+    transition: opacity .6s cubic-bezier(.2, .7, .2, 1), translate .6s cubic-bezier(.2, .7, .2, 1);
+    transition-delay: calc(var(--after-i, 0) * 90ms);
+}
+.js .snk-gate:not(.is-open) [data-after-snake] {
+    opacity: 0; translate: 0 16px; pointer-events: none;
+    animation: snk-after-failsafe 0s 9s forwards;
+}
+@keyframes snk-after-failsafe { to { opacity: 1; translate: none; pointer-events: auto; } }
+@media (prefers-reduced-motion: reduce) {
+    .snk-gate [data-after-snake] { transition: none; }
+}

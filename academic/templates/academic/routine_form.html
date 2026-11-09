@@ -1,0 +1,38 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Edit class{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/routine.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div class="ac-form-page">
+    <a class="ac-back" href="{% url 'academic:routine_list' %}">
+        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chevron"/></svg>Routine</a>
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Edit {{ schedule.course_name }}</h1>
+            <p class="ac-subtitle">Changes apply to every week from now on. Classes already held keep the time and room they had.</p>
+        </div>
+    </header>
+
+    <section class="ac-card ac-card--accent ac-course"{% if schedule.course.color %} style="--course: {{ schedule.course.color }}"{% endif %} data-reveal>
+        <form method="post" class="ac-form" data-rt-form data-rt-editing="{{ schedule.pk }}">
+            {% include 'academic/_form_body.html' with form=form wide_fields="course day_of_week room" %}
+            <p class="rt-hint" data-rt-hint role="status" aria-live="polite"></p>
+            <div class="ac-form__actions">
+                <a class="ac-btn ac-btn--ghost" href="{% url 'academic:routine_list' %}">Cancel</a>
+                <button type="submit" class="ac-btn ac-btn--primary">Save changes</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/routine.js' %}" defer></script>
+{% endblock %}

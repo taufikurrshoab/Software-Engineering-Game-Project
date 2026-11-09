@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Attendance (attendance.css)
+   Loaded after academic.css on the attendance page only. Uses the shared
+   tokens, cards, badges, chips, progress bars, rings and empty states;
+   everything here is .at-*.
+   ========================================================================== */
+
+/* ---------- Overall ---------- */
+.at-overall {
+    display: flex; align-items: center; gap: 26px;
+    background: radial-gradient(560px 220px at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--bg-card);
+}
+.at-overall .ac-ring { --size: 104px; --stroke: 10px; }
+.at-overall .ac-ring-wrap__label { font-size: 1.3rem; }
+.at-overall__body { display: grid; gap: 6px; min-width: 0; }
+.at-overall__label { color: var(--text-muted); font-size: .76rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.at-overall__title { font-size: 1.15rem; font-weight: 650; letter-spacing: -.01em; }
+
+.at-hint { min-height: 1.4em; font-size: .86rem; color: var(--text-muted); }
+.at-hint.is-good { color: var(--ac-success); }
+.at-hint.is-low { color: var(--ac-warning); }
+.at-hint.is-pop { animation: at-in .3s var(--ac-ease); }
+
+.at-counts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 4px; }
+.at-count { --tone: var(--text-muted); display: inline-flex; align-items: center; gap: 7px; color: var(--text-muted); font-size: .84rem; }
+.at-count::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
+.at-count strong { color: var(--text-main); font-weight: 700; font-variant-numeric: tabular-nums; }
+.at-count--present { --tone: var(--ac-success); }
+.at-count--late { --tone: var(--ac-warning); }
+.at-count--absent { --tone: var(--ac-danger); }
+.at-count--excused { --tone: var(--ac-info); }
+
+/* The ring fills from empty on load (attendance.js); without JS it is simply full */
+.js .at-ring:not(.is-ready) { --value: 0 !important; }
+
+.at-note { font-size: .82rem; }
+
+/* ---------- Course cards ---------- */
+.at-courses { display: grid; gap: var(--ac-gap); grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.at-course { --card-accent: var(--course, var(--accent)); display: flex; flex-direction: column; gap: 12px; color: inherit; }
+.at-course.is-selected {
+    border-color: color-mix(in srgb, var(--course, var(--accent)) 60%, transparent);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--course, var(--accent)) 10%, transparent), transparent 65%), var(--bg-card);
+}
+.at-course__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.at-course__title { min-width: 0; display: grid; gap: 2px; }
+.at-course__name { font-size: 1rem; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.at-pct { flex: none; font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; color: var(--tone, var(--text-main)); }
+.at-pct--none { color: var(--text-muted); }
+
+/* progress track with the 75% target marker */
+.at-track { position: relative; }
+.at-track .ac-progress { height: 8px; }
+.at-marker {
+    position: absolute; top: -3px; bottom: -3px; left: 75%; width: 2px; margin-left: -1px; border-radius: 2px;
+    background: color-mix(in srgb, var(--text-main) 55%, transparent);
+}
+.at-course__counts { margin-top: auto; align-items: center; }
+.at-tag { --tone: var(--text-muted); padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 600; color: var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent); }
+.at-tag--absent { --tone: var(--ac-danger); }
+.at-tag--late { --tone: var(--ac-warning); }
+.at-tag--excused { --tone: var(--ac-info); }
+
+/* ---------- History ---------- */
+.at-history { scroll-margin-top: 90px; }
+.at-clear {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 5px 12px; border-radius: 999px;
+    font-size: .8rem; font-weight: 600; color: var(--text-main);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+    transition: background var(--transition);
+}
+.at-clear:hover { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+.at-clear .ac-icon { width: 14px; height: 14px; }
+
+.at-toolbar { margin-bottom: 16px; }
+.at-chip__n { margin-left: 4px; font-variant-numeric: tabular-nums; opacity: .7; }
+.at-chip__n:empty { display: none; }
+
+.at-list { display: grid; gap: 10px; }
+.at-session {
+    position: relative; display: flex; align-items: center; gap: 16px;
+    padding: 12px 14px 12px 20px; overflow: hidden; scroll-margin-top: 90px;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-card); box-shadow: var(--shadow-card);
+    transition: border-color var(--transition), background var(--transition), opacity var(--transition);
+}
+.at-session::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--course, var(--accent)); }
+.at-session:hover { border-color: var(--border-hover); }
+.at-session.is-cancelled { opacity: .6; }
+.at-session:target { animation: at-flash 1.8s var(--ac-ease); }
+.at-session.is-entering { animation: at-in .4s var(--ac-ease) both; animation-delay: calc(var(--n, 0) * 35ms); }
+
+.at-date {
+    display: grid; place-items: center; align-content: center; flex: none; width: 52px; padding: 7px 0; border-radius: 12px;
+    color: var(--course, var(--accent)); line-height: 1.15;
+    background: color-mix(in srgb, var(--course, var(--accent)) 13%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--course, var(--accent)) 26%, transparent);
+}
+.at-date span { font-size: .66rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.at-date strong { font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.at-session__body { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.at-session__title { font-size: .98rem; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.at-session__note { color: var(--text-muted); font-size: .82rem; font-style: italic; overflow-wrap: anywhere; }
+
+/* ---------- Present / Absent / Late / Excused control ---------- */
+.at-mark { flex: none; margin: 0; }
+.at-seg {
+    display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-surface) 75%, transparent);
+    border: 1px solid var(--border);
+}
+.at-seg__btn {
+    --tone: var(--text-muted);
+    padding: 6px 12px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+    font: inherit; font-size: .8rem; font-weight: 600; color: var(--text-muted);
+    transition: color var(--transition), background var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.at-seg__btn:hover { color: var(--tone); background: color-mix(in srgb, var(--tone) 10%, transparent); }
+.at-seg__btn:active { transform: scale(.94); }
+.at-seg__btn--present { --tone: var(--ac-success); }
+.at-seg__btn--absent { --tone: var(--ac-danger); }
+.at-seg__btn--late { --tone: var(--ac-warning); }
+.at-seg__btn--excused { --tone: var(--ac-info); }
+.at-seg__btn[aria-pressed="true"] {
+    color: var(--tone); cursor: default;
+    background: color-mix(in srgb, var(--tone) 17%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 42%, transparent);
+}
+.at-seg__btn.is-pop { animation: at-pop .35s var(--ac-ease); }
+.at-mark.is-saving .at-seg { opacity: .7; pointer-events: none; }
+
+.at-more { display: flex; justify-content: center; margin-top: 16px; }
+
+/* ---------- Motion ---------- */
+@keyframes at-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes at-pop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes at-flash {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 16%, var(--bg-card)); }
+    60%  { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .at-session:target, .at-session.is-entering, .at-seg__btn.is-pop, .at-hint.is-pop { animation: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+    .at-overall { gap: 18px; }
+    .at-overall .ac-ring { --size: 88px; --stroke: 9px; }
+    .at-session { flex-wrap: wrap; gap: 12px 14px; }
+    .at-session__body { flex-basis: calc(100% - 70px); }
+    .at-mark { flex-basis: 100%; }
+    .at-seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .at-seg__btn { padding-inline: 4px; text-align: center; }
+}
+@media (max-width: 420px) {
+    .at-overall { flex-direction: column; align-items: flex-start; }
+}

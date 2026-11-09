@@ -1,0 +1,141 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Timeline{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/timeline.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div data-timeline data-today="{{ today|date:'Y-m-d' }}">
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Timeline</h1>
+            <p class="ac-subtitle">Your classes, deadlines and holidays, week by week. Cancelled classes and holiday dates are already taken into account.</p>
+        </div>
+    </header>
+
+    <div class="tl-toolbar" data-reveal data-tl-toolbar>
+        <div class="ac-chips" role="group" aria-label="Show event type" data-tl-kinds>
+            <button type="button" class="ac-chip" data-tl-kind="all" aria-pressed="true">All</button>
+            <button type="button" class="ac-chip" data-tl-kind="class" aria-pressed="false">Classes</button>
+            <button type="button" class="ac-chip" data-tl-kind="assignment" aria-pressed="false">Deadlines</button>
+            <button type="button" class="ac-chip" data-tl-kind="holiday" aria-pressed="false">Holidays</button>
+        </div>
+        <div class="tl-seg" role="group" aria-label="Show time range">
+            <button type="button" class="tl-seg__btn" data-tl-when="upcoming" aria-pressed="false">Upcoming</button>
+            <button type="button" class="tl-seg__btn" data-tl-when="past" aria-pressed="false">Past</button>
+            <button type="button" class="tl-seg__btn" data-tl-when="all" aria-pressed="true">All</button>
+        </div>
+    </div>
+
+    <div class="tl" data-tl-list>
+        {% for week in weeks %}
+        <section class="tl-week{% if week.start <= today and today <= week.end %} is-current{% endif %}" data-tl-week
+                 aria-labelledby="tl-week-{{ week.number }}">
+            <header class="tl-week__head">
+                <h2 class="tl-week__title" id="tl-week-{{ week.number }}">Week {{ week.number }}</h2>
+                <span class="tl-week__range">
+                    {% if week.start|date:"Y-m" == week.end|date:"Y-m" %}{{ week.start|date:"j" }} &ndash; {{ week.end|date:"j M" }}{% else %}{{ week.start|date:"j M" }} &ndash; {{ week.end|date:"j M" }}{% endif %}
+                </span>
+                {% if week.start <= today and today <= week.end %}<span class="ac-badge ac-badge--accent">This week</span>{% endif %}
+                {% if forloop.first %}<span class="ac-badge ac-badge--info">Semester starts</span>{% endif %}
+                {% if forloop.last %}<span class="ac-badge ac-badge--info">Semester ends {{ semester.end_date|date:"j M" }}</span>{% endif %}
+            </header>
+
+            <ol class="tl-days">
+                {% for day in week.days %}
+                {% if day.classes or day.assignments or day.holiday or day.is_today %}
+                <li class="tl-day{% if day.is_today %} is-today{% elif day.date < today %} is-past{% endif %}"
+                    id="day-{{ day.date|date:'Y-m-d' }}" data-tl-day data-date="{{ day.date|date:'Y-m-d' }}">
+
+                    <div class="tl-date">
+                        <time datetime="{{ day.date|date:'Y-m-d' }}" aria-label="{{ day.date|date:'l, j F Y' }}">
+                            <span>{{ day.date|date:"D" }}</span>
+                            <strong>{{ day.date|date:"j" }}</strong>
+                            <span>{{ day.date|date:"M" }}</span>
+                        </time>
+                    </div>
+
+                    <ul class="tl-events">
+                        {% if day.is_today %}
+                        <li class="tl-today" data-tl-event data-kind="today"><span class="ac-badge ac-badge--accent">Today</span></li>
+                        {% endif %}
+
+                        {% if day.holiday %}
+                        <li class="tl-event tl-event--holiday{% if day.date != day.holiday.start_date %} is-cont{% endif %}" data-tl-event data-kind="holiday">
+                            <span class="tl-event__icon" aria-hidden="true"><svg class="ac-icon"><use href="#ac-i-sun"/></svg></span>
+                            <div class="tl-event__body">
+                                <p class="tl-event__title"><a href="{% url 'academic:holiday_list' %}#holiday-{{ day.holiday.pk }}">{{ day.holiday.title }}</a></p>
+                                <p class="ac-meta"><span>No classes
+                                    {% if day.holiday.start_date != day.holiday.end_date %}&middot; {{ day.holiday.start_date|date:"j M" }} &ndash; {{ day.holiday.end_date|date:"j M" }}{% endif %}</span></p>
+                            </div>
+                        </li>
+                        {% endif %}
+
+                        {% for c in day.classes %}
+                        <li class="tl-event tl-event--class{% if c.is_cancelled %} is-cancelled{% endif %}"
+                            {% if c.course.color %}style="--course: {{ c.course.color }}"{% endif %}
+                            data-tl-event data-kind="class">
+                            <span class="tl-event__time">{{ c.start_time|time:"g:i A" }}<small>{{ c.end_time|time:"g:i A" }}</small></span>
+                            <div class="tl-event__body">
+                                <p class="tl-event__title">{{ c.course_name }}</p>
+                                <p class="ac-meta">
+                                    {% if c.course.code %}<span class="ac-mono">{{ c.course.code }}</span>{% endif %}
+                                    {% if c.room %}<span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pin"/></svg>Room {{ c.room }}</span>{% endif %}
+                                    {% if c.is_cancelled and c.cancel_reason %}<span>{{ c.cancel_reason }}</span>{% endif %}
+                                </p>
+                            </div>
+                            {% if c.is_cancelled %}<span class="ac-badge ac-badge--cancelled">Cancelled</span>
+                            {% elif c.attendance_status == "absent" or c.attendance_status == "late" or c.attendance_status == "excused" %}
+                            <span class="ac-badge ac-badge--{{ c.attendance_status }}">{{ c.attendance_status|capfirst }}</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+
+                        {% for a in day.assignments %}
+                        <li class="tl-event tl-event--assignment{% if a.is_completed %} is-done{% elif a.due_date < today %} is-overdue{% endif %}"
+                            {% if a.course.color %}style="--course: {{ a.course.color }}"{% endif %}
+                            data-tl-event data-kind="assignment">
+                            <span class="tl-event__icon" aria-hidden="true"><svg class="ac-icon"><use href="#ac-i-clipboard"/></svg></span>
+                            <div class="tl-event__body">
+                                <p class="tl-event__title"><a href="{% url 'academic:assignment_list' %}#assignment-{{ a.pk }}">{{ a.title }}</a></p>
+                                <p class="ac-meta"><span><i class="ac-swatch" aria-hidden="true"></i>{{ a.course.name }}</span><span>Due</span></p>
+                            </div>
+                            {% if a.is_completed %}<span class="ac-badge ac-badge--done">Done</span>
+                            {% elif a.due_date < today %}<span class="ac-badge ac-badge--overdue">Overdue</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+
+                        {% if day.is_today and not day.classes and not day.assignments and not day.holiday %}
+                        <li class="tl-event tl-event--empty" data-tl-event data-kind="today">Nothing scheduled today.</li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ol>
+        </section>
+        {% endfor %}
+    </div>
+
+    <div class="tl-more" data-tl-more-wrap hidden>
+        <button type="button" class="ac-btn ac-btn--ghost" data-tl-more>Show more weeks</button>
+    </div>
+
+    <div class="ac-empty" data-tl-empty hidden>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-calendar"/></svg></span>
+        <p class="ac-empty__title" data-tl-empty-title>Nothing to show</p>
+        <p class="ac-empty__text" data-tl-empty-text>No events match this view. Try another filter.</p>
+        <a class="ac-btn ac-btn--ghost" href="{% url 'academic:routine_list' %}" data-tl-empty-link hidden>Open routine</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/timeline.js' %}" defer></script>
+{% endblock %}

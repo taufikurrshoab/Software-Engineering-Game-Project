@@ -1,3 +1,10 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import SemesterGPA
+
+
+@admin.register(SemesterGPA)
+class SemesterGPAAdmin(admin.ModelAdmin):
+    list_display = ("name", "student", "term", "gpa", "credits")
+    list_filter = ("student",)
+    ordering = ("student", "term")

@@ -1,0 +1,77 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% comment %}
+    What a visitor who is not signed in sees on every Academic feature URL.
+    Read-only: no forms, nothing is saved. The sample rows come from guest.preview_sample()
+    (generated in memory) and are labelled as demo data. Signed-in users never get this page.
+{% endcomment %}
+
+{% block academic_title %}{{ feature.title }}{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/academic-preview.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+<div class="pv">
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">Preview &middot; guest</span>
+            <h1 class="ac-title">{{ feature.title }}</h1>
+            <p class="ac-subtitle">{{ feature.text }}</p>
+        </div>
+        <a class="ac-btn ac-btn--primary" href="{{ login_url }}">Sign in to use this</a>
+    </header>
+
+    <div class="ac-demo" role="note" data-reveal>
+        <span class="ac-demo__badge">Demo data</span>
+        <p><strong>Anyone can look around.</strong> Creating, changing or deleting anything needs an account. The examples below are made-up samples, generated in memory and never saved.</p>
+    </div>
+
+    <div class="pv-grid">
+        <section class="ac-card" aria-labelledby="pv-points-title" data-reveal>
+            <div class="ac-card__head"><h2 class="ac-card__title" id="pv-points-title">What you can do here</h2></div>
+            <ul class="pv-points">
+                {% for point in points %}
+                <li><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-check"/></svg><span>{{ point }}</span></li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="ac-card" aria-labelledby="pv-sample-title" data-reveal>
+            <div class="ac-card__head">
+                <h2 class="ac-card__title" id="pv-sample-title">Sample</h2>
+                <span class="ac-badge ac-badge--soon">Demo data</span>
+            </div>
+            {% if sample %}
+            <ul class="ac-list">
+                {% for row in sample %}
+                <li class="ac-item"{% if row.dom_id %} id="{{ row.dom_id }}"{% endif %}{% if row.color %} style="--course: {{ row.color }}"{% endif %}>
+                    <div class="ac-item__body">
+                        <span class="ac-item__title">{{ row.title }}</span>
+                        <span class="ac-item__meta"><span>{{ row.meta }}</span></span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="ac-empty">
+                <p class="ac-empty__title">Nothing to sample here</p>
+                <p class="ac-empty__text">Sign in and this page fills with your own records.</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <section class="pv-cta" data-reveal>
+        <h2 class="pv-cta__title">Ready to use your own data?</h2>
+        <p class="ac-muted">Sign in to create a semester and start tracking. Your records are private to your account.</p>
+        <div class="pv-cta__actions">
+            <a class="ac-btn ac-btn--primary" href="{{ login_url }}">Sign in</a>
+            <a class="ac-btn ac-btn--ghost" href="{% url 'academic:dashboard' %}">Explore the demo dashboard</a>
+            <a class="ac-btn ac-btn--ghost" href="{% url 'academic:home' %}">Back to Academic</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

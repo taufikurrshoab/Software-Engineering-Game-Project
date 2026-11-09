@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Timeline (timeline.css)
+   Loaded after academic.css on the timeline page only. Uses the shared
+   tokens, chips, badges, buttons and empty states; everything here is .tl-*.
+   ========================================================================== */
+
+/* ---------- Toolbar ---------- */
+.tl-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; margin-bottom: 22px; }
+
+.tl-seg {
+    display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-surface) 75%, transparent);
+    border: 1px solid var(--border);
+}
+.tl-seg__btn {
+    padding: 6px 14px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+    font: inherit; font-size: .82rem; font-weight: 600; color: var(--text-muted);
+    transition: color var(--transition), background var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+.tl-seg__btn:hover { color: var(--text-main); }
+.tl-seg__btn:active { transform: scale(.96); }
+.tl-seg__btn[aria-pressed="true"] {
+    color: var(--text-main);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+/* ---------- Weeks ---------- */
+.tl { display: grid; gap: 34px; }
+.tl-week__head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 16px; }
+.tl-week__title { font-size: 1.02rem; font-weight: 650; letter-spacing: -.005em; }
+.tl-week__range { color: var(--text-muted); font-size: .86rem; font-variant-numeric: tabular-nums; }
+.tl-week.is-current .tl-week__title { color: var(--accent); }
+
+/* ---------- Days: tiles threaded on a vertical line ---------- */
+.tl-days { display: grid; gap: 14px; }
+.tl-day { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 16px; align-items: start; }
+.tl-day::before {                                  /* the thread between date tiles */
+    content: ""; position: absolute; left: 28px; top: 0; bottom: -14px; width: 2px; margin-left: -1px;
+    background: color-mix(in srgb, var(--text-main) 10%, transparent);
+}
+.tl-days > .tl-day:last-child::before { bottom: 0; }
+.tl-day.is-entering { animation: tl-in .45s var(--ac-ease) both; animation-delay: calc(var(--n, 0) * 55ms); }
+
+.tl-date { position: relative; z-index: 1; }
+.tl-date time {
+    display: grid; place-items: center; align-content: center; width: 58px; padding: 8px 0; line-height: 1.15;
+    border-radius: 14px; border: 1px solid var(--border); background: var(--bg-card);
+    transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.tl-date span { font-size: .66rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.tl-date strong { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tl-day:hover .tl-date time { border-color: var(--border-hover); }
+
+.tl-day.is-past .tl-date time { background: transparent; }
+.tl-day.is-past .tl-events { opacity: .66; transition: opacity var(--transition); }
+.tl-day.is-past:hover .tl-events { opacity: 1; }
+.tl-day.is-today .tl-date time {
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+    background: color-mix(in srgb, var(--accent) 18%, var(--bg-card));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.tl-day.is-today .tl-date span { color: var(--text-main); }
+
+/* ---------- Events ---------- */
+.tl-events { display: grid; gap: 8px; min-width: 0; padding-top: 2px; }
+.tl-today { display: flex; }
+.tl-event {
+    position: relative; display: flex; align-items: center; gap: 14px; padding: 11px 14px 11px 18px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+    transition: border-color var(--transition), background var(--transition), transform var(--transition);
+}
+.tl-event::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--course, var(--accent)); }
+.tl-event:hover { border-color: var(--border-hover); background: var(--bg-card); transform: translateX(2px); }
+.tl-event[hidden] { display: none; }
+
+.tl-event__time { display: grid; gap: 1px; min-width: 66px; font-size: .86rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.tl-event__time small { color: var(--text-muted); font-weight: 500; font-size: .74rem; }
+.tl-event__icon {
+    display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 10px;
+    color: var(--tone, var(--accent)); background: color-mix(in srgb, var(--tone, var(--accent)) 14%, transparent);
+}
+.tl-event__icon .ac-icon { width: 17px; height: 17px; }
+.tl-event__body { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.tl-event__title { font-weight: 600; font-size: .94rem; line-height: 1.3; overflow-wrap: anywhere; }
+.tl-event__title a { transition: color var(--transition); }
+.tl-event__title a:hover { color: var(--accent); }
+.tl-event .ac-meta { font-size: .8rem; gap: 2px 14px; }
+.tl-event .ac-meta .ac-icon { width: 13px; height: 13px; }
+
+.tl-event--holiday { --tone: var(--secondary, #a78bfa); --course: var(--secondary, #a78bfa); }
+.tl-event--holiday.is-cont { padding-block: 8px; }
+.tl-event--holiday.is-cont .ac-meta { display: none; }
+.tl-event--assignment { --tone: var(--ac-warning); }
+.tl-event--assignment.is-done { --tone: var(--ac-success); opacity: .7; }
+.tl-event--assignment.is-done .tl-event__title { text-decoration: line-through; text-decoration-color: var(--text-muted); color: var(--text-muted); }
+.tl-event--assignment.is-overdue { --tone: var(--ac-danger); border-color: color-mix(in srgb, var(--ac-danger) 38%, var(--border)); }
+.tl-event.is-cancelled { opacity: .62; }
+.tl-event.is-cancelled .tl-event__title { text-decoration: line-through; text-decoration-color: var(--text-muted); }
+.tl-event--empty { padding-left: 18px; color: var(--text-muted); font-size: .88rem; border-style: dashed; background: transparent; }
+.tl-event--empty::before { display: none; }
+.tl-event--empty:hover { transform: none; background: transparent; border-color: var(--border); }
+
+.tl-more { display: flex; justify-content: center; margin-top: 26px; }
+
+/* ---------- Motion ---------- */
+.tl-week.is-entering { animation: tl-in .45s var(--ac-ease) both; }
+@keyframes tl-in { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) {
+    .tl-day.is-entering, .tl-week.is-entering { animation: none; }
+    .tl-event:hover { transform: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+    .tl-day { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; }
+    .tl-day::before { left: 24px; }
+    .tl-date time { width: 48px; padding: 6px 0; border-radius: 12px; }
+    .tl-date strong { font-size: 1.1rem; }
+    .tl-event { flex-wrap: wrap; gap: 8px 12px; }
+    .tl-event__time { min-width: 0; grid-auto-flow: column; gap: 6px; align-items: baseline; }
+    .tl-event__body { flex-basis: 100%; order: 3; }
+    .tl-event--holiday .tl-event__body, .tl-event--assignment .tl-event__body { flex-basis: calc(100% - 60px); order: 0; }
+    .tl-seg { width: 100%; }
+    .tl-seg__btn { flex: 1; }
+}

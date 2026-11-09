@@ -1,0 +1,28 @@
+{% extends 'academic/academic_base.html' %}
+
+{% block academic_title %}Edit course{% endblock %}
+
+{% block academic_content %}
+<div class="ac-form-page">
+    <a class="ac-back" href="{% url 'academic:course_list' %}">
+        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-chevron"/></svg>Courses</a>
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Edit {{ course.name }}</h1>
+            <p class="ac-subtitle">Name and colour changes apply everywhere this course appears.</p>
+        </div>
+    </header>
+
+    <section class="ac-card ac-card--accent ac-course" style="--course: {{ course.color }}" data-reveal>
+        <form method="post" class="ac-form">
+            {% include 'academic/_form_body.html' with form=form wide_fields="name" %}
+            <div class="ac-form__actions">
+                <a class="ac-btn ac-btn--ghost" href="{% url 'academic:course_list' %}">Cancel</a>
+                <button type="submit" class="ac-btn ac-btn--primary">Save changes</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

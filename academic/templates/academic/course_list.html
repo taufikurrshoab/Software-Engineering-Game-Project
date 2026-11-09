@@ -1,0 +1,81 @@
+{% extends 'academic/academic_base.html' %}
+
+{% block academic_title %}Courses{% endblock %}
+
+{% block academic_content %}
+<header class="ac-page-head" data-reveal>
+    <div>
+        <span class="ac-eyebrow">{{ semester.name }}</span>
+        <h1 class="ac-title">Courses</h1>
+        <p class="ac-subtitle">Add each course once. You pick them when building your routine, adding assignments and entering grades.</p>
+    </div>
+    <div class="ac-head-actions">
+        <button type="button" class="ac-btn ac-btn--primary" data-ac-open="course-dialog">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Add course</button>
+    </div>
+</header>
+
+{% if courses %}
+<p class="ac-meta ac-summary" data-reveal>
+    <span><strong>{{ courses|length }}</strong> course{{ courses|length|pluralize }}</span>
+    <span><strong>{{ total_credits|floatformat:"-1" }}</strong> total credits</span>
+</p>
+
+<div class="ac-grid">
+    {% for c in courses %}
+    <article class="ac-card ac-card--accent ac-card--interactive ac-course" style="--course: {{ c.color }}" data-reveal>
+        <div>
+            {% if c.code %}<span class="ac-course__code">{{ c.code }}</span>{% endif %}
+            <h2 class="ac-course__name">{{ c.name }}</h2>
+        </div>
+
+        <p class="ac-meta">
+            <span><strong>{{ c.credit|floatformat:"-1" }}</strong> credit{{ c.credit|pluralize }}</span>
+            {% if c.teacher %}<span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-user"/></svg>{{ c.teacher }}</span>{% endif %}
+        </p>
+
+        <p class="ac-meta">
+            <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clock"/></svg>{{ c.class_total }} weekly class{{ c.class_total|pluralize:"es" }}</span>
+            <span><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-clipboard"/></svg>{{ c.pending_total }} pending</span>
+        </p>
+
+        <div class="ac-card-actions">
+            <a class="ac-btn ac-btn--ghost ac-btn--sm" href="{% url 'academic:course_edit' c.pk %}">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pencil"/></svg>Edit</a>
+            <form method="post" action="{% url 'academic:course_delete' c.pk %}" class="ac-inline-form"
+                  data-ac-confirm="Delete {{ c.name }}? Its weekly classes, assignments and grade are removed too. Courses with attendance history cannot be deleted."
+                  data-ac-confirm-title="Delete course?" data-ac-confirm-label="Delete">
+                {% csrf_token %}
+                <button type="submit" class="ac-btn ac-btn--danger ac-btn--sm">
+                    <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg>Delete</button>
+            </form>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div class="ac-empty" data-reveal>
+    <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-book"/></svg></span>
+    <p class="ac-empty__title">No courses in this semester</p>
+    <p class="ac-empty__text">Add the courses you are taking, then build your weekly routine from them.</p>
+    <button type="button" class="ac-btn ac-btn--primary" data-ac-open="course-dialog">Add your first course</button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block academic_dialogs %}
+<dialog class="ac-dialog" id="course-dialog" aria-labelledby="course-dialog-title"{% if form.errors %} data-ac-open-on-load{% endif %}>
+    <div class="ac-dialog__head">
+        <h2 class="ac-dialog__title" id="course-dialog-title">Add course</h2>
+        <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-close aria-label="Close">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg></button>
+    </div>
+    <form method="post" class="ac-dialog__body ac-form">
+        {% include 'academic/_form_body.html' with form=form wide_fields="name" %}
+        <div class="ac-form__actions">
+            <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Cancel</button>
+            <button type="submit" class="ac-btn ac-btn--primary">Add course</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}

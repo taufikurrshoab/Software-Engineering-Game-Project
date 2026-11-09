@@ -1,0 +1,132 @@
+{% extends 'academic/academic_base.html' %}
+{% load static %}
+
+{% block academic_title %}Holidays{% endblock %}
+
+{% block academic_css %}
+<link rel="stylesheet" href="{% static 'academic/holiday.css' %}">
+{% endblock %}
+
+{% block academic_content %}
+{% now "Y-m-d" as today_iso %}
+<div data-holidays>
+
+    <header class="ac-page-head" data-reveal>
+        <div>
+            <span class="ac-eyebrow">{{ semester.name }}</span>
+            <h1 class="ac-title">Holidays</h1>
+            <p class="ac-subtitle">No classes are held on these days. The timeline and attendance skip them automatically.</p>
+        </div>
+        <div class="ac-head-actions">
+            <button type="button" class="ac-btn ac-btn--primary" data-ac-open="holiday-dialog">
+                <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-plus"/></svg>Add holiday</button>
+        </div>
+    </header>
+
+    {% if holidays %}
+    <section class="ac-card hl-strip" data-hl-strip
+             data-start="{{ semester.start_date|date:'Y-m-d' }}" data-end="{{ semester.end_date|date:'Y-m-d' }}"
+             aria-label="Holidays across the semester" hidden>
+        <div class="hl-strip__head">
+            <p class="hl-strip__next" data-hl-next></p>
+            <span class="ac-muted hl-strip__range">{{ semester.start_date|date:"j M" }} &ndash; {{ semester.end_date|date:"j M Y" }}</span>
+        </div>
+        <div class="hl-strip__track" data-hl-track role="group" aria-label="Holiday dates"></div>
+    </section>
+
+    <div data-ac-filter-group>
+        {% if holidays|length > 1 %}
+        <div class="hl-toolbar" data-reveal>
+            <div class="ac-chips" role="group" aria-label="Filter holidays">
+                <button type="button" class="ac-chip" data-ac-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="ac-chip" data-ac-filter="upcoming" aria-pressed="false">Upcoming</button>
+                <button type="button" class="ac-chip" data-ac-filter="past" aria-pressed="false">Past</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <ul class="hl-list">
+            {% for h in holidays %}
+            {% with start_iso=h.start_date|date:"Y-m-d" end_iso=h.end_date|date:"Y-m-d" %}
+            <li class="hl-item" id="holiday-{{ h.pk }}" data-reveal data-hl-item data-ac-item
+                data-ac-status="{% if end_iso < today_iso %}past{% elif start_iso > today_iso %}upcoming{% else %}upcoming current{% endif %}"
+                data-id="{{ h.pk }}" data-title="{{ h.title }}" data-start="{{ start_iso }}" data-end="{{ end_iso }}">
+                <div class="hl-date" aria-hidden="true">
+                    <span>{{ h.start_date|date:"M" }}</span>
+                    <strong>{{ h.start_date|date:"j" }}</strong>
+                </div>
+
+                <div class="hl-item__body">
+                    <h2 class="hl-item__title">{{ h.title }}</h2>
+                    <p class="ac-meta">
+                        <span>
+                            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-calendar"/></svg>
+                            {% if h.start_date == h.end_date %}{{ h.start_date|date:"D, j M Y" }}
+                            {% elif h.start_date|date:"Y-m" == h.end_date|date:"Y-m" %}{{ h.start_date|date:"j" }} &ndash; {{ h.end_date|date:"j M Y" }}
+                            {% else %}{{ h.start_date|date:"j M" }} &ndash; {{ h.end_date|date:"j M Y" }}{% endif %}
+                        </span>
+                        <span data-hl-duration hidden></span>
+                    </p>
+                </div>
+
+                <span class="ac-badge {% if end_iso < today_iso %}ac-badge--info{% elif start_iso > today_iso %}ac-badge--holiday{% else %}ac-badge--accent{% endif %} hl-status" data-hl-status>
+                    {% if end_iso < today_iso %}Ended{% elif start_iso > today_iso %}Upcoming{% else %}Ongoing{% endif %}</span>
+
+                <div class="hl-item__actions">
+                    <a class="ac-btn ac-btn--icon ac-btn--ghost" href="{% url 'academic:holiday_edit' h.pk %}"
+                       aria-label="Edit {{ h.title }}" title="Edit">
+                        <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-pencil"/></svg></a>
+                    <form method="post" action="{% url 'academic:holiday_delete' h.pk %}" class="ac-inline-form"
+                          data-ac-confirm="Delete {{ h.title }}? Classes on these days will count again in your timeline and attendance."
+                          data-ac-confirm-title="Delete holiday?" data-ac-confirm-label="Delete">
+                        {% csrf_token %}
+                        <button type="submit" class="ac-btn ac-btn--icon ac-btn--ghost hl-remove"
+                                aria-label="Delete {{ h.title }}" title="Delete">
+                            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-trash"/></svg></button>
+                    </form>
+                </div>
+            </li>
+            {% endwith %}
+            {% endfor %}
+        </ul>
+
+        <div class="ac-empty" data-ac-filter-empty hidden>
+            <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-sun"/></svg></span>
+            <p class="ac-empty__title">Nothing to show here</p>
+            <p class="ac-empty__text">No holidays match this filter. Choose &ldquo;All&rdquo; to see every holiday.</p>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="ac-empty" data-reveal>
+        <span class="ac-empty__icon"><svg class="ac-icon" aria-hidden="true"><use href="#ac-i-sun"/></svg></span>
+        <p class="ac-empty__title">No holidays yet</p>
+        <p class="ac-empty__text">Add exam breaks, public holidays or any day off. Classes on those days are skipped everywhere.</p>
+        <button type="button" class="ac-btn ac-btn--primary" data-ac-open="holiday-dialog">Add your first holiday</button>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block academic_dialogs %}
+<dialog class="ac-dialog" id="holiday-dialog" aria-labelledby="holiday-dialog-title"{% if form.errors %} data-ac-open-on-load{% endif %}>
+    <div class="ac-dialog__head">
+        <h2 class="ac-dialog__title" id="holiday-dialog-title">Add holiday</h2>
+        <button type="button" class="ac-btn ac-btn--icon ac-btn--ghost" data-ac-close aria-label="Close">
+            <svg class="ac-icon" aria-hidden="true"><use href="#ac-i-x"/></svg></button>
+    </div>
+    <form method="post" class="ac-dialog__body ac-form" data-hl-form
+          data-sem-start="{{ semester.start_date|date:'Y-m-d' }}" data-sem-end="{{ semester.end_date|date:'Y-m-d' }}">
+        {% include 'academic/_form_body.html' with form=form wide_fields="title" %}
+        <p class="hl-hint" data-hl-hint role="status" aria-live="polite">Leave the end date empty for a single day.</p>
+        <div class="ac-form__actions">
+            <button type="button" class="ac-btn ac-btn--ghost" data-ac-close>Cancel</button>
+            <button type="submit" class="ac-btn ac-btn--primary">Add holiday</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block academic_js %}
+<script src="{% static 'academic/holiday.js' %}" defer></script>
+{% endblock %}

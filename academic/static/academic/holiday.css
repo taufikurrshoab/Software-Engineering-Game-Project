@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Holidays (holiday.css)
+   Loaded after academic.css on the holiday pages only. Uses the shared tokens,
+   buttons, chips, badges, dialogs and empty states; everything here is .hl-*.
+   ========================================================================== */
+
+.hl-toolbar { margin-bottom: 16px; }
+
+/* ---------- Semester strip: where the breaks fall ---------- */
+.hl-strip { margin-bottom: 22px; }
+.hl-strip.is-ready { animation: hl-in .5s var(--ac-ease) both; }
+.hl-strip__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.hl-strip__next { font-size: .92rem; color: var(--text-muted); }
+.hl-strip__next strong { color: var(--text-main); font-weight: 650; }
+.hl-strip__range { font-size: .8rem; font-variant-numeric: tabular-nums; }
+
+.hl-strip__track {
+    --p: 0;
+    position: relative; height: 34px; margin-top: 16px; border-radius: 10px;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--accent) 18%, transparent) calc(var(--p) * 1%),
+        color-mix(in srgb, var(--text-main) 7%, transparent) 0);
+}
+.hl-seg {
+    --tone: var(--secondary, #a78bfa);
+    position: absolute; top: 4px; bottom: 4px; padding: 0; border: 0; cursor: pointer;
+    left: calc(var(--l, 0) * 1%); width: max(calc(var(--w, 1) * 1%), 8px);
+    border-radius: 7px; transform-origin: left center;
+    background: color-mix(in srgb, var(--tone) 72%, transparent);
+    transition: background var(--transition), box-shadow var(--transition), opacity var(--transition);
+    animation: hl-grow .6s var(--ac-ease) both; animation-delay: calc(var(--n, 0) * 80ms + 150ms);
+}
+.hl-seg:hover, .hl-seg:focus-visible, .hl-seg.is-active {
+    background: var(--tone);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 28%, transparent);
+}
+.hl-seg.is-past { opacity: .5; }
+.hl-today {
+    position: absolute; top: -5px; bottom: -5px; left: calc(var(--l, 0) * 1%);
+    width: 2px; margin-left: -1px; border-radius: 2px; background: var(--accent); pointer-events: none;
+}
+.hl-today::before {
+    content: ""; position: absolute; top: -3px; left: -3px; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--accent);
+}
+
+/* ---------- List ---------- */
+.hl-list { display: grid; gap: 12px; }
+.hl-item {
+    display: flex; align-items: center; gap: 16px; padding: 14px 14px 14px 16px;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-card); box-shadow: var(--shadow-card);
+    transition: border-color var(--transition), background var(--transition), opacity var(--transition);
+}
+.hl-item:hover, .hl-item.is-linked { border-color: var(--border-hover); }
+.hl-item.is-next { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+.hl-item.is-past { opacity: .62; }
+.hl-item.is-past:hover, .hl-item.is-past.is-linked { opacity: 1; }
+.hl-item.is-flash { animation: hl-flash 1.8s var(--ac-ease); }
+
+.hl-date {
+    --tone: var(--secondary, #a78bfa);
+    display: grid; place-items: center; align-content: center; gap: 0; flex: none;
+    width: 54px; height: 58px; border-radius: 14px; color: var(--tone);
+    background: color-mix(in srgb, var(--tone) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 28%, transparent);
+}
+.hl-date span { font-size: .72rem; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; line-height: 1.2; }
+.hl-date strong { font-size: 1.4rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+.hl-item__body { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.hl-item__title { font-size: 1rem; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.hl-status { flex: none; transition: color var(--transition), background var(--transition); }
+
+.hl-item__actions { display: flex; align-items: center; gap: 2px; flex: none; }
+.hl-item__actions .ac-btn--icon { border-color: transparent; background: transparent; }
+.hl-item__actions .ac-btn--icon:hover { border-color: var(--border-hover); background: var(--bg-surface); }
+.hl-item__actions .hl-remove:hover { color: var(--ac-danger); }
+@media (hover: hover) {
+    .hl-item__actions { opacity: .5; transition: opacity var(--transition); }
+    .hl-item:hover .hl-item__actions, .hl-item:focus-within .hl-item__actions { opacity: 1; }
+}
+
+.hl-edit { --card-accent: var(--secondary, #a78bfa); }
+
+/* ---------- Form hint ---------- */
+.hl-hint { min-height: 1.4em; margin-top: -4px; color: var(--text-muted); font-size: .84rem; transition: color var(--transition); }
+.hl-hint.is-warn { color: var(--ac-warning); }
+.hl-hint.is-pop { animation: hl-in .25s var(--ac-ease); }
+
+/* ---------- Motion ---------- */
+@keyframes hl-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes hl-grow { from { transform: scaleX(0); opacity: 0; } }
+@keyframes hl-flash {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 18%, var(--bg-card)); }
+    60%  { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hl-strip.is-ready, .hl-seg, .hl-hint.is-pop, .hl-item.is-flash { animation: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+    .hl-item { flex-wrap: wrap; gap: 12px 14px; }
+    .hl-item__body { flex-basis: calc(100% - 70px); }
+    .hl-status { order: 3; }
+    .hl-item__actions { order: 4; margin-left: auto; }
+}
