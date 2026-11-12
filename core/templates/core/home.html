@@ -45,7 +45,6 @@
                     <li>Academic</li>
                     <li>Skills</li>
                     <li>Visual Lab</li>
-                    <li>Play Game</li>
                 </ul>
             </div>
 
@@ -61,7 +60,6 @@
                             <li class="is-active"><b>▤</b> Academic</li>
                             <li><b>⌘</b> Skills</li>
                             <li><b>◈</b> Visual Lab</li>
-                            <li><b>⬢</b> Play Game</li>
                         </ul>
 
                         <div class="home-preview__main">
@@ -87,15 +85,6 @@
                                     <small>Visual Lab</small>
                                     <div class="home-preview__bars">
                                         <i></i><i></i><i></i><i></i><i></i><i></i>
-                                    </div>
-                                </div>
-
-                                <div class="home-preview__tile home-preview__tile--practice">
-                                    <small>Play Game</small>
-                                    <div class="home-preview__grid">
-                                        <i></i><i></i><i></i>
-                                        <i></i><i></i><i></i>
-                                        <i></i><i></i><i></i>
                                     </div>
                                 </div>
                             </div>
@@ -204,30 +193,6 @@
                     <a href="{% url 'visual_lab:home' %}"
                        class="home-module-card__link">
                         Enter Visual Lab →
-                    </a>
-                </article>
-
-                <!-- Mind Arena Module -->
-                <article class="home-module-card home-module-card--arena" data-reveal>
-                    <div class="home-module-card__visual" aria-hidden="true">
-                        <i></i><i></i><i></i><i></i>
-                    </div>
-
-                    <div class="home-module-card__top">
-                        <span class="home-module-card__icon" aria-hidden="true">⬢</span>
-                        <span class="home-badge home-badge--live">Available</span>
-                    </div>
-
-                    <h3>Play Game</h3>
-
-                    <p>
-                        Sharpen logic and problem solving through
-                        puzzles and strategy games.
-                    </p>
-
-                    <a href="{% url 'mind_arena:home' %}"
-                       class="home-module-card__link">
-                        Open Play Game →
                     </a>
                 </article>
 
@@ -356,13 +321,6 @@
                     <p>Watch algorithms run step by step.</p>
                     <small class="home-flow__tag">Visual Lab</small>
                 </li>
-
-                <li class="home-flow__step" data-reveal>
-                    <span class="home-flow__num">04</span>
-                    <h3>Practice</h3>
-                    <p>Test your thinking through challenges.</p>
-                    <small class="home-flow__tag">Play Game</small>
-                </li>
             </ol>
 
         </div>
@@ -404,7 +362,6 @@
                 <a href="{% url 'academic:home' %}">Academic</a>
                 <a href="{% url 'skill:home' %}">Skills</a>
                 <a href="{% url 'visual_lab:home' %}">Visual Lab</a>
-                <a href="{% url 'mind_arena:home' %}">Play Game</a>
             </nav>
 
             <small>© ThinkSphere</small>
