@@ -1,687 +1,2658 @@
-/* Homepage styles. Theme variables come from site.css. */
+/* =========================================================
+   THINKSPHERE HOMEPAGE — CLEAN FINAL CSS
+   Compatible with the supplied home.html and home.js
+   ========================================================= */
 
-/* Local values (derived from site.css, not a second theme) */
-.home {
-    --home-container: 1120px;
-    --home-section-space: 88px;
+/* ---------- Theme ---------- */
 
-    --home-primary-soft: color-mix(in srgb, var(--primary) 16%, transparent);
-    --home-secondary-soft: color-mix(in srgb, var(--secondary) 16%, transparent);
-    --home-accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-    --home-glow: color-mix(in srgb, var(--primary) 40%, transparent);
-    --home-glass: color-mix(in srgb, var(--bg-card) 72%, transparent);
-    --home-border-hover: color-mix(in srgb, var(--accent) 45%, var(--border));
+.ts-home {
+    --bg: #080D19;
+    --bg2: #101827;
+    --card: #131D30;
+    --primary: #648CFF;
+    --secondary: #8B6CFF;
+    --accent: #43D9CE;
+    --text: #F1F5FF;
+    --muted: #9AA9C2;
+    --line: rgba(154,169,194,.18);
 
-    color: var(--text-main);
-    line-height: 1.6;
-}
+    --font: "Avenir Next", "Segoe UI", Inter, system-ui, sans-serif;
+    --display: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 
-/* Reset (low specificity so components can override) */
-:where(.home) h1,
-:where(.home) h2,
-:where(.home) h3,
-:where(.home) p,
-:where(.home) ul,
-:where(.home) ol { margin: 0; padding: 0; }
-:where(.home) ul,
-:where(.home) ol { list-style: none; }
-:where(.home) a { color: inherit; text-decoration: none; }
-:where(.home) *,
-:where(.home) *::before,
-:where(.home) *::after { box-sizing: border-box; }
-
-/* Layout */
-.home-container {
-    width: min(100% - 40px, var(--home-container));
-    margin-inline: auto;
-}
-.home-section { padding-block: var(--home-section-space); }
-.home-section--alt { background: var(--bg-surface); }
-.home-section--tight { padding-block: 24px var(--home-section-space); }
-
-.home-section__head { max-width: 560px; margin-bottom: 44px; }
-.home-section__title {
-    margin: 10px 0;
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-}
-.home-section__text { color: var(--text-muted); }
-
-.home-eyebrow {
-    display: inline-block;
-    color: var(--accent);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-}
-.home-gradient-text {
-    background: linear-gradient(90deg, var(--accent), var(--secondary));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-/* Buttons */
-.home-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 22px;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: transform var(--transition), box-shadow var(--transition),
-                border-color var(--transition), background var(--transition);
-}
-.home-btn:hover { transform: translateY(-2px); }
-.home-btn--primary {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: var(--text-main);
-    box-shadow: 0 6px 20px var(--home-glow);
-}
-.home-btn--ghost {
-    background: var(--home-glass);
-    border-color: var(--border);
-    color: var(--text-main);
-}
-.home-btn--ghost:hover { border-color: var(--home-border-hover); }
-
-.home-badge {
-    padding: 3px 10px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-muted);
-    font-size: 0.68rem;
-    font-weight: 600;
-}
-.home-badge--live {
-    border-color: transparent;
-    background: var(--home-accent-soft);
-    color: var(--accent);
-}
-
-/* Hero */
-.home-hero {
     position: relative;
-    overflow: hidden;
-    padding-block: 80px 72px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.6;
+    background: transparent;
+    isolation: isolate;
 }
-.home-hero__glow {
+
+.ts-home *,
+.ts-home *::before,
+.ts-home *::after {
+    box-sizing: border-box;
+}
+
+.ts-home * {
+    margin: 0;
+}
+
+html:has(.ts-home) {
+    min-height: 100%;
+    overflow-x: hidden;
+    background:
+        radial-gradient(ellipse at 18% 25%, rgba(43,68,125,.34), transparent 65%),
+        radial-gradient(ellipse at 78% 30%, rgba(69,43,116,.28), transparent 65%),
+        radial-gradient(ellipse at 50% 90%, rgba(17,82,87,.18), transparent 65%),
+        #080D19;
+    background-attachment: fixed;
+}
+
+body:has(.ts-home) {
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    background: transparent !important;
+}
+
+.ts-home a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.ts-home button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.ts-home :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+/* ---------- Full page background ---------- */
+
+.ts-home::before {
+    content: "";
     position: absolute;
-    top: -20%;
-    right: -10%;
-    width: 560px;
-    height: 560px;
-    background: radial-gradient(circle, var(--home-glow), transparent 65%);
-    opacity: 0.5;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(58rem 38rem at 18% 10%, rgba(43,68,125,.20), transparent 72%),
+        radial-gradient(52rem 36rem at 78% 14%, rgba(69,43,116,.18), transparent 72%),
+        linear-gradient(180deg, rgba(8,13,25,.05), rgba(8,13,25,.45));
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.ts-home .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    width: 100%;
+    min-height: 100svh;
+
+    padding: 18px 20px 30px;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* Aurora background */
+
+.ts-home .aurora {
+    position: absolute;
+    inset: -15%;
+    z-index: -1;
+    pointer-events: none;
+
+    background:
+        radial-gradient(40% 35% at 30% 30%, rgba(100,140,255,.22), transparent),
+        radial-gradient(35% 30% at 72% 40%, rgba(139,108,255,.20), transparent),
+        radial-gradient(30% 25% at 50% 85%, rgba(67,217,206,.12), transparent);
+
+    animation: ts-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes ts-drift {
+    to {
+        transform: translate3d(3%,2%,0) scale(1.08);
+    }
+}
+
+/* OUR SERVICES — your HTML has a direct h1, not a hero-heading wrapper */
+
+.ts-home .hero > h1 {
+    position: relative;
+    z-index: 2;
+
+    display: block;
+    width: auto;
+
+    margin: 0;
+    padding: 0;
+
+    font-family: var(--display);
+    font-size: clamp(30px, 3.2vw, 43px);
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: .30em;
+
+    color: var(--text);
+}
+
+/* Tagline directly below heading */
+
+.ts-home .hero > .tag {
+    position: relative;
+    z-index: 2;
+
+    display: inline-block;
+    width: fit-content;
+
+    margin: 5px 0 0;
+    padding: 5px 14px;
+
+    border-radius: 999px;
+    background: rgba(100,140,255,.13);
+
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* =========================================================
+   HALF CIRCLE / STAGE
+   ========================================================= */
+
+.ts-home .stage {
+    position: relative;
+
+    width: min(1000px, 100%);
+    height: clamp(390px, 48vw, 540px);
+
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+/* SVG orbit */
+
+.ts-home .orbit {
+    position: absolute;
+    inset: 0;
+
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    overflow: visible;
     pointer-events: none;
 }
-.home-hero__inner {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr 1.05fr;
-    gap: 48px;
+
+/* Orbit animation */
+
+.ts-home .arc1 {
+    filter: drop-shadow(0 0 7px rgba(100,160,255,.65));
+}
+
+.ts-home .arc2 {
+    transition: opacity 1s ease;
+}
+
+.ts-home .stage:not(.ready) .arc2 {
+    opacity: 0;
+}
+
+.ts-home .odot {
+    opacity: .85;
+    filter: drop-shadow(0 0 5px #43D9CE);
+    animation: ts-fade-in 1.2s both;
+}
+
+@keyframes ts-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Service selector container */
+
+.ts-home #items {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+}
+
+/* Service selector buttons */
+
+.ts-home .item {
+    position: absolute;
+
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 3px;
+
+    padding: 6px 10px;
+
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+
+    font-family: var(--font);
+    white-space: nowrap;
+
+    transform: translate(-50%, -50%);
+    transition: color .3s, text-shadow .3s;
+    will-change: transform, opacity;
 }
-.home-hero__title {
-    margin: 14px 0 16px;
-    font-size: clamp(2rem, 4.6vw, 3.1rem);
-    line-height: 1.12;
-    letter-spacing: -0.02em;
+
+.ts-home .item .il {
+    font-family: var(--display);
+    font-size: clamp(15px, 1.8vw, 21px);
+    line-height: 1.2;
+    transition: color .25s;
 }
-.home-hero__text { max-width: 500px; color: var(--text-muted); }
-.home-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-.home-hero__meta {
+
+.ts-home .item .im {
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: .20em;
+    text-transform: uppercase;
+    opacity: .75;
+}
+
+.ts-home .item:hover .il {
+    color: #fff;
+}
+
+.ts-home .item.on {
+    text-shadow: 0 0 28px rgba(100,140,255,.8);
+}
+
+.ts-home .item.on .im {
+    opacity: 1;
+    text-shadow: 0 0 14px rgba(67,217,206,.7);
+}
+
+/* =========================================================
+   ACTIVE SERVICE DESCRIPTION
+   ========================================================= */
+
+/*
+   IMPORTANT:
+   JS calculates the desktop top position dynamically.
+   Therefore, do not override top/left with another rule.
+*/
+
+.ts-home .detail {
+    position: absolute;
+    z-index: 4;
+
+    left: 50%;
+    top: 40%;
+
+    width: min(460px, 64%);
+    min-height: 0;
+
+    padding: 12px 8px 0;
+    margin: 0;
+
+    text-align: center;
+    transform: translateX(-50%);
+}
+
+/* Active title is displayed as the service selector label */
+
+.ts-home #ttl {
+    display: none;
+}
+
+/* Description */
+
+.ts-home .detail p {
+    margin-top: 10px;
+
+    color: var(--muted);
+    font-size: clamp(14px, 1.4vw, 17px);
+    line-height: 1.75;
+}
+
+/* Keyword chips */
+
+.ts-home .kws {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 32px;
-}
-.home-hero__meta li {
-    padding: 4px 12px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-}
-
-/* Hero preview */
-.home-hero__visual { position: relative; padding: 0 0 28px 0; }
-.home-preview {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card), 0 0 60px var(--home-primary-soft);
-    overflow: hidden;
-}
-.home-preview__bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 11px 16px;
-    border-bottom: 1px solid var(--border);
-}
-.home-preview__bar i {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--border);
-}
-.home-preview__bar span {
-    margin-left: 10px;
-    color: var(--text-muted);
-    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-    font-size: 0.72rem;
-}
-.home-preview__body { display: flex; min-height: 300px; }
-.home-preview__nav {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    width: 140px;
-    padding: 14px 10px;
-    border-right: 1px solid var(--border);
-}
-.home-preview__nav li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
-    font-size: 0.8rem;
-}
-.home-preview__nav li b { font-weight: 400; color: var(--text-muted); }
-.home-preview__nav li.is-active {
-    background: var(--home-primary-soft);
-    color: var(--text-main);
-    box-shadow: inset 0 0 0 1px var(--primary);
-}
-.home-preview__nav li.is-active b { color: var(--accent); }
-
-.home-preview__main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 16px;
-    min-width: 0;
-}
-.home-preview__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.home-preview__head strong { font-size: 0.9rem; }
-.home-preview__head small { color: var(--text-muted); font-size: 0.72rem; }
-
-.home-preview__tiles {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-.home-preview__tile {
-    --tile-accent: var(--primary);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-top: 2px solid var(--tile-accent);
-    border-radius: var(--radius-sm);
-}
-.home-preview__tile small { color: var(--text-muted); font-size: 0.7rem; }
-.home-preview__tile--academic { --tile-accent: var(--primary); }
-.home-preview__tile--skills { --tile-accent: var(--secondary); }
-.home-preview__tile--lab { --tile-accent: var(--accent); }
-.home-preview__tile--practice { --tile-accent: color-mix(in srgb, var(--secondary) 60%, var(--accent)); }
-
-.home-preview__line {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--border);
-}
-.home-preview__line--short { width: 60%; }
-.home-preview__tag {
-    width: 70%;
-    height: 14px;
-    border-radius: 999px;
-    background: var(--home-secondary-soft);
-    border: 1px solid var(--secondary);
-}
-.home-preview__tag--short { width: 45%; }
-
-.home-preview__bars {
-    flex: 1;
-    display: flex;
-    align-items: flex-end;
-    gap: 5px;
-    min-height: 40px;
-}
-.home-preview__bars i {
-    flex: 1;
-    border-radius: 3px 3px 1px 1px;
-    background: linear-gradient(to top, var(--home-accent-soft), var(--accent));
-}
-.home-preview__bars i:nth-child(1) { height: 35%; }
-.home-preview__bars i:nth-child(2) { height: 60%; }
-.home-preview__bars i:nth-child(3) { height: 45%; }
-.home-preview__bars i:nth-child(4) { height: 80%; }
-.home-preview__bars i:nth-child(5) { height: 55%; }
-.home-preview__bars i:nth-child(6) { height: 95%; }
-
-.home-preview__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    width: 64px;
-}
-.home-preview__grid i {
-    aspect-ratio: 1;
-    border-radius: 3px;
-    background: var(--border);
-}
-.home-preview__grid i:nth-child(1),
-.home-preview__grid i:nth-child(5),
-.home-preview__grid i:nth-child(9) { background: var(--tile-accent); }
-
-.home-preview__progress {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--border);
-    overflow: hidden;
-}
-.home-preview__progress-fill {
-    display: block;
-    width: 62%;
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-}
-
-.home-preview__float {
-    position: absolute;
-    right: 16px;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    background: var(--home-glass);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
-    backdrop-filter: blur(10px);
-}
-.home-preview__float strong { display: block; font-size: 0.8rem; }
-.home-preview__float small { color: var(--text-muted); font-size: 0.7rem; }
-.home-preview__float-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 10px var(--accent);
-}
-
-/* Module cards */
-.home-module-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-.home-module-card {
-    --card-accent: var(--primary);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 22px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    transition: transform var(--transition), border-color var(--transition),
-                box-shadow var(--transition);
-}
-.home-module-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--card-accent);
-    box-shadow: var(--shadow-card),
-                0 0 24px color-mix(in srgb, var(--card-accent) 22%, transparent);
-}
-.home-module-card--academic { --card-accent: var(--primary); }
-.home-module-card--skills { --card-accent: var(--secondary); }
-.home-module-card--lab {
-    --card-accent: var(--accent);
-    background: linear-gradient(160deg, var(--home-accent-soft), var(--bg-card) 55%);
-}
-.home-module-card--arena { --card-accent: color-mix(in srgb, var(--secondary) 60%, var(--accent)); }
-
-.home-module-card h3 { font-size: 1.15rem; }
-.home-module-card p { flex: 1; color: var(--text-muted); font-size: 0.9rem; }
-
-.home-module-card__visual {
-    display: flex;
-    height: 70px;
-    padding: 12px;
-    background: color-mix(in srgb, var(--card-accent) 8%, var(--bg-surface));
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-}
-.home-module-card__top { display: flex; align-items: center; justify-content: space-between; }
-.home-module-card__icon {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--card-accent) 16%, transparent);
-    color: var(--card-accent);
-    font-size: 1.15rem;
-}
-.home-module-card__link {
-    margin-top: 4px;
-    color: var(--card-accent);
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-.home-module-card__link--soon {
-    color: var(--text-muted);
-    font-weight: 500;
-    pointer-events: none;
-    cursor: default;
-}
-
-/* Card mini-visuals */
-.home-module-card--academic .home-module-card__visual,
-.home-module-card--skills .home-module-card__visual {
-    flex-direction: column;
     justify-content: center;
-    gap: 7px;
-}
-.home-module-card--academic .home-module-card__visual span {
-    height: 6px;
-    border-radius: 3px;
-    background: color-mix(in srgb, var(--card-accent) 45%, var(--border));
-}
-.home-module-card--academic .home-module-card__visual span:nth-child(2) { width: 80%; }
-.home-module-card--academic .home-module-card__visual span:nth-child(3) { width: 55%; }
-.home-module-card--skills .home-module-card__visual span {
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--card-accent) 50%, var(--border) 50%);
-}
-.home-module-card--skills .home-module-card__visual span:nth-child(1) { background: linear-gradient(90deg, var(--card-accent) 85%, var(--border) 85%); }
-.home-module-card--skills .home-module-card__visual span:nth-child(3) { background: linear-gradient(90deg, var(--card-accent) 30%, var(--border) 30%); }
+    gap: 8px;
 
-.home-module-card--lab .home-module-card__visual {
-    align-items: flex-end;
-    gap: 6px;
+    margin-top: 16px;
 }
-.home-module-card--lab .home-module-card__visual i {
-    flex: 1;
-    border-radius: 3px 3px 1px 1px;
-    background: var(--card-accent);
-    opacity: 0.8;
-}
-.home-module-card--lab .home-module-card__visual i:nth-child(1) { height: 40%; }
-.home-module-card--lab .home-module-card__visual i:nth-child(2) { height: 70%; }
-.home-module-card--lab .home-module-card__visual i:nth-child(3) { height: 50%; }
-.home-module-card--lab .home-module-card__visual i:nth-child(4) { height: 100%; }
-.home-module-card--lab .home-module-card__visual i:nth-child(5) { height: 65%; }
 
-.home-module-card--arena .home-module-card__visual {
+.ts-home .kw {
+    position: relative;
+
+    padding: 7px 14px;
+
+    border: 1px solid rgba(100,140,255,.35);
+    border-radius: 999px;
+
+    background: rgba(19,29,48,.65);
+    backdrop-filter: blur(8px);
+
+    color: var(--text);
+    font-size: 13px;
+
+    transition:
+        border-color .25s,
+        background .25s,
+        transform .25s;
+}
+
+.ts-home .kw:hover,
+.ts-home .kw:focus-visible,
+.ts-home .kw.show {
+    border-color: var(--accent);
+    background: rgba(67,217,206,.12);
+    transform: translateY(-2px);
+}
+
+/* Tooltip */
+
+.ts-home .kw::after {
+    content: attr(data-tip);
+
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+
+    width: max-content;
+    max-width: min(230px, 70vw);
+
+    padding: 8px 12px;
+
+    border: 1px solid var(--line);
+    border-radius: 12px;
+
+    background: #0e1830;
+    color: var(--muted);
+
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transform: translate(-50%, 4px);
+    transition: .2s;
+    z-index: 10;
+}
+
+.ts-home .kw:hover::after,
+.ts-home .kw:focus-visible::after,
+.ts-home .kw.show::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* Explore button */
+
+.ts-home .ctaw {
+    margin-top: 20px;
+}
+
+.ts-home .cta {
+    display: inline-block;
+
+    margin-top: 0;
+    padding: 11px 27px;
+
+    border: 0;
+    border-radius: 999px;
+
+    background: linear-gradient(120deg, var(--primary), var(--secondary));
+    box-shadow: 0 8px 30px rgba(100,140,255,.3);
+
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+
+    transition: transform .25s, box-shadow .25s;
+}
+
+.ts-home .cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(100,140,255,.4);
+}
+
+/* =========================================================
+   REVEAL ANIMATION — IMPORTANT FIX
+   ========================================================= */
+
+/*
+   Keep the content visible even if the arc animation has not completed.
+   The JS still controls the reveal by adding .ready to .stage.
+*/
+
+.ts-home .stage .rv {
+    opacity: 0;
+    visibility: visible;
+
+    transform: translateY(14px);
+
+    transition:
+        opacity .55s ease,
+        transform .55s ease;
+
+    transition-delay: calc(var(--i, 0) * .14s);
+}
+
+.ts-home .stage.ready .rv {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+}
+
+/* During service switching */
+
+.ts-home .stage.ready .rv.swap {
+    opacity: 0 !important;
+    transform: translateY(10px) !important;
+    transition-delay: 0s;
+}
+
+/* Never let a global rule hide the service description */
+
+.ts-home .stage.ready .detail,
+.ts-home .stage.ready .detail .rv {
+    display: block;
+    visibility: visible;
+}
+
+/* =========================================================
+   WHY THINKSPHERE
+   ========================================================= */
+
+.ts-home .why {
+    position: relative;
+    padding: 85px 20px 70px;
+
+    background: linear-gradient(
+        180deg,
+        rgba(8,13,25,.95),
+        rgba(16,24,39,.98)
+    );
+}
+
+.ts-home .why-head {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.ts-home .why-head h2 {
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(30px, 4vw, 48px);
+    font-weight: 750;
+    letter-spacing: -.02em;
+}
+
+.ts-home .why-head p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 17px;
+}
+
+.ts-home .why-grid {
+    position: relative;
+
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-}
-.home-module-card--arena .home-module-card__visual i {
-    border-radius: 6px;
-    background: var(--border);
-}
-.home-module-card--arena .home-module-card__visual i:nth-child(1),
-.home-module-card--arena .home-module-card__visual i:nth-child(4) { background: var(--card-accent); }
+    grid-template-columns: minmax(300px, 5fr) 7fr;
+    gap: 48px;
 
-/* Visual Lab showcase */
-.home-showcase {
-    display: grid;
-    grid-template-columns: 0.9fr 1.1fr;
-    gap: 56px;
-    align-items: center;
+    max-width: 1100px;
+    min-height: 260vh;
+
+    margin: 48px auto 0;
 }
-.home-steps {
+
+/* Timeline */
+
+.ts-home .tl {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.ts-home .tl .line {
+    position: absolute;
+    left: 20px;
+    top: 29px;
+    bottom: 29px;
+
+    width: 2px;
+    background: rgba(100,140,255,.25);
+}
+
+.ts-home .tl .line b {
+    display: block;
+    width: 100%;
+    height: 0;
+
+    background: #6fc3d4;
+    transition: height .5s;
+}
+
+.ts-home .tq {
+    position: relative;
+    display: block;
+    width: 100%;
+
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+
+    text-align: left;
+}
+
+.ts-home .tq .dot {
+    position: absolute;
+    left: 14px;
+    top: 22px;
+
+    width: 14px;
+    height: 14px;
+
+    border: 2px solid #6fc3d4;
+    border-radius: 50%;
+
+    background: #0b1222;
+    z-index: 1;
+
+    transition: .35s;
+}
+
+.ts-home .tq.on .dot {
+    background: #6fc3d4;
+    box-shadow: 0 0 14px rgba(111,195,212,.7);
+}
+
+.ts-home .tq .qt {
+    margin-left: 48px;
+    padding: 14px 22px;
+
+    border: 1px solid transparent;
+    border-radius: 26px;
+
+    transition: .35s;
+}
+
+.ts-home .tq.on .qt {
+    border-color: rgba(130,160,220,.4);
+    background: rgba(17,26,44,.9);
+}
+
+.ts-home .tq strong {
+    display: block;
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.ts-home .tq small {
+    display: none;
+    margin-top: 6px;
+
+    color: var(--muted);
+    font-size: 16px;
+}
+
+.ts-home .tq.on small {
+    display: block;
+}
+
+/* Information card */
+
+.ts-home .card-wrap {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.ts-home .big {
+    min-height: 480px;
+    padding: 26px;
+
+    border: 1px solid rgba(100,140,255,.3);
+    border-radius: 36px;
+
+    background: rgba(13,20,36,.78);
+    box-shadow: 0 30px 80px rgba(0,0,0,.3);
+
+    transition: opacity .35s, transform .35s;
+}
+
+.ts-home .big.out {
+    opacity: 0;
+    transform: translateY(14px);
+}
+
+/* Tabs */
+
+.ts-home .tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    padding: 6px;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+}
+
+.ts-home .tab {
+    padding: 10px 18px;
+
+    border: 0;
+    border-radius: 12px;
+
+    background: transparent;
+    color: var(--muted);
+
+    font-weight: 600;
+    transition: .25s;
+}
+
+.ts-home .tab:hover {
+    color: var(--text);
+}
+
+.ts-home .tab.on {
+    background: #17233b;
+    color: var(--text);
+}
+
+/* Tab content */
+
+.ts-home .panel {
+    min-height: 340px;
+    margin-top: 16px;
+    padding: 30px;
+
+    border: 1px solid var(--line);
+    border-radius: 28px;
+
+    background:
+        radial-gradient(rgba(154,169,194,.16) 1px, transparent 1px) 0 0 / 22px 22px,
+        #0e1626;
+}
+
+.ts-home .panel-body {
+    transition: opacity .2s, transform .2s;
+}
+
+.ts-home .panel-body.out {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.ts-home .panel h3 {
+    margin-bottom: 14px;
+
+    color: var(--text);
+    font-family: var(--font);
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.ts-home .panel p {
+    max-width: 62ch;
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1.8;
+}
+
+.ts-home .panel ul {
     display: grid;
     gap: 12px;
-    margin: 22px 0 28px;
-    counter-reset: step;
+
+    padding: 0;
+    list-style: none;
 }
-.home-steps li {
+
+.ts-home .panel li {
     position: relative;
-    padding-left: 38px;
-    color: var(--text-muted);
-    font-size: 0.93rem;
-    counter-increment: step;
+    padding-left: 24px;
+    font-size: 17px;
 }
-.home-steps li::before {
-    content: counter(step);
+
+.ts-home .panel li::before {
+    content: "";
     position: absolute;
     left: 0;
-    top: -1px;
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-.home-steps li.is-done { color: var(--text-main); }
-.home-steps li.is-done::before {
-    border-color: var(--primary);
-    background: var(--home-primary-soft);
-    color: var(--accent);
-}
-.home-steps li.is-current { color: var(--text-main); font-weight: 600; }
-.home-steps li.is-current::before {
-    border-color: var(--accent);
-    background: var(--home-accent-soft);
-    color: var(--accent);
-    box-shadow: 0 0 12px var(--home-accent-soft);
+    top: .7em;
+
+    width: 12px;
+    height: 2px;
+    background: var(--accent);
 }
 
-.home-lab {
-    padding: 20px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card), 0 0 60px var(--home-primary-soft);
+/* Research */
+
+.ts-home .panel .refs {
+    display: grid;
+    gap: 10px;
+    padding: 0;
+    border: 0;
 }
-.home-lab__bar {
+
+.ts-home .ref {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-.home-lab__bar small { color: var(--text-muted); font-weight: 400; }
+    align-items: center;
+    gap: 12px;
 
-.home-graph { display: block; width: 100%; height: auto; }
-.home-graph__edge { stroke: var(--border); stroke-width: 2; }
-.home-graph__edge.is-active { stroke: var(--primary); }
-.home-graph__node circle {
-    fill: var(--bg-surface);
-    stroke: var(--border);
-    stroke-width: 2;
+    padding: 12px 14px;
+
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+
+    color: var(--muted);
+    font-size: 14px;
 }
-.home-graph__node text {
-    fill: var(--text-muted);
+
+.ts-home .ref button {
+    padding: 4px 12px;
+
+    border: 1px solid var(--line);
+    border-radius: 999px;
+
+    background: transparent;
+    color: var(--accent);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.ts-home .ref button:hover {
+    background: rgba(67,217,206,.1);
+}
+
+/* =========================================================
+   SHOWCASE
+   ========================================================= */
+
+.ts-home .showcase {
+    position: relative;
+    padding: 80px 20px 100px;
+    background: rgba(16,24,39,.96);
+}
+
+.ts-home .showcase .why-head {
+    text-align: center;
+}
+
+.ts-home .viz-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
+
+    max-width: 1060px;
+    margin: 48px auto 0;
+}
+
+.ts-home .viz {
+    position: relative;
+    overflow: hidden;
+
+    padding: 26px 28px;
+
+    border: 1px solid var(--line);
+    border-radius: 22px;
+
+    background: var(--card);
+}
+
+.ts-home .viz::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(60% 40% at 50% 0, rgba(100,140,255,.14), transparent);
+}
+
+.ts-home .vh {
+    position: relative;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.ts-home .viz h3 {
+    margin-bottom: 10px;
+
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.ts-home .open {
+    color: var(--accent);
+    font-size: 14px;
+}
+
+.ts-home .open:hover {
+    text-decoration: underline;
+}
+
+.ts-home .lnk {
+    margin-left: 8px;
+    padding: 4px 8px;
+
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+}
+
+.ts-home .lnk:hover {
+    color: var(--text);
+}
+
+.ts-home .vb {
+    position: relative;
+    overflow-x: auto;
+}
+
+.ts-home .vb svg {
+    display: block;
+    width: 100%;
+    min-width: 640px;
+    height: auto;
+}
+
+.ts-home .vb.mini svg {
+    max-width: 420px;
+    min-width: 0;
+    margin: auto;
+}
+
+.ts-home .hint {
+    position: relative;
+    min-height: 3em;
+
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.ts-home .hint b {
+    color: var(--text);
+}
+
+/* SVG graph styles */
+
+.ts-home .e {
+    fill: none;
+    stroke: rgba(100,140,255,.4);
+    stroke-width: 1.6;
+    stroke-dasharray: none;
+    animation: none;
+    transition: .3s;
+}
+
+.ts-home .e.cy {
+    stroke: rgba(67,217,206,.45);
+}
+
+.ts-home .e.cv {
+    stroke: rgba(139,108,255,.5);
+}
+
+.ts-home .e.hl {
+    stroke: var(--accent);
+    stroke-width: 2.6;
+}
+
+.ts-home .mainline {
+    fill: none;
+    stroke: #9fd8ff;
+    stroke-width: 4;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(100,180,255,.6));
+    transition: .3s;
+}
+
+.ts-home .mainline.hl {
+    stroke: var(--accent);
+}
+
+.ts-home .n {
+    cursor: pointer;
+    transition: opacity .3s;
+}
+
+.ts-home .n rect,
+.ts-home .n circle {
+    fill: #0e1830;
+    stroke: var(--primary);
+    stroke-width: 2;
+    transition: .3s;
+}
+
+.ts-home .n.cy rect,
+.ts-home .n.cy circle {
+    stroke: var(--accent);
+}
+
+.ts-home .n.cv rect,
+.ts-home .n.cv circle {
+    stroke: #8B6CFF;
+}
+
+.ts-home .n .pt {
+    fill: var(--text);
     font-size: 14px;
     font-weight: 600;
     text-anchor: middle;
 }
-.home-graph__node.is-visited circle { fill: var(--home-primary-soft); stroke: var(--primary); }
-.home-graph__node.is-visited text { fill: var(--text-main); }
-.home-graph__node.is-current circle {
-    fill: var(--home-accent-soft);
-    stroke: var(--accent);
-    filter: drop-shadow(0 0 6px var(--accent));
-}
-.home-graph__node.is-current text { fill: var(--accent); }
-.home-graph__node.is-queued circle {
-    stroke: var(--secondary);
-    stroke-dasharray: 4 3;
-}
-.home-graph__node.is-queued text { fill: var(--text-main); }
 
-.home-lab__state {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 6px 0 16px;
+.ts-home .n .lt,
+.ts-home .lt {
+    fill: var(--text);
+    font-size: 14px;
+    font-weight: 600;
 }
-.home-lab__state div {
+
+.ts-home .lt {
+    text-anchor: start;
+}
+
+.ts-home .n .ic {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ts-home .n:hover rect,
+.ts-home .n:hover circle,
+.ts-home .n.sel rect,
+.ts-home .n.sel circle {
+    fill: rgba(100,140,255,.22);
+    filter: drop-shadow(0 0 9px var(--accent));
+}
+
+.ts-home .dim {
+    opacity: .28;
+}
+
+/* BFS mini graph */
+
+.ts-home .gn circle {
+    fill: var(--bg2);
+    stroke: var(--muted);
+    stroke-width: 1.5;
+    transition: .35s;
+}
+
+.ts-home .gn.vis circle {
+    fill: rgba(67,217,206,.25);
+    stroke: var(--accent);
+}
+
+.ts-home .gn.cur circle {
+    fill: rgba(139,108,255,.6);
+    stroke: var(--secondary);
+    filter: drop-shadow(0 0 7px var(--secondary));
+}
+
+.ts-home .gn text {
+    fill: var(--text);
+    font-size: 10px;
+    text-anchor: middle;
+}
+
+.ts-home .ge {
+    stroke: rgba(154,169,194,.3);
+    stroke-width: 1.5;
+    transition: .35s;
+}
+
+.ts-home .ge.on {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+}
+
+/* =========================================================
+   SKILL TREE
+   ========================================================= */
+
+.ts-home .canvas {
+    overflow-x: auto;
+
+    margin-top: 14px;
+    padding: 22px;
+
+    border: 1px solid var(--line);
+    border-radius: 20px;
+
+    background:
+        radial-gradient(rgba(154,169,194,.18) 1px, transparent 1px) 0 0 / 22px 22px,
+        #0d1424;
+}
+
+.ts-home .grp {
+    display: flex;
+    align-items: center;
+
+    min-width: max-content;
+    margin-bottom: 22px;
+}
+
+.ts-home .grp:last-child {
+    margin-bottom: 0;
+}
+
+.ts-home .rootcol {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ts-home .rootcol:has(.badge)::after {
+    content: "";
+    width: 28px;
+    height: 2px;
+    background: var(--line);
+}
+
+.ts-home .badge {
+    z-index: 1;
+
+    width: 26px;
+    height: 26px;
+    margin-left: -10px;
+
+    border: 1px solid var(--line);
+    border-radius: 50%;
+
+    background: #131d30;
+    font-size: 12px;
+}
+
+.ts-home .kids {
+    position: relative;
+
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 10px 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-}
-.home-lab__state small { color: var(--text-muted); font-size: 0.7rem; }
-.home-lab__state code {
-    color: var(--accent);
-    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-    font-size: 0.85rem;
+    gap: 14px;
+
+    padding-left: 28px;
 }
 
-.home-progress {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--border);
-    overflow: hidden;
-}
-.home-progress__fill {
-    display: block;
-    width: 60%;
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-}
-
-/* Flow */
-.home-flow {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-.home-flow__step {
-    position: relative;
-    padding: 4px 0 0;
-}
-.home-flow__step::before {
+.ts-home .kids::before {
     content: "";
-    display: block;
+    position: absolute;
+    left: 0;
+    top: 29px;
+    bottom: 29px;
+
+    width: 2px;
+    background: var(--line);
+}
+
+.ts-home .kid {
+    position: relative;
+}
+
+.ts-home .kid::before {
+    content: "";
+    position: absolute;
+    left: -28px;
+    top: 50%;
+
+    width: 28px;
     height: 2px;
-    margin-bottom: 18px;
-    background: linear-gradient(90deg, var(--primary), var(--border));
-}
-.home-flow__step:nth-child(2)::before { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
-.home-flow__step:nth-child(3)::before { background: linear-gradient(90deg, var(--secondary), var(--accent)); }
-.home-flow__step:nth-child(4)::before { background: linear-gradient(90deg, var(--accent), var(--border)); }
-
-.home-flow__num {
-    color: var(--accent);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-}
-.home-flow__step h3 { margin: 6px 0 6px; font-size: 1.2rem; }
-.home-flow__step p { color: var(--text-muted); font-size: 0.9rem; }
-.home-flow__tag {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 3px 10px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-muted);
-    font-size: 0.72rem;
+    background: var(--line);
 }
 
-/* CTA */
-.home-cta {
+.ts-home .grp.hl .kids::before,
+.ts-home .grp.hl .kid::before,
+.ts-home .grp.hl .rootcol::after {
+    background: var(--accent);
+}
+
+.ts-home .grp.collapsed .kids {
+    display: none;
+}
+
+.ts-home .grp.collapsed .rootcol::after {
+    display: none;
+}
+
+/* Skill pills */
+
+.ts-home .pill {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 40px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background:
-        radial-gradient(ellipse at top left, var(--home-primary-soft), transparent 70%),
-        var(--bg-card);
-}
-.home-cta h2 { font-size: clamp(1.4rem, 3vw, 1.9rem); }
-.home-cta p { margin-top: 6px; color: var(--text-muted); }
-.home-cta__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    gap: 12px;
 
-/* Footer */
-.home-footer {
-    padding-block: 28px;
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border);
+    min-width: 220px;
+    padding: 7px 24px 7px 7px;
+
+    border: 1px solid var(--line);
+    border-radius: 999px;
+
+    background: #131d30;
+    text-align: left;
+
+    transition: .3s;
 }
-.home-footer__inner {
+
+.ts-home .pill:hover,
+.ts-home .pill.sel {
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgba(67,217,206,.25);
+}
+
+.ts-home .pill.dim {
+    opacity: .3;
+}
+
+.ts-home .pill.link {
+    border-color: var(--accent);
+}
+
+.ts-home .pill strong {
+    display: block;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ts-home .pill small {
+    color: var(--muted);
+}
+
+/* Progress ring */
+
+.ts-home .ring {
+    display: grid;
+    place-items: center;
+
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--primary) calc(var(--p) * 1%),
+        #26324a 0
+    );
+}
+
+.ts-home .ring b {
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+    background: #131d30;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ts-home .pill.done .ring {
+    background: conic-gradient(var(--accent) calc(var(--p) * 1%), #26324a 0);
+}
+
+.ts-home .pill.none .ring {
+    background: conic-gradient(#3a4660 calc(var(--p) * 1%), #26324a 0);
+}
+
+.ts-home .pill.proj {
+    padding-left: 22px;
+    border-style: dashed;
+    border-color: rgba(139,108,255,.7);
+}
+
+/* Legend */
+
+.ts-home .legend {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    gap: 20px;
+
+    margin: 16px 2px 6px;
+
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.ts-home .legend .d {
+    display: inline-block;
+
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+
+    border-radius: 50%;
+    vertical-align: -1px;
+}
+
+.ts-home .d.done {
+    background: var(--accent);
+}
+
+.ts-home .d.prog {
+    background: var(--primary);
+}
+
+.ts-home .d.none {
+    border: 2px solid #3a4660;
+}
+
+.ts-home .d.proj {
+    border: 1px dashed var(--secondary);
+    border-radius: 3px;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.ts-home .foot {
+    padding: 64px 20px 36px;
+    border-top: 1px solid var(--line);
+}
+
+.ts-home .foot-top {
+    display: flex;
     justify-content: space-between;
-    gap: 16px;
-}
-.home-footer__links { display: flex; gap: 20px; }
-.home-footer__links a,
-.home-footer small { color: var(--text-muted); font-size: 0.88rem; }
-.home-footer__links a:hover { color: var(--text-main); }
+    flex-wrap: wrap;
+    gap: 30px;
 
-/* Responsive */
-@media (max-width: 1024px) {
-    .home-module-grid { grid-template-columns: repeat(2, 1fr); }
-    .home-showcase { gap: 36px; }
-    .home-flow { grid-template-columns: repeat(2, 1fr); row-gap: 32px; }
-}
-@media (max-width: 900px) {
-    .home { --home-section-space: 64px; }
-    .home-hero__inner,
-    .home-showcase { grid-template-columns: 1fr; }
-    .home-hero { padding-block: 56px 48px; }
-    .home-cta { flex-direction: column; align-items: flex-start; padding: 28px; }
-}
-@media (max-width: 600px) {
-    .home-module-grid,
-    .home-flow { grid-template-columns: 1fr; }
-    .home-preview__nav { display: none; }
-    .home-preview__float { right: 8px; }
-    .home-btn { width: 100%; }
-    .home-cta__actions { width: 100%; }
-    .home-lab { padding: 14px; }
-    .home-footer__inner { flex-direction: column; align-items: flex-start; }
+    max-width: 1100px;
+    margin: auto;
 }
 
-/* Reveal animation (only active once home.js adds .has-js to <html>) */
-.has-js .home [data-reveal] {
+.ts-home .foot strong {
+    font-family: var(--display);
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.ts-home .foot p {
+    color: var(--muted);
+}
+
+.ts-home .foot nav {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.ts-home .foot nav a {
+    color: var(--muted);
+    transition: color .2s;
+}
+
+.ts-home .foot nav a:hover {
+    color: var(--text);
+}
+
+.ts-home .made {
+    margin-top: 56px;
+
+    color: var(--text) !important;
+    font-family: var(--display);
+    font-size: clamp(18px, 2.4vw, 24px);
+    text-align: center;
+}
+
+/* Toast */
+
+.ts-home .toast {
+    position: fixed;
+    z-index: 60;
+
+    left: 50%;
+    bottom: 24px;
+
+    padding: 10px 20px;
+
+    border: 1px solid var(--line);
+    border-radius: 999px;
+
+    background: var(--card);
+
     opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+
+    transform: translate(-50%, 20px);
+    transition: .3s;
 }
-.has-js .home [data-reveal].is-visible { opacity: 1; transform: none; }
-.has-js .home .home-module-card:nth-child(2) { transition-delay: 0.08s; }
-.has-js .home .home-module-card:nth-child(3) { transition-delay: 0.16s; }
-.has-js .home .home-module-card:nth-child(4) { transition-delay: 0.24s; }
+
+.ts-home .toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 860px) {
+
+    .ts-home .why-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        min-height: 220vh;
+    }
+
+    .ts-home .tl {
+        position: sticky;
+        top: 76px;
+        z-index: 5;
+
+        grid-column: 1;
+        grid-row: 1;
+
+        flex-direction: row;
+        justify-content: center;
+        gap: 12px;
+
+        padding: 12px;
+
+        border-radius: 999px;
+        background: rgba(8,13,25,.9);
+        backdrop-filter: blur(10px);
+    }
+
+    .ts-home .tl .line {
+        display: none;
+    }
+
+    .ts-home .tq {
+        width: auto;
+        padding: 0;
+    }
+
+    .ts-home .tq .dot {
+        position: static;
+    }
+
+    .ts-home .tq .qt {
+        display: none;
+    }
+
+    .ts-home .card-wrap {
+        position: sticky;
+        top: 132px;
+
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .ts-home .big {
+        border-radius: 28px;
+    }
+
+    .ts-home .panel {
+        padding: 20px;
+    }
+}
+
+/* Tablet and mobile hero */
+
+@media (max-width: 700px) {
+
+    .ts-home .hero {
+        min-height: 100svh;
+        padding: 14px 14px 30px;
+    }
+
+    .ts-home .hero > h1 {
+        font-size: clamp(25px, 7vw, 34px);
+        letter-spacing: .18em;
+    }
+
+    .ts-home .hero > .tag {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .ts-home .stage {
+        width: 100%;
+        height: 260px;
+        margin-bottom: 350px;
+    }
+
+    .ts-home .detail {
+        top: calc(100% + 16px) !important;
+        left: 50%;
+
+        width: min(440px, 92vw) !important;
+        padding: 0 8px;
+
+        transform: translateX(-50%);
+    }
+
+    .ts-home .detail p {
+        font-size: 14px;
+    }
+
+    .ts-home .item .il {
+        font-size: 14px;
+    }
+
+    .ts-home .item .im {
+        font-size: 9px;
+    }
+
+    .ts-home .kw {
+        font-size: 12px;
+        padding: 6px 11px;
+    }
+
+    .ts-home .cta {
+        font-size: 14px;
+        padding: 10px 22px;
+    }
+
+    .ts-home .why {
+        padding-top: 55px;
+    }
+
+    .ts-home .why-head h2 {
+        font-size: 30px;
+    }
+
+    .ts-home .why-head p {
+        font-size: 14px;
+    }
+
+    .ts-home .big {
+        min-height: 400px;
+        padding: 16px;
+    }
+
+    .ts-home .panel {
+        padding: 18px;
+    }
+
+    .ts-home .viz {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 420px) {
+
+    .ts-home .hero > h1 {
+        font-size: 23px;
+        letter-spacing: .14em;
+    }
+
+    .ts-home .tabs {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .ts-home .tab {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .ts-home .ref {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* Accessibility */
 
 @media (prefers-reduced-motion: reduce) {
-    .has-js .home [data-reveal] { opacity: 1; transform: none; transition: none; }
-    .home-btn,
-    .home-module-card { transition: none; }
+    .ts-home *,
+    .ts-home *::before,
+    .ts-home *::after {
+        animation: none !important;
+        transition-duration: .01ms !important;
+        transition-delay: 0s !important;
+    }
+}
+
+/* =====================================================
+   FINAL OVERRIDE — THINKSPHERE HOMEPAGE
+   Fix: oversized hero + Why ThinkSphere layout
+   ===================================================== */
+
+/* ---------- HERO HEADING ---------- */
+
+.ts-home .hero > h1,
+.ts-home .hero h1 {
+    font-size: clamp(2rem, 4vw, 3.4rem) !important;
+    line-height: 1.1 !important;
+    letter-spacing: .22em !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-weight: 500 !important;
+}
+
+.ts-home .hero > .tag {
+    margin-top: 10px !important;
+    font-size: 13px !important;
+}
+
+/* ---------- HERO HEIGHT ---------- */
+
+.ts-home .hero {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 30px 20px 55px !important;
+}
+
+.ts-home .stage {
+    width: min(1000px, 100%) !important;
+    height: 390px !important;
+    margin: 8px auto 0 !important;
+}
+
+/* Active service content */
+
+.ts-home .detail {
+    width: min(420px, 60%) !important;
+}
+
+.ts-home .detail p {
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+}
+
+.ts-home .kws {
+    margin-top: 13px !important;
+    gap: 7px !important;
+}
+
+.ts-home .kw {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+}
+
+.ts-home .ctaw {
+    margin-top: 15px !important;
+}
+
+.ts-home .cta {
+    padding: 10px 23px !important;
+    font-size: 14px !important;
+}
+
+/* ---------- WHY THINKSPHERE ---------- */
+
+.ts-home .why {
+    position: relative;
+    padding: 85px 24px 90px !important;
+    background: linear-gradient(
+        180deg,
+        #080D19 0%,
+        #101827 100%
+    ) !important;
+}
+
+.ts-home .why .why-head {
+    max-width: 1100px;
+    margin: 0 auto 45px;
+    text-align: left !important;
+}
+
+.ts-home .why .why-head h2 {
+    font-size: clamp(2rem, 3.5vw, 2.8rem) !important;
+    font-weight: 700 !important;
+    letter-spacing: -.03em !important;
+}
+
+.ts-home .why .why-head p {
+    margin-top: 9px;
+    color: #9AA9C2;
+    font-size: 16px;
+}
+
+/* Two-column layout */
+
+.ts-home .why-grid {
+    display: grid !important;
+    grid-template-columns: minmax(280px, 5fr) 7fr !important;
+    align-items: start;
+    gap: 45px !important;
+
+    max-width: 1100px;
+    min-height: 280vh;
+    margin: 0 auto !important;
+    position: relative;
+}
+
+/* Left timeline */
+
+.ts-home #steps {
+    position: sticky;
+    top: 100px;
+    align-self: start;
+
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    grid-column: 1;
+    grid-row: 1;
+
+    padding-left: 0;
+}
+
+/* Timeline line */
+
+.ts-home #prog {
+    position: absolute;
+    left: 9px;
+    top: 20px;
+    bottom: 20px;
+
+    width: 2px;
+    background: rgba(100, 140, 255, .22);
+}
+
+.ts-home #prog b {
+    display: block;
+    width: 100%;
+    height: 0;
+    background: linear-gradient(#648CFF, #43D9CE);
+    transition: height .5s ease;
+}
+
+/* Timeline questions */
+
+.ts-home .tq {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 7px 0;
+
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.ts-home .tq .dot {
+    position: absolute;
+    left: 2px;
+    top: 20px;
+
+    width: 16px;
+    height: 16px;
+
+    border: 2px solid #6FC3D4;
+    border-radius: 50%;
+    background: #0B1222;
+
+    z-index: 2;
+    transition: .3s;
+}
+
+.ts-home .tq.on .dot {
+    background: #6FC3D4;
+    box-shadow: 0 0 14px rgba(111, 195, 212, .7);
+}
+
+.ts-home .tq .qt {
+    margin-left: 40px;
+    padding: 14px 18px;
+
+    border: 1px solid transparent;
+    border-radius: 20px;
+    transition: .3s;
+}
+
+.ts-home .tq.on .qt {
+    border-color: rgba(130, 160, 220, .35);
+    background: rgba(17, 26, 44, .9);
+}
+
+.ts-home .tq strong {
+    display: block;
+    color: #F1F5FF;
+    font-size: 17px;
+    line-height: 1.4;
+}
+
+.ts-home .tq small {
+    display: none;
+    margin-top: 6px;
+    color: #9AA9C2;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ts-home .tq.on small {
+    display: block;
+}
+
+/* Right information card */
+
+.ts-home #info {
+    position: sticky;
+    top: 100px;
+    align-self: start;
+
+    grid-column: 2;
+    grid-row: 1;
+
+    min-height: 460px;
+    padding: 25px;
+
+    border: 1px solid rgba(100, 140, 255, .3);
+    border-radius: 30px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(19, 29, 48, .96),
+        rgba(13, 20, 36, .95)
+    );
+
+    box-shadow: 0 25px 70px rgba(0, 0, 0, .3);
+
+    transition: opacity .3s, transform .3s;
+}
+
+.ts-home #info.out {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+/* Tabs */
+
+.ts-home #info .tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 5px;
+
+    border: 1px solid rgba(154, 169, 194, .18);
+    border-radius: 15px;
+}
+
+.ts-home #info .tab {
+    padding: 9px 15px;
+    border: 0;
+    border-radius: 10px;
+
+    background: transparent;
+    color: #9AA9C2;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ts-home #info .tab.on {
+    background: #17233B;
+    color: #F1F5FF;
+}
+
+/* Content panel */
+
+.ts-home #info .panel {
+    min-height: 320px;
+    margin-top: 18px;
+    padding: 25px;
+
+    border: 1px solid rgba(154, 169, 194, .15);
+    border-radius: 22px;
+
+    background:
+        radial-gradient(
+            rgba(154, 169, 194, .15) 1px,
+            transparent 1px
+        ) 0 0 / 22px 22px,
+        #0E1626;
+}
+
+.ts-home #info .panel-body {
+    transition: opacity .2s, transform .2s;
+}
+
+.ts-home #info .panel-body.out {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.ts-home #info .panel h3 {
+    margin-bottom: 15px;
+    color: #F1F5FF;
+    font-size: 23px;
+    line-height: 1.4;
+}
+
+.ts-home #info .panel p {
+    color: #CBD5E1;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.ts-home #info .panel ul {
+    display: grid;
+    gap: 14px;
+    padding: 0;
+    list-style: none;
+}
+
+.ts-home #info .panel li {
+    position: relative;
+    padding-left: 23px;
+    color: #CBD5E1;
+    font-size: 15px;
+}
+
+.ts-home #info .panel li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 11px;
+    height: 2px;
+    background: #43D9CE;
+}
+
+/* Research list */
+
+.ts-home #info .refs {
+    display: grid;
+    gap: 12px;
+    border: 0;
+    padding: 0;
+}
+
+.ts-home #info .ref {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+
+    border: 1px dashed rgba(154, 169, 194, .25);
+    border-radius: 12px;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 860px) {
+    .ts-home .why-grid {
+        grid-template-columns: 1fr !important;
+        gap: 22px !important;
+        min-height: 220vh;
+    }
+
+    .ts-home #steps {
+        position: sticky;
+        top: 75px;
+        z-index: 5;
+
+        grid-column: 1;
+        grid-row: 1;
+
+        flex-direction: row;
+        justify-content: center;
+        gap: 12px;
+
+        padding: 12px;
+        border-radius: 999px;
+        background: rgba(8, 13, 25, .92);
+        backdrop-filter: blur(10px);
+    }
+
+    .ts-home #prog {
+        display: none;
+    }
+
+    .ts-home .tq {
+        width: auto;
+        padding: 0;
+    }
+
+    .ts-home .tq .dot {
+        position: static;
+    }
+
+    .ts-home .tq .qt {
+        display: none;
+    }
+
+    .ts-home #info {
+        position: sticky;
+        top: 135px;
+
+        grid-column: 1;
+        grid-row: 2;
+    }
+}
+
+@media (max-width: 700px) {
+    .ts-home .hero {
+        padding: 25px 12px 35px !important;
+    }
+
+    .ts-home .hero > h1 {
+        font-size: clamp(1.8rem, 7vw, 2.5rem) !important;
+        letter-spacing: .14em !important;
+    }
+
+    .ts-home .stage {
+        height: 270px !important;
+        margin-bottom: 340px !important;
+    }
+
+    .ts-home .detail {
+        top: calc(100% + 15px) !important;
+        width: 92vw !important;
+    }
+
+    .ts-home #info {
+        padding: 15px;
+        min-height: 400px;
+    }
+
+    .ts-home #info .panel {
+        padding: 16px;
+    }
+}
+
+/* ===== FIX STICKY SCROLL — WHY THINKSPHERE ===== */
+
+@media (min-width: 861px) {
+
+    .ts-home .why-grid {
+        display: grid !important;
+
+        grid-template-columns:
+            minmax(280px, 5fr)
+            minmax(0, 7fr) !important;
+
+        /* Important: make the actual grid row tall */
+        grid-template-rows: minmax(260vh, auto) !important;
+
+        align-items: start !important;
+        min-height: 260vh !important;
+        height: auto !important;
+
+        position: relative !important;
+        gap: 45px !important;
+    }
+
+    /* Left timeline stays in place */
+    .ts-home #steps {
+        position: sticky !important;
+        top: 100px !important;
+
+        align-self: start !important;
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+
+        height: fit-content !important;
+        z-index: 10;
+    }
+
+    /* Right information card stays in place */
+    .ts-home #info {
+        position: sticky !important;
+        top: 100px !important;
+
+        align-self: start !important;
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+
+        height: fit-content !important;
+        max-height: calc(100vh - 125px);
+        overflow-y: auto;
+    }
+
+}
+
+/* Mobile: normal document scrolling */
+@media (max-width: 860px) {
+
+    .ts-home .why-grid {
+        grid-template-rows: auto !important;
+        min-height: auto !important;
+        height: auto !important;
+    }
+
+    .ts-home #steps,
+    .ts-home .card-wrap {
+        position: relative !important;
+        top: auto !important;
+        width: 100%;
+    }
+
+    .ts-home #info {
+        position: relative !important;
+        top: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+}
+
+
+
+/* =========================================================
+   THINKSPHERE — FINAL HOMEPAGE INTERACTION FIXES
+   These rules intentionally supersede earlier conflicting
+   homepage overrides while preserving the original theme.
+   ========================================================= */
+
+/* Keep sticky positioning functional: clip horizontal overflow
+   without creating an overflow scroll container. */
+html:has(.ts-home),
+body:has(.ts-home) {
+    overflow-x: clip !important;
+    overflow-y: visible;
+}
+
+/* ---------- OUR SERVICES: compact centered heading ---------- */
+
+.ts-home .hero {
+    min-height: 100svh !important;
+    height: auto !important;
+    padding: 24px 20px 44px !important;
+    overflow: hidden;
+    justify-content: flex-start;
+}
+
+.ts-home .hero-heading {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: min(100%, 760px);
+    margin: 4px auto 0;
+    padding: 4px 12px 0;
+    text-align: center;
+}
+
+.ts-home .hero-heading h1 {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--display);
+    font-size: clamp(25px, 2.8vw, 36px);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: .22em;
+    text-align: center;
+}
+
+.ts-home .hero-heading .tag {
+    display: inline-block;
+    width: fit-content;
+    margin: 7px 0 0;
+    padding: 3px 13px;
+    border: 1px solid rgba(100,140,255,.18);
+    border-radius: 999px;
+    background: rgba(100,140,255,.10);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: .02em;
+    text-align: center;
+}
+
+.ts-home .stage {
+    width: min(1000px, 100%);
+    height: clamp(420px, 43vw, 510px);
+    margin: 18px auto 0 !important;
+    flex: 0 0 auto;
+}
+
+.ts-home .orbit {
+    overflow: visible;
+}
+
+.ts-home .detail {
+    width: min(450px, 62%);
+}
+
+.ts-home .detail p {
+    margin-top: 8px;
+    font-size: clamp(14px, 1.25vw, 16px);
+    line-height: 1.8;
+}
+
+.ts-home .kws {
+    margin-top: 14px;
+    gap: 8px;
+}
+
+.ts-home .kw {
+    padding: 7px 13px;
+    font-size: 12px;
+}
+
+.ts-home .ctaw {
+    margin-top: 16px;
+}
+
+.ts-home .item {
+    min-width: 0;
+    max-width: 34%;
+    white-space: normal;
+    text-align: center;
+}
+
+.ts-home .item .il {
+    font-size: clamp(14px, 1.65vw, 20px);
+    line-height: 1.3;
+}
+
+.ts-home .item .im {
+    font-size: 9px;
+}
+
+/* ---------- WHY THINKSPHERE: one reliable scroll track ---------- */
+
+.ts-home .why {
+    position: relative;
+    padding: 76px 24px 86px !important;
+    background: linear-gradient(180deg, #080D19 0%, #101827 100%) !important;
+}
+
+.ts-home .why .why-head {
+    max-width: 1100px;
+    margin: 0 auto 34px;
+    text-align: left;
+}
+
+.ts-home .why .why-head h2 {
+    color: var(--text);
+    font-size: clamp(30px, 3.5vw, 44px);
+    font-weight: 750;
+    letter-spacing: -.03em;
+}
+
+.ts-home .why .why-head p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+.ts-home .why-grid {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(260px, 5fr) minmax(0, 7fr) !important;
+    grid-template-rows: minmax(340vh, auto) !important;
+    align-items: start !important;
+    gap: clamp(24px, 4vw, 46px) !important;
+    width: min(1100px, 100%);
+    min-height: 340vh !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+}
+
+/* No ancestor of these sticky elements should clip them. */
+.ts-home .why,
+.ts-home .why-grid,
+.ts-home #steps,
+.ts-home #info {
+    overflow: visible;
+}
+
+.ts-home #steps {
+    position: sticky !important;
+    top: 104px !important;
+    z-index: 4;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding: 0 0 0 2px;
+}
+
+.ts-home #steps .line {
+    position: absolute;
+    left: 9px;
+    top: 23px;
+    bottom: 23px;
+    width: 2px;
+    border-radius: 2px;
+    background: rgba(100,140,255,.22);
+    pointer-events: none;
+}
+
+.ts-home #steps .line #prog {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 0;
+    border: 0;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #648CFF, #43D9CE);
+    transition: height .45s ease;
+}
+
+.ts-home .tq {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    padding: 5px 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+}
+
+.ts-home .tq .dot {
+    position: absolute;
+    left: 2px;
+    top: 21px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #6FC3D4;
+    border-radius: 50%;
+    background: #0B1222;
+    z-index: 2;
+    transition: background .3s, box-shadow .3s, transform .3s;
+}
+
+.ts-home .tq.on .dot {
+    background: #6FC3D4;
+    box-shadow: 0 0 14px rgba(111,195,212,.7);
+    transform: scale(1.12);
+}
+
+.ts-home .tq .qt {
+    display: block;
+    margin-left: 40px;
+    padding: 13px 17px;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    transition: background .3s, border-color .3s, transform .3s;
+}
+
+.ts-home .tq.on .qt {
+    border-color: rgba(130,160,220,.35);
+    background: rgba(17,26,44,.92);
+}
+
+.ts-home .tq strong {
+    display: block;
+    color: var(--text);
+    font-size: clamp(15px, 1.35vw, 18px);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.ts-home .tq small {
+    display: none;
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ts-home .tq.on small {
+    display: block;
+}
+
+.ts-home .card-wrap {
+    position: sticky !important;
+    top: 92px !important;
+    z-index: 3;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+    min-width: 0;
+}
+
+.ts-home #info {
+    position: relative !important;
+    top: auto !important;
+    z-index: 3;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+    width: 100%;
+    min-width: 0;
+    max-height: calc(100svh - 116px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 24px;
+    border: 1px solid rgba(100,140,255,.3);
+    border-radius: 30px;
+    background: linear-gradient(145deg, rgba(19,29,48,.97), rgba(13,20,36,.96));
+    box-shadow: 0 25px 70px rgba(0,0,0,.3);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100,140,255,.45) transparent;
+    transition: opacity .3s, transform .3s;
+}
+
+.ts-home #info.out {
+    opacity: .35;
+    transform: translateY(8px);
+}
+
+.ts-home #info .tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+}
+
+.ts-home #info .tab {
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    transition: background .25s, color .25s;
+}
+
+.ts-home #info .tab.on {
+    background: #17233B;
+    color: var(--text);
+}
+
+.ts-home #info .panel {
+    min-height: 300px;
+    margin-top: 16px;
+    padding: 23px;
+    border: 1px solid rgba(154,169,194,.15);
+    border-radius: 22px;
+    background:
+        radial-gradient(rgba(154,169,194,.15) 1px, transparent 1px) 0 0 / 22px 22px,
+        #0E1626;
+}
+
+.ts-home #info .panel h3 {
+    margin-bottom: 14px;
+    color: var(--text);
+    font-size: clamp(21px, 2.1vw, 27px);
+    line-height: 1.4;
+}
+
+.ts-home #info .panel p,
+.ts-home #info .panel li {
+    color: #CBD5E1;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.ts-home #info .panel ul {
+    display: grid;
+    gap: 12px;
+    padding: 0;
+    list-style: none;
+}
+
+.ts-home #info .panel li {
+    position: relative;
+    padding-left: 23px;
+}
+
+.ts-home #info .panel li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: .8em;
+    width: 11px;
+    height: 2px;
+    background: var(--accent);
+}
+
+.ts-home #info .refs {
+    display: grid;
+    gap: 11px;
+    padding: 0;
+    border: 0;
+}
+
+.ts-home #info .ref {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px dashed rgba(154,169,194,.25);
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.ts-home #info .ref button {
+    flex: 0 0 auto;
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--accent);
+    font-size: 12px;
+}
+
+/* ---------- TABLET AND MOBILE: natural flow, no forced pinning ---------- */
+
+@media (max-width: 860px) {
+    .ts-home .why {
+        padding: 58px 18px 68px !important;
+    }
+
+    .ts-home .why-grid {
+        display: flex !important;
+        flex-direction: column;
+        gap: 20px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        grid-template-rows: auto !important;
+    }
+
+    .ts-home #steps {
+        position: relative !important;
+        top: auto !important;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 0;
+    }
+
+    .ts-home #steps .line {
+        display: none;
+    }
+
+    .ts-home .tq {
+        min-width: 0;
+        padding: 0;
+    }
+
+    .ts-home .tq .dot {
+        display: none;
+    }
+
+    .ts-home .tq .qt {
+        height: 100%;
+        margin: 0;
+        padding: 12px 13px;
+        border: 1px solid rgba(130,160,220,.18);
+        border-radius: 15px;
+        background: rgba(17,26,44,.55);
+    }
+
+    .ts-home .tq.on .qt {
+        border-color: rgba(67,217,206,.55);
+        background: rgba(17,35,48,.9);
+    }
+
+    .ts-home .tq strong {
+        font-size: 14px;
+    }
+
+    .ts-home .tq small {
+        display: block;
+        font-size: 12px;
+    }
+
+    .ts-home .card-wrap {
+        position: relative !important;
+        top: auto !important;
+        width: 100%;
+    }
+
+    .ts-home #info {
+        position: relative !important;
+        top: auto !important;
+        max-height: none;
+        overflow: visible;
+        padding: 17px;
+        border-radius: 23px;
+    }
+
+    .ts-home #info .panel {
+        min-height: 240px;
+        padding: 17px;
+    }
+
+    .ts-home .hero {
+        min-height: 0 !important;
+        padding: 22px 14px 38px !important;
+    }
+
+    .ts-home .hero-heading {
+        margin-top: 2px;
+    }
+
+    .ts-home .hero-heading h1 {
+        font-size: clamp(23px, 5vw, 31px);
+        letter-spacing: .16em;
+    }
+
+    .ts-home .stage {
+        height: 560px;
+        margin-top: 10px !important;
+    }
+
+    .ts-home .detail {
+        top: 72% !important;
+        left: 50%;
+        width: min(440px, 92%) !important;
+        padding: 0 8px;
+    }
+
+    .ts-home .detail p {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .ts-home .item {
+        max-width: 38%;
+    }
+}
+
+@media (max-width: 520px) {
+    .ts-home .hero-heading h1 {
+        font-size: 22px;
+        letter-spacing: .13em;
+    }
+
+    .ts-home .hero-heading .tag {
+        font-size: 12px;
+    }
+
+    .ts-home .stage {
+        width: 100%;
+        height: 555px;
+    }
+
+    .ts-home .detail {
+        top: 71% !important;
+        width: 96% !important;
+    }
+
+    .ts-home .item .il {
+        font-size: 13px;
+    }
+
+    .ts-home .item .im {
+        font-size: 8px;
+        letter-spacing: .12em;
+    }
+
+    .ts-home .why .why-head h2 {
+        font-size: 29px;
+    }
+
+    .ts-home .why .why-head p {
+        font-size: 14px;
+    }
+
+    .ts-home #info .tabs {
+        display: flex;
+        width: 100%;
+    }
+
+    .ts-home #info .tab {
+        flex: 1 1 auto;
+        padding: 9px 8px;
+        font-size: 12px;
+    }
+
+    .ts-home #info .ref {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* Respect the visitor's reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+    .ts-home *,
+    .ts-home *::before,
+    .ts-home *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
 }
